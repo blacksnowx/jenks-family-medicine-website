@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Jenks Family Medicine{% endblock %}
+
+{% import 'macros.html' as macros %} {# Assuming you create macros.html for reusable components #}
+
+{% block head %}
+    {# Add page-specific meta tags or stylesheets here #}
+    <meta name="description" content="Jenks Family Medicine offers compassionate primary care in Chattanooga, TN, specializing in family health, veteran exams, and functional medicine.">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="container">
+        <h1>Compassionate Primary Care in Chattanooga</h1>
+        <p class="subheadline">
+            Jenks Family Medicine: Your partners in health, led by experienced Nurse Practitioners. Specializing in family wellness, sick visits, physicals, and dedicated care for U.S. Veterans and Servicemembers.
+        </p>
+        <a href="#" class="button">Schedule an Appointment</a> {# Link to scheduling system #}
+        <a href="{{ url_for('services') }}" class="button button-secondary">Explore Our Services</a> {# Style secondary button if needed #}
+    </div>
+</section>
+
+<section class="intro-section">
+    <div class="container">
+        <h2>Dedicated Care for Our Community</h2>
+        <p>Located conveniently in Chattanooga, TN, Jenks Family Medicine is a Nurse Practitioner-led clinic committed to providing accessible, high-quality healthcare. We serve the St. Elmo and Alton Park communities, offering personalized care for families and individuals, with a special focus on supporting our Veterans.</p>
+        {# You could add a small image or icon here #}
+    </div>
+</section>
+
+<section class="services-highlight" style="background-color: #f9f9f9; padding: 3em 0;">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 1.5em;">How We Can Help You</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2em; text-align: center;">
+            {# Example Service Card - Use real icons #}
+            <div class="service-card">
+                <img src="{{ url_for('static', filename='images/icon-primary-care.svg') }}" alt="Primary Care Icon" style="height: 50px; margin-bottom: 1em;">
+                <h3>Primary Care</h3>
+                <p>Annual physicals, chronic disease management (ages 8+), sick visits (ages 2+).</p>
+            </div>
+            <div class="service-card">
+                 <img src="{{ url_for('static', filename='images/icon-veteran.svg') }}" alt="Veteran Services Icon" style="height: 50px; margin-bottom: 1em;">
+                <h3>Veteran Services</h3>
+                <p>Expert Compensation & Pension Disability Examinations.</p>
+            </div>
+             <div class="service-card">
+                 <img src="{{ url_for('static', filename='images/icon-exams.svg') }}" alt="Specialty Exams Icon" style="height: 50px; margin-bottom: 1em;">
+                <h3>Specialty Exams</h3>
+                <p>DOT physicals, pre-employment, sports, and camp physicals.</p>
+            </div>
+             <div class="service-card">
+                 {# Add Functional Medicine Icon #}
+                 <img src="{{ url_for('static', filename='images/icon-functional.svg') }}" alt="Functional Medicine Icon" style="height: 50px; margin-bottom: 1em;">
+                <h3>Functional Medicine</h3>
+                <p>A holistic approach to uncover the root causes of health issues. <a href="{{ url_for('functional_medicine') }}">Learn More</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Add more sections as needed - e.g., Testimonials, Meet the Team Snippet #}
+
+{% endblock %}
+
+{% block year %}{{ current_year }}{% endblock %} {# Pass current_year from Flask #}

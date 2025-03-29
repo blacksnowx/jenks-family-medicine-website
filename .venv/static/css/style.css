@@ -1,0 +1,310 @@
+/* --- Font Imports --- */
+/* NOTE: You need to download the TTF/OTF/WOFF files and place them in static/fonts */
+/* Or find a CDN link if available (Google Fonts has Montserrat, Clash Grotesk might need self-hosting) */
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Light.ttf') format('truetype');
+    font-weight: 300; /* Light */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: 400; /* Regular */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Bold.ttf') format('truetype');
+    font-weight: 700; /* Bold */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clash Grotesk';
+    src: url('../fonts/ClashGrotesk-Light.ttf') format('truetype');
+    font-weight: 300; /* Light */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clash Grotesk';
+    src: url('../fonts/ClashGrotesk-Regular.ttf') format('truetype');
+    font-weight: 400; /* Regular */
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Clash Grotesk';
+    src: url('../fonts/ClashGrotesk-Medium.ttf') format('truetype');
+    font-weight: 500; /* Medium */
+    font-style: normal;
+}
+
+
+/* --- Variables --- */
+:root {
+    --primary-color: #37a4db; /* Curious Blue */
+    --accent-color: #000000;  /* Pure Black */
+    --background-color: #ffffff; /* Pure White */
+    --text-color: #333333; /* Slightly softer than pure black for body */
+    --heading-font: 'Montserrat', sans-serif;
+    --body-font: 'Clash Grotesk', sans-serif;
+    --base-font-size: 16px; /* Adjust as needed for responsiveness */
+    --body-tracking: 0.015625em; /* Equivalent to tracking 25 in design software (25/1000) */
+}
+
+/* --- Basic Reset & Body --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--body-font);
+    font-size: var(--base-font-size);
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    font-weight: 400; /* Regular */
+    letter-spacing: var(--body-tracking);
+}
+
+/* --- Headings --- */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--heading-font);
+    color: var(--primary-color); /* Use blue for main headings */
+    margin-bottom: 0.75em;
+    line-height: 1.2;
+    font-weight: 700; /* Bold */
+    letter-spacing: 0; /* Reset tracking for headers */
+}
+
+/* Rough Golden Ratio Sizing Example (Adjust based on design) */
+/* Base: ~21px body -> Subheader ~34px -> Header ~55px (adjusting from guidelines for web better) */
+/* Example: Assume base body is 1rem = 16px for calculations */
+p, li {
+    font-size: 1rem; /* ~16px */
+    margin-bottom: 1em;
+}
+
+h3 { /* Sub-sub header */
+    font-size: 1.5rem; /* ~24px */
+    font-weight: 400; /* Regular */
+    color: var(--accent-color); /* Black for sub-sub */
+}
+
+h2 { /* Subheader */
+    font-size: 2.125rem; /* ~34px */
+    font-weight: 700; /* Bold */
+}
+
+h1 { /* Main Header */
+    font-size: 3rem; /* ~48px */
+    font-weight: 700; /* Bold */
+}
+
+
+/* --- Links & Buttons --- */
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: darken(var(--primary-color), 10%); /* Needs SASS or manual darker shade */
+}
+
+.button, button {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    padding: 0.8em 1.5em;
+    border: none;
+    border-radius: 5px;
+    font-family: var(--heading-font);
+    font-weight: 700; /* Bold */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none; /* Remove underline from button links */
+}
+
+.button:hover, button:hover {
+    background-color: #2a8ac4; /* Slightly darker blue */
+    color: var(--background-color);
+    text-decoration: none;
+}
+
+/* --- Layout Containers --- */
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2em 0; /* Add vertical padding */
+}
+
+/* --- Header / Navigation --- */
+.main-header {
+    padding: 1em 0;
+    background-color: var(--background-color);
+    border-bottom: 1px solid #eee;
+}
+
+.main-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0; /* Remove default container padding */
+    width: 90%; /* Re-apply width */
+    max-width: 1100px; /* Re-apply max-width */
+    margin: 0 auto; /* Re-apply centering */
+}
+
+.logo img {
+    max-height: 60px; /* Adjust as needed */
+    display: block;
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+}
+
+.main-nav li {
+    margin-left: 1.5em;
+    margin-bottom: 0; /* Override default li margin */
+}
+
+.main-nav a {
+    font-family: var(--heading-font);
+    font-weight: 400; /* Regular */
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.main-nav a:hover,
+.main-nav a.active { /* Style for the current page */
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+
+/* --- Footer --- */
+.main-footer {
+    background-color: var(--accent-color);
+    color: #ccc; /* Light grey text on dark background */
+    padding: 2em 0;
+    font-size: 0.9rem;
+}
+
+.main-footer .container {
+     padding: 0; /* Remove default container padding */
+    width: 90%; /* Re-apply width */
+    max-width: 1100px; /* Re-apply max-width */
+    margin: 0 auto; /* Re-apply centering */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive columns */
+    gap: 1.5em;
+}
+
+.footer-col h4 {
+    color: var(--background-color); /* White headings in footer */
+    margin-bottom: 0.8em;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.footer-col ul {
+    list-style: none;
+}
+.footer-col li {
+    margin-bottom: 0.5em;
+}
+
+.footer-col a {
+    color: #ccc;
+}
+
+.footer-col a:hover {
+    color: var(--background-color);
+    text-decoration: underline;
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid #444;
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+/* --- Hero Section (Example for Homepage) --- */
+.hero {
+    /* Add background image/color here if desired */
+    background-color: #f8f8f8; /* Light background */
+    padding: 4em 0;
+    text-align: center;
+}
+
+.hero h1 {
+    font-size: 3.5rem; /* Larger for hero */
+    color: var(--primary-color);
+    margin-bottom: 0.3em;
+}
+
+.hero .subheadline {
+    font-size: 1.25rem;
+    color: var(--text-color);
+    max-width: 700px;
+    margin: 0 auto 1.5em auto;
+    font-family: var(--body-font);
+    font-weight: 300; /* Light */
+}
+
+/* --- Add other specific styles for sections, cards, forms etc. --- */
+
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .main-header .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .main-nav ul {
+        flex-direction: column;
+        width: 100%;
+        margin-top: 1em;
+    }
+    .main-nav li {
+        margin-left: 0;
+        margin-bottom: 0.5em;
+        text-align: left;
+        padding: 0.5em 0;
+        border-bottom: 1px solid #eee;
+    }
+     .main-nav li:last-child {
+        border-bottom: none;
+    }
+
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 1.8rem; }
+    .hero h1 { font-size: 2.8rem; }
+    .hero .subheadline { font-size: 1.1rem; }
+
+    .main-footer .container {
+        grid-template-columns: 1fr; /* Stack columns */
+        text-align: center;
+    }
+    .footer-col {
+        margin-bottom: 1em;
+    }
+}
