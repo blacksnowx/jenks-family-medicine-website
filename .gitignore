@@ -28,3 +28,6 @@ instance/
 # Other
 .DS_Store
 Thumbs.db
+
+# IDE files
+.idea/
