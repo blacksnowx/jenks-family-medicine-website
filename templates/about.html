@@ -1,10 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+    <meta name="description" content="Meet the dedicated team of Nurse Practitioners at Jenks Family Medicine in Chattanooga, TN. Learn about our commitment to quality healthcare.">
+    <style>
+        /* Add specific styles for team layout if needed */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2em;
+            margin-top: 2em;
+        }
+        .team-member {
+            border: 1px solid #eee;
+            padding: 1.5em;
+            border-radius: 8px;
+            text-align: center;
+            background-color: #fdfdfd;
+        }
+        .team-member img {
+            max-width: 150px;
+            height: 150px; /* Fixed height */
+            border-radius: 50%;
+            margin-bottom: 1em;
+            object-fit: cover; /* Crop image nicely */
+            background-color: #eee; /* Placeholder background */
+        }
+        .team-member h3 {
+            margin-bottom: 0.3em;
+            font-size: 1.3rem;
+             color: var(--primary-color); /* Use primary color for names */
+        }
+        .team-member .title {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 0.8em;
+            font-style: italic;
+        }
+         .team-member ul {
+            list-style: none;
+            padding: 0;
+            font-size: 0.9rem;
+            color: #333;
+            text-align: left; /* Align credentials left */
+        }
+         .team-member li {
+            margin-bottom: 0.3em;
+            line-height: 1.4;
+         }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+    <div class="container">
+        <h1>Our Commitment to Your Health</h1>
+    </div>
+</section>
+
+<section class="about-content">
+    <div class="container">
+        <h2>Our Philosophy</h2>
+        <p>At Jenks Family Medicine, we believe in quality healthcare delivered with passion and compassion. We are dedicated to serving the St. Elmo and Alton Park neighborhoods and supporting U.S. Veterans and Servicemembers through accessible, efficient, and personalized care.</p>
+        <p>Our Nurse Practitioner-led team focuses on building lasting relationships with our patients, empowering you on your journey to wellness.</p>
+
+        <h2 style="margin-top: 2.5em;">Meet Our Team</h2>
+
+        <div class="team-grid">
+            <!-- Anne Jenks -->
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Anne Jenks, NP"> <!-- Replace with actual image -->
+                <h3>Anne Jenks, NP</h3>
+                <p class="title">ANCC Board Certified Family Nurse Practitioner</p>
+                <ul>
+                    <li>Certified Compensation & Pension Examiner</li>
+                    <li>Certified FMCSA DOT Examiner</li>
+                    <li>MSN, University of Maryland, Baltimore, 2014</li>
+                    <li>BSN, University of Tennessee, Chattanooga, 2011</li>
+                </ul>
+            </div>
+
+            <!-- Sarah Suggs -->
+            <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Sarah Suggs, NP"> <!-- Replace with actual image -->
+                <h3>Sarah Suggs, NP</h3>
+                <p class="title">AANP Board Certified Family Nurse Practitioner</p>
+                 <ul>
+                    <li>Specializing in Functional Medicine</li>
+                    <li>Certified Compensation & Pension Examiner</li>
+                    <li>MSN, University of Alabama at Birmingham, 2016</li>
+                    <li>BSN, Valdosta State University, 2013</li>
+                    <li>AS, Business Administration, Georgia Military College, 2007</li>
+                </ul>
+            </div>
+
+            <!-- Ehrin Irvin -->
+            <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Ehrin Irvin, NP"> <!-- Replace with actual image -->
+                <h3>Ehrin Irvin, NP</h3>
+                 <p class="title">AANP Board Certified Family Nurse Practitioner</p>
+                <ul>
+                    <li>Certified Compensation & Pension Examiner</li>
+                    <li>Certified FMCSA DOT Examiner</li>
+                    <li>MSN, University of Tennessee at Chattanooga, 2018</li>
+                    <li>BSN, University of North Carolina at Chapel Hill, 2007</li>
+                </ul>
+            </div>
+
+            <!-- Heather Mayo -->
+             <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Heather Mayo, NP"> <!-- Replace with actual image -->
+                <h3>Heather Mayo, NP</h3>
+                <p class="title">AANP Board Certified Family Nurse Practitioner</p>
+                <ul>
+                    <li>Certified Compensation & Pension Examiner</li>
+                    <li>MSN, University of Cincinnati, 2015</li>
+                    <li>BSN, University of Arkansas for Medical Sciences, 2008</li>
+                </ul>
+            </div>
+
+            <!-- Dr. David Redd -->
+            <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Dr. David Redd, MD"> <!-- Replace with actual image -->
+                <h3>Dr. David Redd, MD</h3>
+                <p class="title">Supervising Physician</p>
+                <ul>
+                    <li>Over 30 years of experience</li>
+                    <li>MD, University of Tennessee, Center for the Health Sciences</li>
+                    <li>Residency, Carraway Methodist Medical Center</li>
+                    <li>BS, BioChemistry, California Polytechnic State University</li>
+                    <!-- Optional Link -->
+                    <li><a href="http://www.quiksurg.com" target="_blank" rel="noopener">Visit Dr. Redd at QuikSurg</a></li>
+                </ul>
+            </div>
+
+             <!-- Tyler Jenks -->
+            <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Tyler Jenks"> <!-- Replace with actual image -->
+                <h3>Tyler Jenks</h3>
+                <p class="title">Business Manager</p>
+                <!-- Add details if needed -->
+            </div>
+
+            <!-- Brittany Griffith -->
+             <div class="team-member">
+                 <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Brittany Griffith"> <!-- Replace with actual image -->
+                <h3>Brittany Griffith</h3>
+                <p class="title">Medical Assistant</p>
+                 <!-- Add details if needed -->
+            </div>
+
+        </div><!-- /.team-grid -->
+    </div><!-- /.container -->
+</section>
+{% endblock %}

@@ -1,10 +1,150 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+    <meta name="description" content="Contact Jenks Family Medicine in Chattanooga. Find our address, phone number, hours, map, and parking information.">
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2em;
+            margin-top: 1.5em;
+        }
+        .contact-info h3, .map-area h3, .form-area h3 {
+            margin-bottom: 1em;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.3em;
+            color: var(--primary-color);
+        }
+        .contact-info p { margin-bottom: 0.8em; line-height: 1.6;}
+        .map-placeholder {
+            background-color: #eee;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #666;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* Basic Form Styling (Adjust as needed) */
+        .contact-form label { display: block; margin-bottom: 0.3em; font-weight: bold; }
+        .contact-form input[type="text"],
+        .contact-form input[type="email"],
+        .contact-form textarea {
+            width: 100%;
+            padding: 0.7em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+        .contact-form textarea { min-height: 120px; }
+        .contact-form button { margin-top: 0.5em; }
+         .form-disclaimer {
+             font-size: 0.85rem;
+             color: #e74c3c; /* Reddish warning color */
+             margin-top: 1em;
+             font-style: italic;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+    <div class="container">
+        <h1>Get In Touch</h1>
+    </div>
+</section>
+
+<section class="contact-content">
+    <div class="container">
+        <div class="contact-grid">
+            <div class="contact-info">
+                <h3>Contact Information</h3>
+                <p>
+                    <strong>Address:</strong><br>
+                    3908 Tennessee Avenue, Suite 110<br>
+                    Chattanooga, TN 37409
+                </p>
+                 <p>
+                    <strong>Phone:</strong> <a href="tel:4233735457">(423) 373-5457</a><br>
+                    <strong>Fax:</strong> (423) 380-7154
+                 </p>
+                 <p>
+                    <strong>Email:</strong> <a href="mailto:office@jenksfamilymedicine.com">office@jenksfamilymedicine.com</a><br>
+                    <em>(For general inquiries only. Please do not send sensitive health information via email. Use the <a href="{{ url_for('patient_portal')}}">Patient Portal</a> for secure communication.)</em>
+                 </p>
+
+                 <h3>Hours of Operation</h3>
+                 <p>
+                    Monday: 8:00 AM - 5:00 PM<br>
+                    Tuesday: 8:00 AM - 5:00 PM<br>
+                    Wednesday: 8:00 AM - 4:00 PM<br>
+                    Thursday: 8:00 AM - 5:00 PM<br>
+                    Friday: 8:00 AM - 4:00 PM<br>
+                    Saturday & Sunday: Closed
+                 </p>
+
+                 <h3>Parking</h3>
+                 <p>Free parking is available. Please scan the QR code upon arrival, and our office will provide the validation code. Alternatively, we can validate using your license plate number in the office.</p>
+
+                 <h3>Request an Appointment</h3>
+                 <!-- Update '#' with actual scheduling link -->
+                 <a href="#" class="button" style="margin-top: 0.5em;">Schedule Appointment Online</a>
+                 <p style="margin-top: 0.5em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
+
+            </div>
+
+            <div class="map-area">
+                <h3>Location Map</h3>
+                <div class="map-placeholder">
+                    <!-- Placeholder: Replace with actual embedded map iframe -->
+                    <p>Google Map Embed Goes Here</p>
+                    <!-- Example Google Maps Embed Code (Get your own from Google Maps):
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3267.111...YOUR_EMBED_CODE...6d-85.3096!..."
+                        width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+                     -->
+                </div>
+
+                <!-- Optional Contact Form Area -->
+                <div class="form-area" style="margin-top: 2em;">
+                    <h3>Send Us a Message</h3>
+                     <!--
+                        NOTE: This is a FRONT-END form only.
+                        To make it work, you need:
+                        1. Backend code (in app.py) to handle the POST request.
+                        2. Email sending library (like Flask-Mail) or integration
+                           with a third-party email service (SendGrid, Mailgun).
+                        3. Security measures (CSRF protection).
+                        Consider using a dedicated form service if backend complexity is undesired.
+                     -->
+                    <form action="/contact-submit" method="POST" class="contact-form"> {# Update action URL #}
+                        {# Add CSRF token if using Flask-WTF #}
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+
+                        <label for="phone">Phone (Optional):</label>
+                        <input type="text" id="phone" name="phone">
+
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" required></textarea>
+
+                        <button type="submit" class="button">Send Message</button>
+
+                         <p class="form-disclaimer">
+                            <strong>Important:</strong> Please do not include personal health information (PHI) or sensitive details in this form. For secure communication regarding your health, please use the <a href="{{ url_for('patient_portal') }}">Patient Portal</a> or call our office.
+                         </p>
+                    </form>
+                </div>
+
+            </div>
+        </div> <!-- /.contact-grid -->
+    </div><!-- /.container -->
+</section>
+{% endblock %}

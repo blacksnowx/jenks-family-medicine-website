@@ -1,10 +1,97 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+    <meta name="description" content="Find local VA clinic info, VSO contacts, and online resources for U.S. Veterans in the Chattanooga area, provided by Jenks Family Medicine.">
+     <style>
+        .resource-section { margin-bottom: 2.5em; }
+        .resource-section h3 {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.3em;
+            margin-bottom: 1em;
+            color: var(--primary-color);
+        }
+        .resource-list { list-style: none; padding-left: 0; }
+        .resource-list li { margin-bottom: 1em; line-height: 1.5; }
+        .resource-list strong { display: block; margin-bottom: 0.2em; font-family: var(--heading-font);}
+        .resource-list a { text-decoration: underline; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+    <div class="container">
+        <h1>Resources for Our Valued Veterans</h1>
+    </div>
+</section>
+
+<section class="resources-content">
+    <div class="container">
+        <h2>Our Commitment</h2>
+        <p>Jenks Family Medicine is proud to serve those who have served our country. We offer specialized Compensation & Pension (C&P) examinations and are committed to helping Veterans navigate healthcare resources.</p>
+
+        <div class="resource-section">
+            <h3>Local & State VSO Contacts</h3>
+             <ul class="resource-list">
+                 <li>
+                     <strong>Hamilton County VSO: Chuck Alsobrook</strong>
+                     Phone: <a href="tel:4232097884">(423) 209-7884</a><br>
+                     Address: 455 N Highland Park Ave., Room 204, Chattanooga, TN 37404<br>
+                     Hours: M-F, 8:00 AM - 4:00 PM<br>
+                     <!-- Website: <a href="#" target="_blank" rel="noopener">[Link to Hamilton County VSO page if available]</a> -->
+                 </li>
+                 <li>
+                     <strong>Tennessee State VSO (Chattanooga): George Davis</strong>
+                     Phone: <a href="tel:6153393796">(615) 339-3796</a><br>
+                     Address: 5726 Marlin Road, Suite 513, Chattanooga, TN 37411
+                 </li>
+                 <li>
+                    <strong>Tennessee VSO (State HQ):</strong> <a href="tel:6157411863">(615) 741-1863</a>
+                 </li>
+                 <li>
+                    <strong>Georgia VSO:</strong> <a href="tel:4046562300">(404) 656-2300</a>
+                 </li>
+                 <li>
+                     <strong>Alabama VSO:</strong> <a href="tel:3342425077">(334) 242-5077</a>
+                 </li>
+            </ul>
+        </div>
+
+         <div class="resource-section">
+            <h3>Local VA Facilities & Support</h3>
+             <ul class="resource-list">
+                <li>
+                    <strong>Chattanooga VA Clinic</strong>
+                    Phone: <a href="tel:4238936500">(423) 893-6500</a><br>
+                    Address: 6401 Shallowford Road, Chattanooga, TN 37421
+                 </li>
+                 <li>
+                    <strong>Chattanooga Vet Center</strong> (Readjustment Counseling & Support)
+                    Phone: <a href="tel:4238556570">(423) 855-6570</a><br>
+                    Address: 1300 Premier Drive, Suite 180, Chattanooga, TN 37421
+                 </li>
+                 <li>
+                     <strong>Peer Support Specialist (Chattanooga VA Clinic): John Perry</strong>
+                     Phone: <a href="tel:4238936500p26050">(423) 893-6500 ext. 26050</a>
+                 </li>
+             </ul>
+        </div>
+
+         <div class="resource-section">
+            <h3>Online Resources</h3>
+             <ul class="resource-list">
+                <li>
+                    <strong>Chattanooga Unite Veterans Resource Center</strong><br> Comprehensive local resources.<br>
+                    Website: <a href="https://chattanoogaunite.com/" target="_blank" rel="noopener noreferrer">https://chattanoogaunite.com/</a>
+                 </li>
+                 <li>
+                    <strong>Department of Veteran Affairs (VA)</strong><br>
+                    Apply for VA Healthcare: <a href="https://www.va.gov/health-care/apply/application/introduction" target="_blank" rel="noopener noreferrer">VA Health Care Application</a><br>
+                    VA Main Information Line (MyVA411): <a href="tel:8006982411">800-698-2411</a> (TTY: 711) - 24/7<br>
+                    VA Health Eligibility Center: <a href="tel:8772228387">877-222-8387</a> (TTY: 711) - M-F, 8 AM - 8 PM ET
+                 </li>
+            </ul>
+        </div>
+
+    </div><!-- /.container -->
+</section>
+{% endblock %}

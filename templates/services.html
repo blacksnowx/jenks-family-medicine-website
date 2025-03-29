@@ -1,10 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+    <meta name="description" content="Explore primary care services, veteran C&P exams, DOT physicals, and accepted insurance plans at Jenks Family Medicine in Chattanooga.">
+    <style>
+        .service-list { list-style: disc; margin-left: 20px; margin-bottom: 1.5em;}
+        .service-list li { margin-bottom: 0.5em; }
+        .disclaimer {
+            font-size: 0.9rem;
+            color: #555;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1em;
+            margin-top: 1em;
+            margin-bottom: 1.5em;
+            font-style: italic;
+        }
+        .insurance-list {
+             column-count: 2; /* Make list two columns on wider screens */
+             column-gap: 2em;
+             list-style: none;
+             padding: 0;
+        }
+        .insurance-list li { margin-bottom: 0.4em; }
+
+        @media (max-width: 600px) {
+            .insurance-list { column-count: 1; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+    <div class="container">
+        <h1>Comprehensive Care for Your Needs</h1>
+    </div>
+</section>
+
+<section class="services-content">
+    <div class="container">
+        <h2>Primary Care Services</h2>
+        <p>We offer a wide range of primary care services to keep you and your family healthy.</p>
+        <ul class="service-list">
+            <li>Annual Physicals & Wellness Exams (Ages 8+)</li>
+            <li>Chronic Care Management (Hypertension, Diabetes Type II, Hypothyroidism, Asthma, etc. - <em>Established Patients</em>)</li>
+            <li>Sick Visits (Ages 2+) for conditions like: Conjunctivitis (Pink Eye), Ear Infections, Sinus Infections, Strep Throat, Flu, COVID-19 (Testing & Treatment), Upper Respiratory Infections, Gastroenteritis, UTIs, Vaginal Yeast Infections, Dental Infections (Initial Assessment/Antibiotics), Constipation</li>
+            <li>Skin Conditions (Rashes, Eczema, Fungal, Poison Ivy/Oak, Scabies, Shingles, Styes, Head Lice)</li>
+            <li>Minor Laceration Care (Assessment & Simple Repair)</li>
+            <li>Simple Skin Tag Removal & Wart Removal (Cryotherapy)</li>
+            <li>Cerumen (Earwax) Removal</li>
+            <li>Birth Control Management (Incl. Depo-Provera Injections)</li>
+            <li>Pregnancy Evaluation</li>
+            <li>Vitamin B-12 Injections</li>
+            <li>Smoking Cessation Support</li>
+            <li>Blood Titers (MMR, Varicella, Hep B, etc.)</li>
+            <li>Tuberculosis (TB) Skin Testing</li>
+            <li>Bloodwork (Ordered & drawn during in-office visits) <a href="#lab-fees">*See Lab Fees Note</a></li>
+        </ul>
+        <p class="disclaimer">This list is not exhaustive. Please call us at (423) 373-5457 if you have questions about a specific condition or service.</p>
+
+        <hr style="margin: 2.5em 0;">
+
+        <h2>Specialty Examinations</h2>
+         <ul class="service-list">
+             <li><strong>Veteran Compensation & Pension (C&P) Exams:</strong> Expert examinations for VA disability claims.</li>
+             <li><strong>RHRP Exams:</strong> For U.S. Service Members.</li>
+             <li><strong>DOT Physicals:</strong> Certified FMCSA exams ($120*), Follow-ups ($35*).</li>
+             <li><strong>Pre-Employment / College Physicals:</strong> ($100*).</li>
+             <li><strong>Sports & Camp Physicals:</strong> ($60*).</li>
+         </ul>
+         <p class="disclaimer">*Insurance typically does not cover these specific physicals. Payment is due at the time of service. Most HSA cards are accepted.</p>
+
+        <hr style="margin: 2.5em 0;">
+
+        <h2>Telehealth Services</h2>
+        <p>Convenient telehealth appointments are available for <em>select services</em> for <em>established patients</em> during our normal business hours. New patients require an initial in-office visit. Please call to inquire if telehealth is suitable for your needs.</p>
+
+        <hr style="margin: 2.5em 0;">
+
+        <h2>Insurance & Payment</h2>
+        <p>We strive to make care accessible and accept self-pay patients and a wide range of insurance plans, including:</p>
+        <ul class="insurance-list">
+            <li>Aetna</li>
+            <li>Alliant</li>
+            <li>Allied</li>
+            <li>Blue Cross Blue Shield (Networks P & S)</li>
+            <li>ChampVA</li>
+            <li>Cigna</li>
+            <li>Humana</li>
+            <li>Medicare</li>
+            <li>Tricare</li>
+            <li>United HealthCare (Commercial, TennCare, Community Plan/Americhoice)</li>
+            <li>VA Community Care</li>
+            <li>Wellpoint (formerly Amerigroup)</li>
+        </ul>
+         <p class="disclaimer" style="margin-top: 1.5em;">
+             <strong>Verification Required:</strong> Insurance networks can change. It is the patient's responsibility to verify with their insurance provider that Jenks Family Medicine is in-network with their specific plan before scheduling.
+         </p>
+         <p><strong>Self-Pay:</strong> Our self-pay fee schedule is available upon request. Please call for details.</p>
+
+        <hr style="margin: 2.5em 0;">
+
+        <h2 id="important-policies">Important Policies</h2>
+         <ul class="service-list">
+            <li><strong>Late Arrivals:</strong> Arriving more than 15 minutes late may require rescheduling. We appreciate your understanding.</li>
+            <li id="lab-fees"><strong>Lab Fees:</strong> Additional fees from external labs (Quest, LabCorp) may apply for bloodwork. Jenks Family Medicine is not responsible for determining insurance coverage for these external lab costs.</li>
+            <li><strong>Narcotic Prescriptions:</strong> For patient safety, we do not prescribe narcotic medications. We are happy to provide referrals to appropriate specialists for pain management or other specific needs.</li>
+         </ul>
+
+    </div><!-- /.container -->
+</section>
+{% endblock %}

@@ -1,10 +1,106 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block head %}
+    <meta name="description" content="Discover root-cause healing with Functional Medicine at Jenks Family Medicine, Chattanooga. Personalized plans with Sarah Suggs, NP.">
+     <style>
+        .provider-section {
+            display: flex;
+            align-items: center;
+            gap: 2em;
+            margin: 2em 0;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        .provider-section img {
+            max-width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+             background-color: #eee; /* Placeholder background */
+        }
+         .lab-list {
+             column-count: 2;
+             column-gap: 2em;
+             list-style: disc;
+             margin-left: 20px;
+        }
+        .pricing-box {
+            background-color: #f8f8f8;
+            border: 1px solid #eee;
+            padding: 1.5em 2em;
+            border-radius: 8px;
+            margin: 2em 0;
+        }
+        .pricing-box h3 { color: var(--accent-color); margin-top: 0;}
+        .pricing-box strong { color: var(--primary-color); font-size: 1.2em;}
+        .pricing-box em { font-size: 0.9em; color: #555;}
+
+         @media (max-width: 700px) {
+            .lab-list { column-count: 1; }
+            .provider-section { flex-direction: column; text-align: center; }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background-color: var(--primary-color); color: white; padding: 2em 0; text-align:center;">
+    <div class="container">
+        <h1 style="color: white;">Discover Root-Cause Healing with Functional Medicine</h1>
+    </div>
+</section>
+
+<section class="fm-content">
+    <div class="container">
+        <h2>A Personalized Path to Wellness</h2>
+        <p>Welcome to Functional Medicine at Jenks Family Medicine, led by Sarah Suggs, NP. This patient-centered approach seeks to identify and address the underlying causes of illness, moving beyond symptom management to promote lasting wellness and vitality.</p>
+
+        <h3>What is Functional Medicine?</h3>
+        <p>Functional Medicine is a systems-biology-based approach focusing on the unique genetic, biochemical, and lifestyle factors of each individual. By understanding the root causes of complex health issues, we can create personalized strategies to optimize health, prevent disease, and enhance your overall quality of life.</p>
+
+        <hr style="margin: 2.5em 0;">
+
+        <h2>Your Practitioner: Sarah Suggs, NP</h2>
+        <div class="provider-section">
+             <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Sarah Suggs, NP"> <!-- Replace with actual image -->
+             <div>
+                 <p>Sarah Suggs brings expertise and a compassionate, holistic perspective to Functional Medicine. She partners closely with you to investigate the intricate web of factors influencing your health, developing tailored treatment plans that empower you to achieve optimal well-being.</p>
+                 <p><em>AANP Board Certified Family Nurse Practitioner</em></p>
+             </div>
+        </div>
+
+         <hr style="margin: 2.5em 0;">
+
+        <h2>Advanced Diagnostic Testing</h2>
+        <p>We utilize state-of-the-art lab testing to gain precise insights into your unique physiology. Tests may include:</p>
+        <ul class="lab-list">
+            <li><strong>GI-MAP:</strong> Comprehensive stool analysis for gut health.</li>
+            <li><strong>DUTCH Complete:</strong> Advanced hormone testing (urine).</li>
+            <li><strong>Organic Acids Test (OAT):</strong> Assessment of metabolic pathways.</li>
+            <li><strong>DUTCH Sex Hormone Metabolites:</strong> Detailed sex hormone evaluation.</li>
+            <li><strong>Saliva Cortisol Profile:</strong> Adrenal function assessment.</li>
+            <li><strong>Micronutrient Testing (SpectraCell):</strong> Identifying vitamin/mineral deficiencies.</li>
+            <li><strong>Toxic & Nutrient Elements:</strong> Heavy metal and essential mineral analysis.</li>
+            <li><strong>Hair Elements Analysis:</strong> Mineral balance and chronic exposure insights.</li>
+            <li><strong>3x4 Genetics Test + Blueprint Report:</strong> Personalized genetic wellness strategies.</li>
+        </ul>
+
+         <hr style="margin: 2.5em 0;">
+
+        <h2>Investment in Your Health</h2>
+        <p>Our Functional Medicine services are offered on a direct cash-pay basis, allowing us to dedicate ample time and focus entirely on your personalized care plan.</p>
+        <div class="pricing-box">
+             <h3>Pricing Structure</h3>
+             <p><strong>Initial Consultation Package: $499</strong><br>(Includes first consultation and first follow-up visit)</p>
+             <p><strong>Subsequent Follow-Up Visits: $199 per visit</strong></p>
+             <p><em>*Please Note: The cost of laboratory tests is separate and paid directly to the respective labs.</em></p>
+        </div>
+
+
+        <h2>Begin Your Journey</h2>
+        <p>Ready to explore a deeper level of health and wellness? Experience healthcare designed to uncover root causes and empower lasting change.</p>
+        <!-- Update '#' with actual booking link or instructions -->
+        <a href="#" class="button">Book a Functional Medicine Consultation</a>
+        <p style="margin-top: 1em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> to inquire.</p>
+
+    </div><!-- /.container -->
+</section>
+{% endblock %}

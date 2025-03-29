@@ -3,21 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Change title for each page -->
-    <title>{% block title %}Jenks Family Medicine{% endblock %}</title>
+    <!-- Dynamically set title -->
+    <title>{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Add link to favicon here if you have one -->
+    <!-- Add favicon link here -->
+    <!-- <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}"> -->
     {% block head %}{% endblock %}
 </head>
 <body>
     <header class="main-header">
         <div class="container">
             <a href="{{ url_for('index') }}" class="logo">
+                <!-- Ensure logo path is correct -->
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo">
             </a>
             <nav class="main-nav">
-                <ul>
-                    <!-- Add 'active' class logic later if needed with Flask -->
+                 <ul>
+                    <!-- Use url_for for links -->
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services & Insurance</a></li>
@@ -25,7 +27,8 @@
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="#" class="button button-nav">Schedule Appointment</a></li> <!-- Link to scheduling -->
+                    <!-- Update '#' with actual scheduling link -->
+                    <li><a href="#" class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
         </div>
@@ -38,7 +41,7 @@
     </main>
 
     <footer class="main-footer">
-        <div class="container">
+         <div class="container">
             <div class="footer-col">
                 <h4>Jenks Family Medicine</h4>
                 <p>3908 Tennessee Avenue<br>
@@ -56,37 +59,38 @@
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                    <li><a href="{{ url_for('functional_medicine')}}">Functional Medicine</a></li>
+                    <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
                     <!-- Add privacy policy link if available -->
                 </ul>
             </div>
             <div class="footer-col">
                 <h4>Hours</h4>
                  <p>
-                    Monday: 8am - 5pm<br>
-                    Tuesday: 8am - 5pm<br>
-                    Wednesday: 8am - 4pm<br>
-                    Thursday: 8am - 5pm<br>
-                    Friday: 8am - 4pm<br>
+                    Monday: 8:00 AM - 5:00 PM<br>
+                    Tuesday: 8:00 AM - 5:00 PM<br>
+                    Wednesday: 8:00 AM - 4:00 PM<br>
+                    Thursday: 8:00 AM - 5:00 PM<br>
+                    Friday: 8:00 AM - 4:00 PM<br>
                     Sat/Sun: Closed
                  </p>
             </div>
              <div class="footer-col">
                 <h4>Connect</h4>
-                 <!-- Add Social Media Links Here -->
-                 <p><a href="#">Facebook</a></p>
-                 <p><a href="#">Instagram</a></p>
+                 <!-- Add Actual Social Media Links Here -->
+                 <p><a href="#" target="_blank" rel="noopener noreferrer">Facebook</a></p>
+                 <p><a href="#" target="_blank" rel="noopener noreferrer">Instagram</a></p>
             </div>
         </div>
         <div class="footer-bottom">
-            © {% block year %}{% endblock %} Jenks Family Medicine. All Rights Reserved.
-            <!-- Add link to website credits if desired -->
+            © {{ current_year }} Jenks Family Medicine. All Rights Reserved.
         </div>
     </footer>
 
     <!-- Optional JavaScript -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <!-- <script src="{{ url_for('static', filename='js/script.js') }}"></script> -->
     {% block scripts %}{% endblock %}
 </body>
 </html>
