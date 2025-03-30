@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Dynamically set title -->
     <title>{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <!-- Add favicon link here -->
-    <!-- <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}"> -->
     {% block head %}{% endblock %}
 </head>
 <body>
-    <header class="main-header">
+    {# Add id="main-header" #}
+    <header class="main-header" id="main-header">
         <div class="container">
             <a href="{{ url_for('index') }}" class="logo">
-                <!-- Ensure logo path is correct -->
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo">
             </a>
-            <nav class="main-nav">
+            {# Add id="main-nav" #}
+            <nav class="main-nav" id="main-nav">
                  <ul>
-                    <!-- Use url_for for links -->
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services & Insurance</a></li>
@@ -27,10 +25,15 @@
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <!-- Update '#' with actual scheduling link -->
                     <li><a href="#" class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
+             {# Add Mobile Nav Toggle Button #}
+            <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
         </div>
     </header>
 
@@ -89,8 +92,8 @@
         </div>
     </footer>
 
-    <!-- Optional JavaScript -->
-    <!-- <script src="{{ url_for('static', filename='js/script.js') }}"></script> -->
+{# Link the JavaScript file #}
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

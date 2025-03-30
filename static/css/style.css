@@ -308,3 +308,275 @@ a:hover {
         margin-bottom: 1em;
     }
 }
+
+/* --- PASTE ALL PREVIOUS CSS RULES ABOVE THIS LINE --- */
+/* --- OR selectively replace/add the sections below --- */
+
+
+/* --- Body - Prevent horizontal scroll during animations --- */
+body {
+    /* ... keep existing body styles ... */
+    overflow-x: hidden;
+    position: relative; /* Needed if using .mobile-nav-active body class */
+}
+
+/* === Header Enhancements === */
+.main-header {
+    padding: 0.8em 0; /* Slightly adjust padding */
+    background-color: rgba(255, 255, 255, 0.95); /* Slightly transparent initially */
+    border-bottom: 1px solid #eee;
+    position: sticky; /* Make header sticky */
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Ensure header is above other content */
+    transition: background-color 0.4s ease, padding 0.4s ease;
+    backdrop-filter: blur(5px); /* Optional: Frosted glass effect */
+    -webkit-backdrop-filter: blur(5px); /* Safari */
+}
+
+.main-header.scrolled {
+    background-color: rgba(255, 255, 255, 1); /* Solid white when scrolled */
+    padding: 0.5em 0; /* Slightly smaller padding */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Add subtle shadow */
+}
+
+.main-header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Keep other container styles */
+}
+
+.logo img {
+    max-height: 50px; /* Adjust size */
+    transition: max-height 0.4s ease;
+}
+
+.main-header.scrolled .logo img {
+     max-height: 40px; /* Slightly smaller logo when scrolled */
+}
+
+/* --- Navigation Base --- */
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    margin: 0; /* Reset margin */
+    padding: 0; /* Reset padding */
+}
+
+.main-nav li {
+    margin-left: 1.5em;
+    margin-bottom: 0;
+}
+
+.main-nav a {
+    font-family: var(--heading-font);
+    font-weight: 400; /* Regular */
+    color: var(--accent-color);
+    font-size: 0.9rem; /* Adjust size */
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.5em 0;
+    position: relative;
+    transition: color 0.3s ease;
+}
+.main-nav a:hover,
+.main-nav a.active { /* Style for the current page or hover */
+    color: var(--primary-color);
+}
+
+/* Add subtle underline effect on hover */
+.main-nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+.main-nav a:hover::after {
+    width: 100%;
+}
+
+/* --- Buttons --- */
+.button, button {
+    /* ... keep existing styles ... */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.button:hover, button:hover {
+    background-color: #2a8ac4; /* Slightly darker blue */
+    color: var(--background-color);
+    text-decoration: none;
+    transform: translateY(-2px); /* Subtle lift effect */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.button.button-nav {
+    margin-left: 1.5em; /* Space between nav items and button */
+    padding: 0.6em 1.2em; /* Adjust padding slightly */
+}
+
+
+/* === Mobile Navigation === */
+.mobile-nav-toggle {
+    display: none; /* Hidden by default */
+    background: none;
+    border: none;
+    padding: 0.5em;
+    cursor: pointer;
+    z-index: 1001; /* Above nav */
+}
+
+.mobile-nav-toggle .icon-bar {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background-color: var(--accent-color);
+    margin: 4px 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Hamburger to X animation */
+.mobile-nav-toggle.active .icon-bar:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+.mobile-nav-toggle.active .icon-bar:nth-child(2) {
+    opacity: 0;
+}
+.mobile-nav-toggle.active .icon-bar:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+
+/* === Responsive Styles === */
+@media (max-width: 992px) { /* Adjust breakpoint as needed */
+    .main-nav {
+        position: fixed; /* Take out of flow */
+        top: 0;
+        right: -100%; /* Start off-screen */
+        width: 300px; /* Adjust width */
+        max-width: 80%;
+        height: 100vh;
+        background-color: #fff; /* Solid background */
+        padding: 60px 20px 20px 20px; /* Add padding top for header */
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+        transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth slide */
+        z-index: 999; /* Below header, above content */
+        overflow-y: auto; /* Allow scrolling if needed */
+    }
+
+    .main-nav.active {
+        right: 0; /* Slide in */
+    }
+
+    .main-nav ul {
+        flex-direction: column;
+    }
+
+    .main-nav li {
+        margin-left: 0;
+        margin-bottom: 0;
+        border-bottom: 1px solid #eee;
+    }
+     .main-nav li:last-child {
+         border-bottom: none;
+     }
+
+    .main-nav a {
+        display: block; /* Make links full width */
+        padding: 0.8em 0.5em;
+        font-size: 1rem;
+    }
+     .main-nav a::after {
+         display: none; /* Hide underline effect on mobile */
+     }
+
+     .main-nav .button-nav {
+         display: block; /* Make button full width */
+         margin: 1.5em 0 0 0; /* Add space above */
+         text-align: center;
+     }
+
+    .mobile-nav-toggle {
+        display: block; /* Show hamburger */
+    }
+
+     /* Optional: Dark overlay when mobile menu is open */
+    /* body.mobile-nav-active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+    } */
+}
+
+
+/* --- Typography Adjustments for Responsiveness --- */
+@media (max-width: 768px) {
+    h1, .hero h1 { font-size: 2.5rem; } /* Decrease heading sizes */
+    h2 { font-size: 1.8rem; }
+    .hero .subheadline { font-size: 1.05rem; }
+    body { font-size: 15px; } /* Slightly smaller base font */
+}
+
+@media (max-width: 480px) {
+     h1, .hero h1 { font-size: 2.1rem; }
+     h2 { font-size: 1.6rem; }
+     body { font-size: 14px; }
+}
+
+/* --- Grid Responsiveness --- */
+@media (max-width: 768px) {
+    .services-highlight > div,
+    .team-grid,
+    .contact-grid,
+    .main-footer .container {
+        grid-template-columns: 1fr; /* Stack columns */
+    }
+     .contact-grid > div {
+         margin-bottom: 1.5em; /* Add space between stacked contact sections */
+     }
+     .main-footer .container { text-align: center; } /* Center footer text */
+}
+
+
+/* === Scroll Animation === */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px); /* Start slightly lower */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    will-change: opacity, transform; /* Optimize animation */
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* === Image Placeholders === */
+.team-member img, .service-card img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #e0e0e0; /* Placeholder background */
+    border: 1px dashed #ccc; /* Dashed border for placeholder */
+    color: #999;
+    text-align: center;
+    /* Ensure size is maintained even without src */
+    min-height: 50px; /* For service icons */
+    /* Add min-width if needed */
+}
+.team-member img {
+    min-height: 150px; /* For team members */
+    min-width: 150px;
+}
+/* You can remove these background/border styles once you have real images */
