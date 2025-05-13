@@ -561,22 +561,3 @@ body {
     opacity: 1;
     transform: translateY(0);
 }
-
-/* === Image Placeholders === */
-.team-member img, .service-card img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: #e0e0e0; /* Placeholder background */
-    border: 1px dashed #ccc; /* Dashed border for placeholder */
-    color: #999;
-    text-align: center;
-    /* Ensure size is maintained even without src */
-    min-height: 50px; /* For service icons */
-    /* Add min-width if needed */
-}
-.team-member img {
-    min-height: 150px; /* For team members */
-    min-width: 150px;
-}
-/* You can remove these background/border styles once you have real images */
