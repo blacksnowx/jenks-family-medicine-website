@@ -1,105 +1,331 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <meta name="description" content="Discover root-cause healing with Functional Medicine at Jenks Family Medicine, Chattanooga. Personalized plans with Sarah Suggs, NP.">
-     <style>
+    <meta name="description" content="Discover root-cause healing with Functional Medicine at Jenks Family Medicine, Chattanooga. Personalized plans with Sarah Suggs, NP, CFMP.">
+    <style>
+        /* Styles for page-header specific to this page if needed */
+        .page-header.fm-header h1 { /* Added fm-header class for specificity */
+            color: white; /* Ensure h1 text is white */
+        }
+
+        /* Provider Section (Sarah Suggs) */
         .provider-section {
             display: flex;
-            align-items: center;
-            gap: 2em;
-            margin: 2em 0;
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            align-items: flex-start;
+            gap: 2.5em;
+            margin: 1em 0 2.5em 0;
         }
-        .provider-section img {
-            max-width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-             background-color: #eee; /* Placeholder background */
-        }
-         .lab-list {
-             column-count: 2;
-             column-gap: 2em;
-             list-style: disc;
-             margin-left: 20px;
-        }
-        .pricing-box {
-            background-color: #f8f8f8;
-            border: 1px solid #eee;
-            padding: 1.5em 2em;
-            border-radius: 8px;
-            margin: 2em 0;
-        }
-        .pricing-box h3 { color: var(--accent-color); margin-top: 0;}
-        .pricing-box strong { color: var(--primary-color); font-size: 1.2em;}
-        .pricing-box em { font-size: 0.9em; color: #555;}
 
-         @media (max-width: 700px) {
-            .lab-list { column-count: 1; }
-            .provider-section { flex-direction: column; text-align: center; }
+        .provider-image-wrapper {
+            flex: 0 0 300px;
+        }
+
+        .provider-image-wrapper img {
+            display: block;
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            object-position: center top;
+            border-radius: 10px;
+            background-color: #f0f0f0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .provider-info {
+            flex: 1;
+            padding-top: 0.5em;
+        }
+        .provider-info p {
+            margin-bottom: 1em;
+            line-height: 1.7;
+        }
+        .provider-info p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Lab List Styling */
+        .lab-list {
+            column-count: 2;
+            column-gap: 2em;
+            list-style: none; /* Remove default bullets, we'll use ::before */
+            padding-left: 0;
+            margin-left: 0; /* No default indent */
+        }
+        .lab-list li {
+            margin-bottom: 0.7em;
+            padding-left: 1.5em; /* Space for custom bullet */
+            position: relative;
+            line-height: 1.5;
+        }
+        .lab-list li::before {
+            content: "✓"; /* Custom bullet */
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1em;
+            position: absolute;
+            left: 0;
+            top: 2px; /* Adjust for vertical alignment */
+        }
+        .lab-list strong {
+            color: #333; /* Ensure strong text is clearly visible */
+        }
+
+        /* --- Modern Pricing Section --- */
+        .pricing-section {
+            margin: 2.5em 0; /* Increased top/bottom margin */
+            text-align: center; /* Center the h2 and intro p */
+        }
+        .pricing-section h2 { /* Style for the "Transparent Pricing" h2 */
+            margin-bottom: 0.5em;
+            /* Ensure it uses global h2 styles or define specific ones here */
+        }
+        .pricing-section > p { /* The intro paragraph below "Transparent Pricing" */
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 2.5em;
+            color: #555;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2em; /* Space between cards */
+            margin-bottom: 2em;
+        }
+
+        .pricing-card {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px; /* Softer, larger radius */
+            padding: 2em 2.5em; /* Generous padding */
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08); /* More pronounced, softer shadow */
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+
+        .pricing-card h3 { /* For "Initial Package" and "Subsequent Visits" */
+            font-size: 1.6rem; /* Larger package title */
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 0.75em;
+        }
+
+        .price-display {
+            margin-bottom: 1em;
+        }
+        .price-display .amount {
+            font-size: 2.8rem; /* Prominent price */
+            font-weight: 700;
+            color: var(--accent-color); /* Using black for price for strong contrast */
+            display: block; /* Ensure it takes its own line */
+            line-height: 1.1;
+        }
+        .price-display .term {
+            font-size: 1rem;
+            color: #666;
+            display: block;
+            margin-top: 0.25em;
+        }
+
+        .pricing-card .package-description {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 1.5em;
+            min-height: 3em; /* Helps align cards if descriptions vary in length */
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto 1.5em auto; /* Auto margins for centering block */
+            text-align: left; /* List items themselves are left-aligned */
+            max-width: 260px; /* Control width of list for centering */
+        }
+        .features-list li {
+            margin-bottom: 0.6em;
+            padding-left: 1.8em; /* More space for a nicer icon */
+            position: relative;
+            font-size: 0.9rem;
+            color: #444;
+        }
+        .features-list li::before {
+            content: '✔'; /* Checkmark icon */
+            font-family: sans-serif; /* Ensure checkmark renders well */
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.1em;
+            position: absolute;
+            left: 0;
+            top: 0px; /* Fine-tune vertical alignment */
+        }
+
+        .price-note-footer { /* The note about lab tests */
+            font-size: 0.9rem;
+            color: #555;
+            font-style: italic;
+            text-align: center;
+            margin-top: 1.5em; /* Was 1.5em, adjust if needed after removing the second hr */
+        }
+        /* --- END of Modern Pricing Section --- */
+
+
+        /* Call to Action Section */
+        .cta-section {
+            text-align: center; /* Center the button and text */
+            margin-top: 2.5em;
+        }
+        .cta-section .button {
+            margin-bottom: 0.5em; /* Space below button */
+        }
+
+        /* General HR style */
+        hr.fm-divider {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
+            margin: 2.5em 0;
+        }
+
+
+        @media (max-width: 768px) {
+            .provider-section {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .provider-image-wrapper {
+                width: 80%;
+                max-width: 300px;
+                margin-bottom: 1.5em;
+                flex-basis: auto;
+            }
+            .provider-image-wrapper img {
+                 height: auto;
+            }
+            .provider-info {
+                padding-top: 0;
+            }
+
+            .lab-list {
+                column-count: 1;
+                text-align: left;
+            }
+            /* Responsive adjustments for pricing cards if needed */
+            /* The .pricing-box media query was part of the old styles and is removed */
+        }
+        /* This is the specific media query for the NEW pricing cards */
+        @media (max-width: 700px) {
+            .pricing-grid {
+                grid-template-columns: 1fr; /* Stack cards on smaller screens */
+            }
+            .pricing-card {
+                padding: 2em 1.5em;
+            }
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header" style="background-color: var(--primary-color); color: white; padding: 2em 0; text-align:center;">
+<section class="page-header fm-header" style="background-color: var(--primary-color); color: white; padding: 2em 0; text-align:center;">
     <div class="container">
-        <h1 style="color: white;">Discover Root-Cause Healing with Functional Medicine</h1>
+        <h1>Functional Medicine</h1>
     </div>
 </section>
 
 <section class="fm-content reveal">
     <div class="container">
-        <h2>A Personalized Path to Wellness</h2>
-        <p>Welcome to Functional Medicine at Jenks Family Medicine, led by Sarah Suggs, NP. This patient-centered approach seeks to identify and address the underlying causes of illness, moving beyond symptom management to promote lasting wellness and vitality.</p>
+        <div style="text-align: center; margin-bottom: 2em;">
+             <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank" rel="noopener">Book a Functional Medicine Appointment with Sarah Suggs, NP</a>
+        </div>
+
+        <h2>Functional Medicine at Jenks Family Medicine</h2>
+        <p>At Jenks Family Medicine, we are proud to offer Functional Medicine, a personalized and proactive approach to healthcare, led exclusively by our experienced provider, Sarah Suggs, NP, CFMP.</p>
 
         <h3>What is Functional Medicine?</h3>
-        <p>Functional Medicine is a systems-biology-based approach focusing on the unique genetic, biochemical, and lifestyle factors of each individual. By understanding the root causes of complex health issues, we can create personalized strategies to optimize health, prevent disease, and enhance your overall quality of life.</p>
+        <p>Functional Medicine addresses the root cause of illness, not just the symptoms. It’s an individualized, patient-centered approach designed to optimize health, prevent disease, and enhance your quality of life by examining genetic, biochemical, and lifestyle factors.</p>
 
-        <hr style="margin: 2.5em 0;">
+        <hr class="fm-divider">
 
-        <h2>Your Practitioner: Sarah Suggs, NP</h2>
+        <h2>Meet Your Provider: Sarah Suggs, NP, CFMP</h2>
         <div class="provider-section">
-             <img src="{{ url_for('static', filename='images/staff-placeholder.png') }}" alt="Sarah Suggs, NP"> <!-- Replace with actual image -->
-             <div>
-                 <p>Sarah Suggs brings expertise and a compassionate, holistic perspective to Functional Medicine. She partners closely with you to investigate the intricate web of factors influencing your health, developing tailored treatment plans that empower you to achieve optimal well-being.</p>
-                 <p><em>AANP Board Certified Family Nurse Practitioner</em></p>
-             </div>
+            <div class="provider-image-wrapper">
+                <img src="{{ url_for('static', filename='images/Sarah.jpg') }}" alt="Sarah Suggs, NP, CFMP">
+            </div>
+            <div class="provider-info">
+                <p>Sarah Suggs, NP, is a Certified Functional Medicine Practitioner (CFMP), a credential that signifies advanced training and expertise in Functional Medicine. Her certification reflects a commitment to understanding the complexities of chronic diseases and applying holistic, evidence-based strategies to patient care. Sarah’s passion lies in collaborating closely with each patient to uncover underlying health issues, develop personalized treatment plans, and guide them toward optimal wellness.</p>
+            </div>
         </div>
 
-         <hr style="margin: 2.5em 0;">
+        <hr class="fm-divider">
 
-        <h2>Advanced Diagnostic Testing</h2>
-        <p>We utilize state-of-the-art lab testing to gain precise insights into your unique physiology. Tests may include:</p>
+        <h2>Comprehensive Lab Testing</h2>
+        <p>Our clinic utilizes advanced diagnostic tests to deliver precise and actionable insights:</p>
         <ul class="lab-list">
-            <li><strong>GI-MAP:</strong> Comprehensive stool analysis for gut health.</li>
-            <li><strong>DUTCH Complete:</strong> Advanced hormone testing (urine).</li>
-            <li><strong>Organic Acids Test (OAT):</strong> Assessment of metabolic pathways.</li>
-            <li><strong>DUTCH Sex Hormone Metabolites:</strong> Detailed sex hormone evaluation.</li>
-            <li><strong>Saliva Cortisol Profile:</strong> Adrenal function assessment.</li>
-            <li><strong>Micronutrient Testing (SpectraCell):</strong> Identifying vitamin/mineral deficiencies.</li>
-            <li><strong>Toxic & Nutrient Elements:</strong> Heavy metal and essential mineral analysis.</li>
-            <li><strong>Hair Elements Analysis:</strong> Mineral balance and chronic exposure insights.</li>
-            <li><strong>3x4 Genetics Test + Blueprint Report:</strong> Personalized genetic wellness strategies.</li>
+            <li><strong>GI-MAP</strong> – Comprehensive stool testing for digestive health</li>
+            <li><strong>DUTCH Complete (Dried Urine)</strong> – Advanced hormonal analysis</li>
+            <li><strong>Organic Acids Test (OAT)</strong> – Metabolic health assessment</li>
+            <li><strong>DUTCH Sex Hormone Metabolites</strong> – In-depth sex hormone evaluation</li>
+            <li><strong>Saliva Profile III (Cortisol)</strong> – Cortisol monitoring across the day</li>
+            <li><strong>Micronutrient SpectraCell</strong> – Nutritional deficiency assessment</li>
+            <li><strong>Metals (Toxic + Nutrient Elements)</strong> – Identification of heavy metals and essential mineral levels</li>
+            <li><strong>Hair Elements Analysis</strong> – Chronic exposure and mineral balance evaluation</li>
+            <li><strong>3×4 Genetics Test + Blueprint Report</strong> – Genetic insights for tailored wellness strategies</li>
         </ul>
 
-         <hr style="margin: 2.5em 0;">
+        <hr class="fm-divider">
 
-        <h2>Investment in Your Health</h2>
-        <p>Our Functional Medicine services are offered on a direct cash-pay basis, allowing us to dedicate ample time and focus entirely on your personalized care plan.</p>
-        <div class="pricing-box">
-             <h3>Pricing Structure</h3>
-             <p><strong>Initial Consultation Package: $499</strong><br>(Includes first consultation and first follow-up visit)</p>
-             <p><strong>Subsequent Follow-Up Visits: $199 per visit</strong></p>
-             <p><em>*Please Note: The cost of laboratory tests is separate and paid directly to the respective labs.</em></p>
+        <div class="pricing-section">
+            <h2>Transparent Pricing</h2>
+            <p>Functional Medicine at our practice is offered as a cash-pay service, enabling us to focus entirely on your care:</p>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Initial Package</h3>
+                    <div class="price-display">
+                        <span class="amount">$499</span>
+                    </div>
+                    <p class="package-description">A comprehensive start to your wellness journey, including:</p>
+                    <ul class="features-list">
+                        <li>Initial consultation visit (90 minutes)</li>
+                        <li>Telehealth lab review (30 minutes)</li>
+                        <li>Follow up visit (45 minutes)</li>
+                    </ul>
+                </div>
+
+                <div class="pricing-card">
+                    <h3>Subsequent Visits</h3>
+                    <div class="price-display">
+                        <span class="amount">$199</span>
+                        <span class="term">per visit</span>
+                    </div>
+                    <p class="package-description">Continued support and adjustments to your personalized plan.</p>
+                    <!-- You can add a short list here if there are specific things to highlight for follow-ups -->
+                    <!-- <ul class="features-list">
+                        <li>Review progress</li>
+                        <li>Adjust treatment plan</li>
+                    </ul> -->
+                </div>
+            </div>
+            <p class="price-note-footer">Please note: All lab tests are billed separately and paid directly to the respective labs.</p>
         </div>
 
+        <hr class="fm-divider"> <!-- Removed the extra hr here -->
 
-        <h2>Begin Your Journey</h2>
-        <p>Ready to explore a deeper level of health and wellness? Experience healthcare designed to uncover root causes and empower lasting change.</p>
-        <!-- Update '#' with actual booking link or instructions -->
-        <a href="#" class="button">Book a Functional Medicine Consultation</a>
-        <p style="margin-top: 1em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> to inquire.</p>
+        <div class="cta-section">
+            <h2>Get Started on Your Path to Wellness</h2>
+            <p>Experience healthcare designed to empower and transform your life. Contact us today to schedule your Functional Medicine appointment with Sarah Suggs, NP, CFMP, and begin your personalized journey toward optimal health.</p>
+            <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank" rel="noopener">Book Appointment</a>
+            <p style="margin-top: 1em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> to inquire.</p>
+        </div>
 
     </div><!-- /.container -->
 </section>
