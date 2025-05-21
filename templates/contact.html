@@ -9,7 +9,7 @@
             gap: 2em;
             margin-top: 1.5em;
         }
-        .contact-info h3, .map-area h3, .form-area h3 {
+        .contact-info h3, .map-area h3 { /* Removed .form-area h3 */
             margin-bottom: 1em;
             border-bottom: 2px solid var(--primary-color);
             padding-bottom: 0.3em;
@@ -17,17 +17,20 @@
         }
         .contact-info p { margin-bottom: 0.8em; line-height: 1.6;}
         .map-placeholder {
-            background-color: #eee;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #666;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            /* Styles for placeholder text removed or adjusted for iframe */
+            /* background-color: #eee; */ /* No longer needed */
+            /* height: 300px; */ /* Removed to allow iframe to set its own height */
+            /* display: flex; */ /* No longer needed */
+            /* align-items: center; */ /* No longer needed */
+            /* justify-content: center; */ /* No longer needed */
+            /* text-align: center; */ /* No longer needed */
+            /* color: #666; */ /* No longer needed */
+            border: 1px solid #ddd; /* Optional: keep a subtle border */
+            border-radius: 4px; /* Optional: keep rounded corners */
+            overflow: hidden; /* Ensures iframe respects border-radius */
         }
-        /* Basic Form Styling (Adjust as needed) */
+        /* Basic Form Styling (Adjust as needed) - Removed as form is removed */
+        /*
         .contact-form label { display: block; margin-bottom: 0.3em; font-weight: bold; }
         .contact-form input[type="text"],
         .contact-form input[type="email"],
@@ -44,10 +47,11 @@
         .contact-form button { margin-top: 0.5em; }
          .form-disclaimer {
              font-size: 0.85rem;
-             color: #e74c3c; /* Reddish warning color */
+             color: #e74c3c; // Reddish warning color
              margin-top: 1em;
              font-style: italic;
         }
+        */
     </style>
 {% endblock %}
 
@@ -100,47 +104,14 @@
             <div class="map-area">
                 <h3>Location Map</h3>
                 <div class="map-placeholder">
-                    <!-- Placeholder: Replace with actual embedded map iframe -->
-                    <p>Google Map Embed Goes Here</p>
-                    <!-- Example Google Maps Embed Code (Get your own from Google Maps):
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3267.111...YOUR_EMBED_CODE...6d-85.3096!..."
-                        width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"></iframe>
-                     -->
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2747.9332455899803!2d-85.32976680020562!3d35.01016529725879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88605c46975dc4d3%3A0x83651eee25e9187b!2s3908%20Tennessee%20Ave%2C%20Chattanooga%2C%20TN%2037409!5e0!3m2!1sen!2sus!4v1747843961849!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
 
-                <!-- Optional Contact Form Area -->
-                <div class="form-area" style="margin-top: 2em;">
-                    <h3>Send Us a Message</h3>
-                     <!--
-                        NOTE: This is a FRONT-END form only.
-                        To make it work, you need:
-                        1. Backend code (in app.py) to handle the POST request.
-                        2. Email sending library (like Flask-Mail) or integration
-                           with a third-party email service (SendGrid, Mailgun).
-                        3. Security measures (CSRF protection).
-                        Consider using a dedicated form service if backend complexity is undesired.
-                     -->
-                    <form action="/contact-submit" method="POST" class="contact-form"> {# Update action URL #}
-                        {# Add CSRF token if using Flask-WTF #}
-                        <label for="name">Name:</label>
-                        <input type="text" id="name" name="name" required>
-
-                        <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" required>
-
-                        <label for="phone">Phone (Optional):</label>
-                        <input type="text" id="phone" name="phone">
-
-                        <label for="message">Message:</label>
-                        <textarea id="message" name="message" required></textarea>
-
-                        <button type="submit" class="button">Send Message</button>
-
-                         <p class="form-disclaimer">
-                            <strong>Important:</strong> Please do not include personal health information (PHI) or sensitive details in this form. For secure communication regarding your health, please use the <a href="{{ url_for('patient_portal') }}">Patient Portal</a> or call our office.
-                         </p>
-                    </form>
+                <!-- New Secure Communication Section -->
+                <div style="margin-top: 2em;">
+                    <h3>Secure Communication</h3>
+                    <p>For general inquiries, please feel free to contact us via phone or email using the information provided on this page.</p>
+                    <p>For medical-related matters, appointment requests, or to share personal health information, please use our secure <a href="/patient-portal">Patient Portal</a> to ensure your privacy and the security of your information.</p>
                 </div>
 
             </div>
