@@ -3,6 +3,16 @@
 {% block head %}
     <meta name="description" content="Contact Jenks Family Medicine in Chattanooga. Find our address, phone number, hours, map, and parking information.">
     <style>
+        .team-photo {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 2em; /* Increased margin for better spacing */
+            border-radius: 8px;
+            display: block; /* To enable margin auto for centering if needed, and good practice */
+            margin-left: auto; /* Center the image if it's narrower than container */
+            margin-right: auto; /* Center the image if it's narrower than container */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Optional: subtle shadow */
+        }
         .contact-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -64,6 +74,7 @@
 
 <section class="contact-content reveal">
     <div class="container">
+        <img src="{{ url_for('static', filename='images/Team.jpg') }}" alt="Jenks Family Medicine Team" class="team-photo">
         <div class="contact-grid">
             <div class="contact-info">
                 <h3>Contact Information</h3>

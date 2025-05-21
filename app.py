@@ -57,6 +57,11 @@ def patient_portal():
     # return redirect("https://portal.kareo.com", code=302)
 
 
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy-policy.html', page_title='Privacy Policy')
+
+
 # --- Add other potential routes if needed (e.g., for form submissions) ---
 
 if __name__ == '__main__':
