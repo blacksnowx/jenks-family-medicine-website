@@ -1,283 +1,201 @@
-/* --- Font Imports --- */
-/* NOTE: You need to download the TTF/OTF/WOFF files and place them in static/fonts */
-/* Or find a CDN link if available (Google Fonts has Montserrat, Clash Grotesk might need self-hosting) */
+/* Importing Fonts from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../fonts/Montserrat-Light.ttf') format('truetype');
-    font-weight: 300; /* Light */
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../fonts/Montserrat-Regular.ttf') format('truetype');
-    font-weight: 400; /* Regular */
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Montserrat';
-    src: url('../fonts/Montserrat-Bold.ttf') format('truetype');
-    font-weight: 700; /* Bold */
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Clash Grotesk';
-    src: url('../fonts/ClashGrotesk-Light.ttf') format('truetype');
-    font-weight: 300; /* Light */
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Clash Grotesk';
-    src: url('../fonts/ClashGrotesk-Regular.ttf') format('truetype');
-    font-weight: 400; /* Regular */
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Clash Grotesk';
-    src: url('../fonts/ClashGrotesk-Medium.ttf') format('truetype');
-    font-weight: 500; /* Medium */
-    font-style: normal;
-}
-
-/* --- Variables --- */
+/* --- Brand Style Guide Variables --- */
 :root {
     --primary-color: #37a4db; /* Curious Blue */
-    --accent-color: #000000;  /* Pure Black */
-    --background-color: #ffffff; /* Pure White */
-    --text-color: #333333; /* Slightly softer than pure black for body */
-    --heading-font: 'Montserrat', sans-serif;
-    --body-font: 'Clash Grotesk', sans-serif;
-    --base-font-size: 16px; /* Adjust as needed for responsiveness */
-    --body-tracking: 0.015625em; /* Equivalent to tracking 25 in design software (25/1000) */
+    --accent-color-black: #000000; /* Pure Black */
+    --accent-color-white: #ffffff; /* Pure White */
+
+    --font-primary: 'Montserrat', sans-serif;
+    /* Assuming Clash Grotesk is available via @font-face in a global CSS or loaded elsewhere if still needed.
+       The issue's HTML doesn't explicitly load it beyond a cdnfonts URL, which might be undesirable.
+       For now, relying on Montserrat and system sans-serif. */
+    --font-secondary: 'Montserrat', sans-serif; /* Fallback to Montserrat if Clash Grotesk is not globally available */
+
+    --golden-ratio: 1.618;
+    --body-font-size: 1.1rem; /* Base size for body text */
+    --subheader-font-size: calc(var(--body-font-size) * var(--golden-ratio));
+    --header-font-size: calc(var(--body-font-size) * var(--golden-ratio) * var(--golden-ratio)); /* Adjusted for H1 */
 }
 
-/* --- Basic Reset & Body --- */
-* {
-    box-sizing: border-box;
+/* --- General Styling --- */
+body {
+    font-family: var(--font-secondary);
+    background-color: var(--accent-color-white);
+    color: var(--accent-color-black);
     margin: 0;
     padding: 0;
-}
-
-body {
-    font-family: var(--body-font);
-    font-size: var(--base-font-size);
     line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-    font-weight: 400; /* Regular */
-    letter-spacing: var(--body-tracking);
-    /* Styles from original flyer.css */
-    background-color: var(--background-color); /* Uses variable */
-    color: var(--accent-color); /* Uses variable */
-    margin: 0; /* Kept from original */
-    padding: 20px; /* Adjusted padding for border */
-    border: 1px solid #ccc; /* Subtle page border */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- Layout Containers (from style.css, flyer specific .container is below) --- */
-/* Removing the general .container from style.css as flyer.css should be self-contained for the flyer page */
-/* .container {
-    width: 90%;
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 2em 0;
-} */
-
-
-/* --- Flyer Specific Styles (Original content from flyer.html) --- */
-
-.container { /* Flyer specific container */
-    max-width: 800px; /* Max width of the content area */
-    margin: 0 auto; /* Center the content */
-    padding: 20px; /* Padding inside the content area, around the flyer content itself */
-}
-
-.header {
-    font-family: var(--heading-font);
-    font-weight: 700;
-    color: var(--primary-color);
-    font-size: 72pt; /* Slightly reduced for better fit with border */
-    text-align: center;
-    margin-bottom: 15px; /* Adjusted spacing */
-}
-
-.subheader {
-    font-family: var(--heading-font);
-    font-weight: 400;
-    color: var(--accent-color);
-    font-size: 30pt; /* Slightly reduced */
-    margin-top: 30px; /* Adjusted spacing */
-    margin-bottom: 15px; /* Adjusted spacing */
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 8px; /* Adjusted spacing */
-}
-
-.body-text {
-    font-family: var(--body-font);
-    font-weight: 400;
-    font-size: 18pt; /* Slightly reduced for balance */
-    line-height: 1.7; /* Increased for readability */
-    margin-bottom: 1em; /* Added for spacing between paragraphs */
-}
-
-.body-text-light {
-    font-family: var(--body-font);
-    font-weight: 300;
-    font-size: 18pt; /* Slightly reduced for balance */
-    line-height: 1.7; /* Increased for readability */
-    text-align: center; /* Centering the intro line */
-    margin-bottom: 2em; /* More space after intro line */
-}
-
-.accent-text {
-    font-family: var(--heading-font);
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-/* --- Event Grid Layout --- */
-.events-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px; /* Increased gap */
-    margin-top: 30px; /* Space before the grid */
-}
-
-.event-item {
-    background-color: #f9f9f9; /* Light background for event items */
+.container {
+    max-width: 900px;
+    margin: 40px auto;
     padding: 20px;
-    border: 1px solid #eee;
-    border-radius: 5px; /* Subtle rounded corners */
 }
 
-.event-item .subheader {
-    font-size: 24pt; /* Smaller subheader for event items */
-    margin-top: 0; /* Reset margin for subheader inside event item */
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--primary-color); /* Thinner border */
-    padding-bottom: 5px;
+/* --- Header & Logo --- */
+.header {
+    display: flex; /* Use flexbox for alignment */
+    align-items: center; /* Vertically align items */
+    text-align: left; /* Align text to the left, logo will be on the left */
+    padding: 20px 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 40px;
 }
 
-.event-item .body-text {
-    font-size: 16pt; /* Smaller body text for event items */
-    line-height: 1.6;
+.logo-img {
+    height: 50px; /* Adjust as needed, referencing www.jenksfamilymedicine.com */
+    width: auto;
+    margin-right: 15px; /* Space between logo image and text */
 }
 
-.event-item .body-text strong { /* Emphasize key info */
-    font-weight: 500; /* Medium weight from Clash Grotesk */
-}
-
-.event-item a {
-    color: var(--primary-color);
-    font-weight: 500;
-}
-
-
-.footer {
-    margin-top: 50px; /* Adjusted spacing */
-    text-align: center;
-    font-family: var(--heading-font);
-    font-weight: 400;
-    font-size: 16pt; /* Slightly reduced */
-    color: var(--accent-color);
+.logo-text-container {
+    display: flex;
+    flex-direction: column;
 }
 
 .logo {
-    text-align: center;
-    margin-bottom: 30px; /* Adjusted spacing */
-}
-
-.logo-text {
-    font-family: var(--heading-font);
+    font-family: var(--font-primary);
     font-weight: 700;
-    font-size: 22pt; /* Slightly reduced */
+    font-size: 1.5rem; /* Maintained from original example */
+    color: var(--accent-color-black);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.logo .medicine {
     color: var(--primary-color);
-    letter-spacing: 1.5px; /* Adjusted spacing */
+    font-weight: 400; /* Maintained from original example */
 }
 
-/* --- Print-Friendly Styles --- */
-@media print {
-    body {
-        border: none; /* Remove screen border for printing */
-        padding: 0; /* Remove screen padding */
-        font-size: 12pt; /* Adjust base font for print */
-        color: #000000 !important; /* Ensure black text for print, override others */
-        background-color: #ffffff !important; /* Ensure white background */
-    }
 
-    .container {
-        max-width: 100%; /* Use full width for printing */
-        padding: 1cm; /* Standard print margin */
-    }
-
-    .header {
-        font-size: 48pt; /* Adjust for print */
-        color: #000000 !important;
-    }
-
-    .subheader {
-        font-size: 24pt; /* Adjust for print */
-        color: #000000 !important;
-        border-bottom: 2px solid #000000 !important;
-    }
-
-    .event-item .subheader {
-        font-size: 18pt;
-        border-bottom: 1px solid #000000 !important;
-    }
-
-    .body-text, .body-text-light, .event-item .body-text {
-        font-size: 11pt; /* Adjust for print */
-        color: #000000 !important;
-    }
-
-    .body-text-light {
-        text-align: center; /* Keep centered if desired for print */
-    }
-
-    .accent-text, .logo-text {
-        color: #000000 !important; /* Print all text in black */
-    }
-
-    .logo-text {
-        font-size: 18pt;
-    }
-
-    .events-grid {
-        grid-template-columns: 1fr; /* Stack events in a single column for print */
-        gap: 15px;
-    }
-
-    .event-item {
-        background-color: #ffffff !important; /* No background for event items */
-        border: 1px solid #666; /* Lighter border for print separation */
-        padding: 15px;
-    }
-
-    .footer {
-        font-size: 10pt;
-        margin-top: 30px;
-        color: #000000 !important;
-    }
-
-    a {
-        color: #000000 !important;
-        text-decoration: none; /* Avoid underlining links in print unless desired */
-    }
-
-    a[href^="mailto:"]:after,
-    a[href^="http://"]:after,
-    a[href^="https://"]:after {
-        /* content: " (" attr(href) ")"; /* Optionally display URLs after links for print */
-        /* font-size: 0.9em; */
-        /* color: #333333 !important; */
-    }
-
-    /* Hide elements not needed for print (if any) */
-    /* .class-to-hide-on-print { display: none !important; } */
+/* --- Main Content & Typography --- */
+h1 {
+    font-family: var(--font-primary);
+    font-size: var(--header-font-size);
+    color: var(--primary-color);
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 10px;
 }
+
+.intro-text {
+    font-family: var(--font-secondary);
+    text-align: center;
+    font-size: var(--subheader-font-size);
+    color: #555;
+    margin-bottom: 60px;
+    font-weight: 400;
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column layout for events */
+    gap: 40px;
+}
+
+.event-card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 30px;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.event-card h2 {
+    font-family: var(--font-primary);
+    font-size: var(--subheader-font-size);
+    color: var(--accent-color-black);
+    font-weight: 700;
+    margin-top: 0;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.event-card p, .event-card li {
+    font-family: var(--font-secondary);
+    font-size: var(--body-font-size);
+    color: #333;
+}
+
+.event-card ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.event-card li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.event-card li:last-child {
+    border-bottom: none;
+}
+
+.event-card strong {
+    font-weight: bold; /* Changed from 500 to bold for more emphasis */
+    color: var(--accent-color-black);
+}
+
+.event-card a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500; /* Medium weight for links */
+}
+
+.event-card a:hover {
+    text-decoration: underline;
+}
+
+.closing-text {
+    font-family: var(--font-secondary);
+    text-align: center;
+    font-size: var(--body-font-size);
+    color: #555;
+    margin-top: 40px;
+    margin-bottom: 40px;
+}
+
+/* --- Footer --- */
+.footer {
+    text-align: center;
+    margin-top: 80px;
+    padding: 30px;
+    border-top: 1px solid #eee;
+    font-family: var(--font-secondary);
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.footer strong {
+    font-weight: bold;
+}
+
+.footer a {
+    color: var(--accent-color-black); /* Changed to black for better visibility as per typical footer links */
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Ensure Clash Grotesk is loaded if it's critical and not loaded globally.
+   If it's hosted in static/fonts, an example @font-face would be:
+@font-face {
+    font-family: 'Clash Grotesk';
+    src: url('../fonts/ClashGrotesk-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+*/

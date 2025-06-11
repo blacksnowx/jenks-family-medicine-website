@@ -65,7 +65,7 @@ def privacy_policy():
 # --- Add other potential routes if needed (e.g., for form submissions) ---
 
 
-@app.route('/flyer_promo_summer_2024_v1')
+@app.route('/summer_flyer')
 def summer_flyer_promo():
     return render_template('summer_flyer.html', page_title='Summer Flyer')
 
