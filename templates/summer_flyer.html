@@ -4,65 +4,172 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Summer Events | Jenks Family Medicine</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/flyer.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/clash-grotesk" rel="stylesheet">
+
+    <style>
+        /* --- Jenks Family Medicine Brand Guidelines --- */
+        :root {
+            --color-primary-blue: #37a4db;
+            --color-accent-black: #000000;
+            --color-accent-white: #ffffff;
+            --font-heading: 'Montserrat', sans-serif;
+            --font-body: 'Clash Grotesk', system-ui, -apple-system, sans-serif;
+            --body-font-size: 21px;
+            --subheader-font-size: 34px;
+            --header-font-size: 55px;
+        }
+
+        /* --- Global & Print Styles --- */
+        @media print {
+            body { margin: 0; padding: 0; background: none; }
+            .page-container { box-shadow: none; margin: 0; border: none; }
+        }
+
+        @page {
+            size: A4;
+            margin: 1in;
+        }
+
+        /* --- Base Styles --- */
+        body {
+            background-color: var(--color-accent-white);
+            font-family: var(--font-body);
+            font-size: var(--body-font-size);
+            color: var(--color-accent-black);
+            line-height: 1.6;
+            font-weight: 400;
+            letter-spacing: 0.025em;
+            margin: 2rem;
+        }
+
+        .page-container {
+            max-width: 8.5in;
+            margin: 0 auto;
+            background-color: var(--color-accent-white);
+            padding: 1in;
+        }
+
+        /* --- Logo & Header --- */
+        .document-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-accent-black);
+        }
+
+        /* ADDED: Style for the logo image */
+        .logo-image {
+            display: block;
+            margin: 0 auto; /* Center the image */
+            max-height: 90px; /* Control the logo size */
+            margin-bottom: 1rem; /* Space below the logo */
+        }
+
+        /* --- TYPOGRAPHY & HIERARCHY --- */
+        h1, h2 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--color-accent-black);
+            letter-spacing: 0;
+        }
+
+        h1 {
+            font-size: var(--header-font-size);
+            text-align: center;
+            color: var(--color-primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .sub-headline {
+            text-align: center;
+            font-size: var(--body-font-size);
+            margin-bottom: 3rem;
+            letter-spacing: 0.025em;
+        }
+
+        h2 {
+            font-size: var(--subheader-font-size);
+            border-top: 1px solid var(--color-accent-black);
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        p { margin-bottom: 1rem; }
+        ul { list-style: none; padding: 0; }
+        li { margin-bottom: 0.5rem; }
+        strong { font-weight: 500; }
+
+        a {
+            color: var(--color-primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover { text-decoration: underline; }
+
+        /* --- FOOTER --- */
+        .document-footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-accent-black);
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="page-container">
 
-        <header class="header">
-            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo" class="logo-img">
-            <div class="logo-text-container">
-                 <div class="logo">Jenks Family <span class="medicine">Medicine</span></div>
-            </div>
+        <header class="document-header">
+            <img src="/static/images/logo.png" alt="Jenks Family Medicine Logo" class="logo-image">
         </header>
 
         <main>
-            <h1>Join Us for Our Summer Events at Jenks Family Medicine!</h1>
-            <p class="intro-text">We would love for you to come!  We have three special events scheduled for this summer and invite you to join us.</p>
+            <h1>Summer Events</h1>
+            <p class="sub-headline">We have three special events scheduled and invite you to join us.</p>
 
-            <div class="events-grid">
+            <section id="open-house">
+                <h2>Open House</h2>
+                <p>Our Open House is coming up soon! Come see our space and meet our team in a relaxed, friendly setting.</p>
+                <ul>
+                    <li><strong>Date:</strong> June 18, 2025</li>
+                    <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
+                    <li><strong>Details:</strong> All are welcome to come, and admission is free!</li>
+                </ul>
+            </section>
 
-                <section class="event-card">
-                    <h2>Open House</h2>
-                    <p>Our Open House is coming up next week! Come see our space and meet our team.</p>
-                    <ul>
-                        <li><strong>Date:</strong> June 18, 2025</li>
-                        <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
-                        <li><strong>Details:</strong> All are welcome to come, and admission is free!</li>
-                    </ul>
-                </section>
+            <section id="summer-safety">
+                <h2>Summer Safety Informational</h2>
+                <p>Learn how to keep your family safe this summer at our informational session. We'll cover topics like sun protection, hydration, and outdoor activity safety.</p>
+                <ul>
+                    <li><strong>Date:</strong> June 25, 2025</li>
+                    <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
+                    <li><strong>Details:</strong> Admission is free, but space is limited. Please RSVP by emailing <a href="mailto:Brittany@jenksfamilymedicine.com">Brittany@jenksfamilymedicine.com</a> to reserve your spot.</li>
+                </ul>
+            </section>
 
-                <section class="event-card">
-                    <h2>Summer Safety Informational</h2>
-                    <p>Learn how to keep your family safe this summer at our informational session.</p>
-                    <ul>
-                        <li><strong>Date:</strong> June 25, 2025</li>
-                        <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
-                        <li><strong>Details:</strong> Admission is free, but space is limited. Please RSVP by emailing us to reserve your spot.</li>
-                        <li><strong>RSVP:</strong> <a href="mailto:Brittany@jenksfamilymedicine.com">Brittany@jenksfamilymedicine.com</a></li>
-                    </ul>
-                </section>
-
-                <section class="event-card">
-                    <h2>Sport Physical Clinic</h2>
-                    <p>Get ready for the upcoming school year and sports season at our one-day clinic.</p>
-                    <ul>
-                        <li><strong>Date:</strong> July 25, 2025</li>
-                        <li><strong>Time:</strong> 11:00 AM - 3:30 PM</li>
-                        <li><strong>Details:</strong> Sports physicals are available for only $50. Walk-ins are welcomed for this one-day-only event.</li>
-                    </ul>
-                </section>
-
-            </div>
-            <p class="closing-text">For more information, please contact us or visit our website.</p>
+            <section id="physicals">
+                <h2>Sport Physical Clinic</h2>
+                <p>Get ready for the upcoming school year and sports season. We're offering a convenient, one-day clinic for sports physicals.</p>
+                <ul>
+                    <li><strong>Date:</strong> July 25, 2025</li>
+                    <li><strong>Time:</strong> 11:00 AM - 3:30 PM</li>
+                    <li><strong>Details:</strong> Physicals are available for only $50. Walk-ins are welcomed.</li>
+                </ul>
+            </section>
         </main>
 
-        <footer class="footer">
+        <footer class="document-footer">
             <p><strong>Jenks Family Medicine</strong></p>
-            <p>Address: 3908 Tennessee Ave Ste 110, Chattanooga, TN 37409</p>
-            <p>Website: <a href="http://www.jenksfamilymedicine.com">www.jenksfamilymedicine.com</a> | Phone: 423-373-5457</p>
+            <p>3908 Tennessee Ave Ste 110, Chattanooga, TN 37409</p>
+            <p><a href="http://www.jenksfamilymedicine.com">www.jenksfamilymedicine.com</a> | 423-373-5457</p>
         </footer>
 
     </div>
