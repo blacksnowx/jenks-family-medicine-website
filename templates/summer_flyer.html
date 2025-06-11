@@ -4,85 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jenks Family Medicine - Summer Events</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Clash+Grotesk:wght@300;400;500&display=swap');
-
-        body {
-            font-family: 'Clash Grotesk', sans-serif;
-            background-color: #ffffff;
-            color: #000000;
-            margin: 0;
-            padding: 40px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .header {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            color: #37a4db; /* Curious Blue */
-            font-size: 83pt; /* Golden Ratio Applied */
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .subheader {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            color: #000000; /* Pure Black */
-            font-size: 34pt; /* Golden Ratio Applied */
-            margin-top: 40px;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #37a4db; /* Curious Blue */
-            padding-bottom: 10px;
-        }
-
-        .body-text {
-            font-family: 'Clash Grotesk', sans-serif;
-            font-weight: 400;
-            font-size: 21pt;
-            line-height: 1.6;
-        }
-
-        .body-text-light {
-            font-family: 'Clash Grotesk', sans-serif;
-            font-weight: 300;
-            font-size: 21pt;
-            line-height: 1.6;
-        }
-
-        .accent-text {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            color: #37a4db; /* Curious Blue */
-        }
-
-        .footer {
-            margin-top: 60px;
-            text-align: center;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 400;
-            font-size: 18pt;
-            color: #000000; /* Pure Black */
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo-text {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 24pt;
-            color: #37a4db; /* Curious Blue */
-            letter-spacing: 2px;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flyer.css') }}">
 </head>
 <body>
 
@@ -93,39 +15,41 @@
         </div>
 
         <div class="header">Summer Events!</div>
-        <p class="body-text-light" style="text-align: center;">We would love for you to come!</p>
+        <p class="body-text-light">We would love for you to come!</p>
 
-        <div>
-            <div class="subheader">Open House</div>
-            <p class="body-text">
-                <span class="accent-text">></span> June 18th, 2025<br>
-                4 PM - 5 PM<br>
-                at Our Office<br>
-                All are welcome to come! Admission is free.
-            </p>
-        </div>
+        <div class="events-grid">
+            <div class="event-item">
+                <div class="subheader">Open House</div>
+                <p class="body-text">
+                    <span class="accent-text">></span> <strong>June 18th, 2025</strong><br>
+                    <strong>4 PM - 5 PM</strong><br>
+                    at Our Office<br>
+                    All are welcome to come! <strong>Admission is free.</strong>
+                </p>
+            </div>
 
-        <div>
-            <div class="subheader">Summer Safety Informational</div>
-            <p class="body-text">
-                <span class="accent-text">></span> June 25th, 2025<br>
-                4 PM - 5 PM<br>
-                Admission is free. Limited space available.<br>
-                Please RSVP by emailing: <a href="mailto:Brittany@jenksfamilymedicine.com" style="color: #37a4db;">Brittany@jenksfamilymedicine.com</a>
-            </p>
-        </div>
+            <div class="event-item">
+                <div class="subheader">Summer Safety Informational</div>
+                <p class="body-text">
+                    <span class="accent-text">></span> <strong>June 25th, 2025</strong><br>
+                    <strong>4 PM - 5 PM</strong><br>
+                    Admission is free. <strong>Limited space available.</strong><br>
+                    Please RSVP by emailing: <a href="mailto:Brittany@jenksfamilymedicine.com">Brittany@jenksfamilymedicine.com</a>
+                </p>
+            </div>
 
-        <div>
-            <div class="subheader">Sport Physical Clinic</div>
-            <p class="body-text">
-                <span class="accent-text">></span> July 25th, 2025<br>
-                11 AM - 3:30 PM<br>
-                Only $50 — Walk-ins welcomed, one day only!
-            </p>
+            <div class="event-item">
+                <div class="subheader">Sport Physical Clinic</div>
+                <p class="body-text">
+                    <span class="accent-text">></span> <strong>July 25th, 2025</strong><br>
+                    <strong>11 AM - 3:30 PM</strong><br>
+                    <strong>Only $50</strong> — Walk-ins welcomed, one day only!
+                </p>
+            </div>
         </div>
 
         <div class="footer">
-            <p>423-373-5457 | Jenksfamilymedicine.com</p>
+            <p><strong>423-373-5457</strong> | <strong>Jenksfamilymedicine.com</strong></p>
             <p>3908 Tennessee Ave Ste 110, Chattanooga, TN 37409</p>
         </div>
 
