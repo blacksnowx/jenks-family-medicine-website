@@ -3,55 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jenks Family Medicine - Summer Events</title>
+    <title>Summer Events | Jenks Family Medicine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flyer.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
 </head>
 <body>
 
     <div class="container">
 
-        <div class="logo">
-            <span class="logo-text">JENKS FAMILY MEDICINE</span>
-        </div>
-
-        <div class="header">Summer Events!</div>
-        <p class="body-text-light">We would love for you to come!</p>
-
-        <div class="events-grid">
-            <div class="event-item">
-                <div class="subheader">Open House</div>
-                <p class="body-text">
-                    <span class="accent-text">></span> <strong>June 18th, 2025</strong><br>
-                    <strong>4 PM - 5 PM</strong><br>
-                    at Our Office<br>
-                    All are welcome to come! <strong>Admission is free.</strong>
-                </p>
+        <header class="header">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo" class="logo-img">
+            <div class="logo-text-container">
+                 <div class="logo">Jenks Family <span class="medicine">Medicine</span></div>
             </div>
+        </header>
 
-            <div class="event-item">
-                <div class="subheader">Summer Safety Informational</div>
-                <p class="body-text">
-                    <span class="accent-text">></span> <strong>June 25th, 2025</strong><br>
-                    <strong>4 PM - 5 PM</strong><br>
-                    Admission is free. <strong>Limited space available.</strong><br>
-                    Please RSVP by emailing: <a href="mailto:Brittany@jenksfamilymedicine.com">Brittany@jenksfamilymedicine.com</a>
-                </p>
+        <main>
+            <h1>Join Us for Our Summer Events at Jenks Family Medicine!</h1>
+            <p class="intro-text">We would love for you to come!  We have three special events scheduled for this summer and invite you to join us.</p>
+
+            <div class="events-grid">
+
+                <section class="event-card">
+                    <h2>Open House</h2>
+                    <p>Our Open House is coming up next week! Come see our space and meet our team.</p>
+                    <ul>
+                        <li><strong>Date:</strong> June 18, 2025</li>
+                        <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
+                        <li><strong>Details:</strong> All are welcome to come, and admission is free!</li>
+                    </ul>
+                </section>
+
+                <section class="event-card">
+                    <h2>Summer Safety Informational</h2>
+                    <p>Learn how to keep your family safe this summer at our informational session.</p>
+                    <ul>
+                        <li><strong>Date:</strong> June 25, 2025</li>
+                        <li><strong>Time:</strong> 4:00 PM - 5:00 PM</li>
+                        <li><strong>Details:</strong> Admission is free, but space is limited. Please RSVP by emailing us to reserve your spot.</li>
+                        <li><strong>RSVP:</strong> <a href="mailto:Brittany@jenksfamilymedicine.com">Brittany@jenksfamilymedicine.com</a></li>
+                    </ul>
+                </section>
+
+                <section class="event-card">
+                    <h2>Sport Physical Clinic</h2>
+                    <p>Get ready for the upcoming school year and sports season at our one-day clinic.</p>
+                    <ul>
+                        <li><strong>Date:</strong> July 25, 2025</li>
+                        <li><strong>Time:</strong> 11:00 AM - 3:30 PM</li>
+                        <li><strong>Details:</strong> Sports physicals are available for only $50. Walk-ins are welcomed for this one-day-only event.</li>
+                    </ul>
+                </section>
+
             </div>
+            <p class="closing-text">For more information, please contact us or visit our website.</p>
+        </main>
 
-            <div class="event-item">
-                <div class="subheader">Sport Physical Clinic</div>
-                <p class="body-text">
-                    <span class="accent-text">></span> <strong>July 25th, 2025</strong><br>
-                    <strong>11 AM - 3:30 PM</strong><br>
-                    <strong>Only $50</strong> — Walk-ins welcomed, one day only!
-                </p>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p><strong>423-373-5457</strong> | <strong>Jenksfamilymedicine.com</strong></p>
-            <p>3908 Tennessee Ave Ste 110, Chattanooga, TN 37409</p>
-        </div>
+        <footer class="footer">
+            <p><strong>Jenks Family Medicine</strong></p>
+            <p>Address: 3908 Tennessee Ave Ste 110, Chattanooga, TN 37409</p>
+            <p>Website: <a href="http://www.jenksfamilymedicine.com">www.jenksfamilymedicine.com</a> | Phone: 423-373-5457</p>
+        </footer>
 
     </div>
 
