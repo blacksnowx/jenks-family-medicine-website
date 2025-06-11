@@ -64,6 +64,12 @@ def privacy_policy():
 
 # --- Add other potential routes if needed (e.g., for form submissions) ---
 
+
+@app.route('/flyer_promo_summer_2024_v1')
+def summer_flyer_promo():
+    return render_template('summer_flyer.html', page_title='Summer Flyer')
+
+
 if __name__ == '__main__':
     # Set debug=False when deploying to production (Heroku sets this via env var)
     # For local testing, you can use debug=True
