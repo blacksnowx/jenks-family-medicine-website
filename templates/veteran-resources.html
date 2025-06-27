@@ -50,6 +50,38 @@
             font-size: 1em;
             background-color: #fff;
         }
+
+        /* New styles for two-column layout */
+        .top-content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
+            gap: 2em; /* Space between columns */
+            align-items: flex-start; /* Align items to the top of their grid area */
+            margin-bottom: 2em; /* Space below the grid */
+        }
+
+        .left-column, .right-column {
+            /* Basic styling, can be adjusted */
+        }
+
+        .right-column .resource-section h3 {
+             margin-top: 0; /* Adjust if h2 from left column and h3 from right column are misaligned */
+        }
+
+        /* Responsive adjustments for the grid */
+        @media (max-width: 992px) { /* Tablet and below */
+            .top-content-grid {
+                grid-template-columns: 1fr; /* Stack columns */
+            }
+            .right-column {
+                margin-top: 2em; /* Add space when stacked */
+            }
+        }
+         @media (max-width: 768px) { /* Mobile */
+            #video-player-container {
+                /* Adjust video player size or aspect ratio for mobile if needed */
+            }
+        }
     </style>
 {% endblock %}
 
@@ -62,8 +94,31 @@
 
 <section class="resources-content reveal">
     <div class="container">
-        <h2>Our Commitment</h2>
-        <p>Jenks Family Medicine is proud to serve those who have served our country. We offer specialized Compensation & Pension (C&P) examinations and are committed to helping Veterans navigate healthcare resources.</p>
+        <div class="top-content-grid">
+            <div class="left-column">
+                <h2>Our Commitment</h2>
+                <p>Jenks Family Medicine is proud to serve those who have served our country. We offer specialized Compensation & Pension (C&P) examinations and are committed to helping Veterans navigate healthcare resources.</p>
+            </div>
+            <div class="right-column">
+                <div class="resource-section"> <!-- Keep resource-section for consistent styling if needed -->
+                    <h3>Veteran Stories & Information</h3>
+                    <div id="video-player-container">
+                        <iframe id="youtube-video-player" width="560" height="315" src="https://www.youtube.com/embed/x7ZIBojruR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+                    <div id="video-selector-container">
+                        <label for="video-select">Select a video:</label>
+                        <select id="video-select" name="video-select">
+                            <option value="x7ZIBojruR0">Video 1: Understanding VA Benefits</option>
+                            <option value="tScHtQrqqoY">Video 2: Mental Health Resources</option>
+                            <option value="DQ_5nDfVt2k">Video 3: Transitioning to Civilian Life</option>
+                            <option value="CNAKVLF5k0M">Video 4: VA Home Loan Guide</option>
+                            <option value="UKOyhkrQTNw">Video 5: Women Veterans' Health</option>
+                            <option value="1THx0khpCXg">Video 6: Job Training Programs</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="resource-section">
             <h3>Local & State VSO Contacts</h3>
@@ -126,24 +181,6 @@
                     VA Health Eligibility Center: <a href="tel:8772228387">877-222-8387</a> (TTY: 711) - M-F, 8 AM - 8 PM ET
                  </li>
             </ul>
-        </div>
-
-        <div class="resource-section">
-            <h3>Veteran Stories & Information</h3>
-            <div id="video-player-container">
-                <iframe id="youtube-video-player" width="560" height="315" src="https://www.youtube.com/embed/x7ZIBojruR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-            </div>
-            <div id="video-selector-container">
-                <label for="video-select">Select a video:</label>
-                <select id="video-select" name="video-select">
-                    <option value="x7ZIBojruR0">Video 1: Understanding VA Benefits</option>
-                    <option value="tScHtQrqqoY">Video 2: Mental Health Resources</option>
-                    <option value="DQ_5nDfVt2k">Video 3: Transitioning to Civilian Life</option>
-                    <option value="CNAKVLF5k0M">Video 4: VA Home Loan Guide</option>
-                    <option value="UKOyhkrQTNw">Video 5: Women Veterans' Health</option>
-                    <option value="1THx0khpCXg">Video 6: Job Training Programs</option>
-                </select>
-            </div>
         </div>
 
     </div><!-- /.container -->
