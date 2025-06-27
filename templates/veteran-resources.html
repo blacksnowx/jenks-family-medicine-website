@@ -14,6 +14,42 @@
         .resource-list li { margin-bottom: 1em; line-height: 1.5; }
         .resource-list strong { display: block; margin-bottom: 0.2em; font-family: var(--heading-font);}
         .resource-list a { text-decoration: underline; }
+
+        #video-player-container {
+            margin-bottom: 1em;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            background: #000;
+        }
+        #video-player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #video-selector-container {
+            margin-top: 1.5em;
+        }
+        #video-selector-container label {
+            display: block;
+            margin-bottom: 0.5em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        #video-select {
+            width: 100%;
+            padding: 0.8em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: var(--body-font);
+            font-size: 1em;
+            background-color: #fff;
+        }
     </style>
 {% endblock %}
 
@@ -92,6 +128,41 @@
             </ul>
         </div>
 
+        <div class="resource-section">
+            <h3>Veteran Stories & Information</h3>
+            <div id="video-player-container">
+                <iframe id="youtube-video-player" width="560" height="315" src="https://www.youtube.com/embed/x7ZIBojruR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+            <div id="video-selector-container">
+                <label for="video-select">Select a video:</label>
+                <select id="video-select" name="video-select">
+                    <option value="x7ZIBojruR0">Video 1: Understanding VA Benefits</option>
+                    <option value="tScHtQrqqoY">Video 2: Mental Health Resources</option>
+                    <option value="DQ_5nDfVt2k">Video 3: Transitioning to Civilian Life</option>
+                    <option value="CNAKVLF5k0M">Video 4: VA Home Loan Guide</option>
+                    <option value="UKOyhkrQTNw">Video 5: Women Veterans' Health</option>
+                    <option value="1THx0khpCXg">Video 6: Job Training Programs</option>
+                </select>
+            </div>
+        </div>
+
     </div><!-- /.container -->
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const videoPlayer = document.getElementById('youtube-video-player');
+    const videoSelect = document.getElementById('video-select');
+
+    if (videoPlayer && videoSelect) {
+        videoSelect.addEventListener('change', function() {
+            const selectedVideoId = this.value;
+            if (selectedVideoId) {
+                videoPlayer.src = `https://www.youtube.com/embed/${selectedVideoId}`;
+            }
+        });
+    }
+});
+</script>
+
 {% endblock %}
