@@ -70,6 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratingValue = reviewsSection.querySelector('[data-reviews-rating]');
         const countValue = reviewsSection.querySelector('[data-reviews-count]');
 
+        let sectionRemoved = false;
+
         let reviews = [];
         let currentIndex = 0;
         let autoPlayTimer = null;
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const AUTO_PLAY_INTERVAL = 8000;
 
         const setStatus = (message) => {
-            if (!status) {
+            if (sectionRemoved || !status) {
                 return;
             }
             if (message) {
@@ -212,22 +214,51 @@ document.addEventListener('DOMContentLoaded', () => {
             return card;
         };
 
-        const showFallbackCard = (message) => {
-            if (!track) {
+        const hideReviewsSection = () => {
+            if (sectionRemoved) {
                 return;
             }
-            track.innerHTML = '';
-            const card = document.createElement('article');
-            card.className = 'review-card review-card--fallback';
-            const messageElement = document.createElement('p');
-            messageElement.className = 'review-card__message';
-            messageElement.textContent = message;
-            card.appendChild(messageElement);
-            track.appendChild(card);
+
+            sectionRemoved = true;
+            removeLoader();
+            stopAutoPlay();
+            reviews = [];
+
+            if (summary) {
+                summary.classList.add('is-hidden');
+            }
+
+            if (status) {
+                status.textContent = '';
+                status.classList.add('is-hidden');
+            }
+
+            window.removeEventListener('resize', updateTransform);
+
+            if (
+                typeof revealObserver !== 'undefined' &&
+                revealObserver &&
+                typeof revealObserver.unobserve === 'function'
+            ) {
+                try {
+                    revealObserver.unobserve(reviewsSection);
+                } catch (observerError) {
+                    console.warn('Unable to unobserve reviews section', observerError);
+                }
+            }
+
+            if (reviewsSection) {
+                reviewsSection.classList.add('is-hidden');
+                reviewsSection.setAttribute('hidden', '');
+
+                if (reviewsSection.parentElement) {
+                    reviewsSection.parentElement.removeChild(reviewsSection);
+                }
+            }
         };
 
         const updateTransform = () => {
-            if (!viewport || !track) {
+            if (sectionRemoved || !viewport || !track) {
                 return;
             }
             const width = viewport.getBoundingClientRect().width;
@@ -235,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const goTo = (index) => {
-            if (!reviews.length) {
+            if (sectionRemoved || !reviews.length) {
                 return;
             }
             const total = reviews.length;
@@ -244,6 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const updateControls = () => {
+            if (sectionRemoved) {
+                return;
+            }
             const shouldDisable = reviews.length <= 1;
             if (prevButton) {
                 prevButton.disabled = shouldDisable;
@@ -262,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const startAutoPlay = () => {
             stopAutoPlay();
-            if (reviews.length <= 1) {
+            if (sectionRemoved || reviews.length <= 1) {
                 return;
             }
             autoPlayTimer = window.setInterval(() => {
@@ -271,6 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const renderReviews = (items) => {
+            if (sectionRemoved) {
+                return;
+            }
             reviews = items;
             track.innerHTML = '';
 
@@ -287,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const applySummary = (data) => {
-            if (!summary || !ratingValue) {
+            if (sectionRemoved || !summary || !ratingValue) {
                 return;
             }
 
@@ -315,8 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : [];
 
             if (!fetchedReviews.length) {
-                showFallbackCard('Google reviews are not available right now. Please check back soon.');
-                setStatus('Google reviews are not available right now.');
+                hideReviewsSection();
                 return;
             }
 
@@ -325,14 +361,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setStatus('');
         };
 
-        const handleError = (message) => {
-            removeLoader();
-            showFallbackCard(message);
-            setStatus(message);
-            if (summary) {
-                summary.classList.add('is-hidden');
-            }
-            stopAutoPlay();
+        const handleError = (_message) => {
+            hideReviewsSection();
         };
 
         if (prevButton) {
