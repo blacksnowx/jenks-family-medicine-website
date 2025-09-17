@@ -153,6 +153,49 @@
     </div>
 </section>
 
+<section class="reviews-section reveal" aria-labelledby="google-reviews-title" data-reviews-section>
+    <div class="container">
+        <div class="reviews-header">
+            <div class="reviews-badge is-hidden" data-reviews-summary>
+                <div class="reviews-badge__stars" aria-hidden="true">
+                    <span class="reviews-badge__star">★</span>
+                    <span class="reviews-badge__star">★</span>
+                    <span class="reviews-badge__star">★</span>
+                    <span class="reviews-badge__star">★</span>
+                    <span class="reviews-badge__star">★</span>
+                </div>
+                <div class="reviews-badge__details">
+                    <span class="reviews-badge__rating"><span data-reviews-rating>—</span><span class="reviews-badge__out-of">/5</span></span>
+                    <span class="reviews-badge__count"><span data-reviews-count>—</span> Google reviews</span>
+                </div>
+            </div>
+            <h2 id="google-reviews-title">Loved by Patients Across Chattanooga</h2>
+            <p class="reviews-subtitle">Real 5-star stories pulled directly from our Google Reviews listing.</p>
+        </div>
+        <div class="reviews-carousel" data-reviews-carousel>
+            <button class="carousel-control carousel-control--prev" type="button" aria-label="Show previous review" data-reviews-prev>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M15.5 19a1 1 0 0 1-.7-.29l-6-6a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.41 1.42L10.91 12l5.3 5.29A1 1 0 0 1 15.5 19z" />
+                </svg>
+            </button>
+            <div class="reviews-window" data-reviews-window>
+                <div class="reviews-track" data-reviews-track>
+                    <article class="review-card review-card--loading" data-reviews-loader>
+                        <div class="review-card__spinner" aria-hidden="true"></div>
+                        <p>Loading Google reviews…</p>
+                    </article>
+                </div>
+            </div>
+            <button class="carousel-control carousel-control--next" type="button" aria-label="Show next review" data-reviews-next>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M8.5 19a1 1 0 0 1-.71-1.71L13.09 12l-5.3-5.29a1 1 0 1 1 1.41-1.42l6 6a1 1 0 0 1 0 1.42l-6 6A1 1 0 0 1 8.5 19z" />
+                </svg>
+            </button>
+        </div>
+        <p class="reviews-status" data-reviews-status aria-live="polite">Fetching the latest Google feedback…</p>
+    </div>
+</section>
+
 {# Add more sections as needed - e.g., Testimonials, Meet the Team Snippet #}
 
 {% endblock %}
