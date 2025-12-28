@@ -1,257 +1,328 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <meta name="description" content="Discover root-cause healing with Functional Medicine at Jenks Family Medicine, Chattanooga. Personalized plans with Sarah Suggs, NP, CFMP.">
-    <style>
-        /* Styles for page-header specific to this page if needed */
-        .page-header.fm-header h1 { /* Added fm-header class for specificity */
-            color: white; /* Ensure h1 text is white */
-        }
+<meta name="description"
+    content="Discover root-cause healing with Functional Medicine at Jenks Family Medicine, Chattanooga. Personalized plans with Sarah Suggs, NP, CFMP.">
+<style>
+    /* Styles for page-header specific to this page if needed */
+    .page-header.fm-header h1 {
+        /* Added fm-header class for specificity */
+        color: white;
+        /* Ensure h1 text is white */
+    }
 
-        /* Provider Section (Sarah Suggs) */
+    /* Provider Section (Sarah Suggs) */
+    .provider-section {
+        display: flex;
+        align-items: flex-start;
+        gap: 2.5em;
+        margin: 1em 0 2.5em 0;
+    }
+
+    .provider-image-wrapper {
+        flex: 0 0 300px;
+    }
+
+    .provider-image-wrapper img {
+        display: block;
+        width: 100%;
+        height: 380px;
+        object-fit: cover;
+        object-position: center top;
+        border-radius: 10px;
+        background-color: #f0f0f0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .provider-info {
+        flex: 1;
+        padding-top: 0.5em;
+    }
+
+    .provider-info p {
+        margin-bottom: 1em;
+        line-height: 1.7;
+    }
+
+    .provider-info p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Lab List Styling */
+    .lab-list {
+        column-count: 2;
+        column-gap: 2em;
+        list-style: none;
+        /* Remove default bullets, we'll use ::before */
+        padding-left: 0;
+        margin-left: 0;
+        /* No default indent */
+    }
+
+    .lab-list li {
+        margin-bottom: 0.7em;
+        padding-left: 1.5em;
+        /* Space for custom bullet */
+        position: relative;
+        line-height: 1.5;
+    }
+
+    .lab-list li::before {
+        content: "✓";
+        /* Custom bullet */
+        color: var(--primary-color);
+        font-weight: bold;
+        font-size: 1em;
+        position: absolute;
+        left: 0;
+        top: 2px;
+        /* Adjust for vertical alignment */
+    }
+
+    .lab-list strong {
+        color: #333;
+        /* Ensure strong text is clearly visible */
+    }
+
+    /* --- Modern Pricing Section --- */
+    .pricing-section {
+        margin: 2.5em 0;
+        /* Increased top/bottom margin */
+        text-align: center;
+        /* Center the h2 and intro p */
+    }
+
+    .pricing-section h2 {
+        /* Style for the "Transparent Pricing" h2 */
+        margin-bottom: 0.5em;
+        /* Ensure it uses global h2 styles or define specific ones here */
+    }
+
+    .pricing-section>p {
+        /* The intro paragraph below "Transparent Pricing" */
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2.5em;
+        color: #555;
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2em;
+        /* Space between cards */
+        margin-bottom: 2em;
+    }
+
+    .pricing-card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        /* Softer, larger radius */
+        padding: 2em 2.5em;
+        /* Generous padding */
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        /* More pronounced, softer shadow */
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .pricing-card h3 {
+        /* For "Initial Package" and "Subsequent Visits" */
+        font-size: 1.6rem;
+        /* Larger package title */
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 0.75em;
+    }
+
+    .price-display {
+        margin-bottom: 1em;
+    }
+
+    .price-display .amount {
+        font-size: 2.8rem;
+        /* Prominent price */
+        font-weight: 700;
+        color: var(--accent-color);
+        /* Using black for price for strong contrast */
+        display: block;
+        /* Ensure it takes its own line */
+        line-height: 1.1;
+    }
+
+    .price-display .term {
+        font-size: 1rem;
+        color: #666;
+        display: block;
+        margin-top: 0.25em;
+    }
+
+    .pricing-card .package-description {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 1.5em;
+        min-height: 3em;
+        /* Helps align cards if descriptions vary in length */
+    }
+
+    .features-list {
+        list-style: none;
+        padding: 0;
+        margin: 0 auto 1.5em auto;
+        /* Auto margins for centering block */
+        text-align: left;
+        /* List items themselves are left-aligned */
+        max-width: 260px;
+        /* Control width of list for centering */
+    }
+
+    .features-list li {
+        margin-bottom: 0.6em;
+        padding-left: 1.8em;
+        /* More space for a nicer icon */
+        position: relative;
+        font-size: 0.9rem;
+        color: #444;
+    }
+
+    .features-list li::before {
+        content: '✔';
+        /* Checkmark icon */
+        font-family: sans-serif;
+        /* Ensure checkmark renders well */
+        color: var(--primary-color);
+        font-weight: bold;
+        font-size: 1.1em;
+        position: absolute;
+        left: 0;
+        top: 0px;
+        /* Fine-tune vertical alignment */
+    }
+
+    .price-note-footer {
+        /* The note about lab tests */
+        font-size: 0.9rem;
+        color: #555;
+        font-style: italic;
+        text-align: center;
+        margin-top: 1.5em;
+        /* Was 1.5em, adjust if needed after removing the second hr */
+    }
+
+    /* --- END of Modern Pricing Section --- */
+
+
+    /* Call to Action Section */
+    .cta-section {
+        text-align: center;
+        /* Center the button and text */
+        margin-top: 2.5em;
+    }
+
+    .cta-section .button {
+        margin-bottom: 0.5em;
+        /* Space below button */
+    }
+
+    /* General HR style */
+    hr.fm-divider {
+        border: 0;
+        height: 1px;
+        background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
+        margin: 2.5em 0;
+    }
+
+
+    @media (max-width: 768px) {
         .provider-section {
-            display: flex;
-            align-items: flex-start;
-            gap: 2.5em;
-            margin: 1em 0 2.5em 0;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
         }
 
         .provider-image-wrapper {
-            flex: 0 0 300px;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 1.5em;
+            flex-basis: auto;
         }
 
         .provider-image-wrapper img {
-            display: block;
-            width: 100%;
-            height: 380px;
-            object-fit: cover;
-            object-position: center top;
-            border-radius: 10px;
-            background-color: #f0f0f0;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: auto;
         }
 
         .provider-info {
-            flex: 1;
-            padding-top: 0.5em;
-        }
-        .provider-info p {
-            margin-bottom: 1em;
-            line-height: 1.7;
-        }
-        .provider-info p:last-child {
-            margin-bottom: 0;
+            padding-top: 0;
         }
 
-        /* Lab List Styling */
         .lab-list {
-            column-count: 2;
-            column-gap: 2em;
-            list-style: none; /* Remove default bullets, we'll use ::before */
-            padding-left: 0;
-            margin-left: 0; /* No default indent */
-        }
-        .lab-list li {
-            margin-bottom: 0.7em;
-            padding-left: 1.5em; /* Space for custom bullet */
-            position: relative;
-            line-height: 1.5;
-        }
-        .lab-list li::before {
-            content: "✓"; /* Custom bullet */
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 1em;
-            position: absolute;
-            left: 0;
-            top: 2px; /* Adjust for vertical alignment */
-        }
-        .lab-list strong {
-            color: #333; /* Ensure strong text is clearly visible */
+            column-count: 1;
+            text-align: left;
         }
 
-        /* --- Modern Pricing Section --- */
-        .pricing-section {
-            margin: 2.5em 0; /* Increased top/bottom margin */
-            text-align: center; /* Center the h2 and intro p */
-        }
-        .pricing-section h2 { /* Style for the "Transparent Pricing" h2 */
-            margin-bottom: 0.5em;
-            /* Ensure it uses global h2 styles or define specific ones here */
-        }
-        .pricing-section > p { /* The intro paragraph below "Transparent Pricing" */
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            margin-bottom: 2.5em;
-            color: #555;
-            font-size: 1.05rem;
-            line-height: 1.7;
-        }
+        /* Responsive adjustments for pricing cards if needed */
+        /* The .pricing-box media query was part of the old styles and is removed */
+    }
 
+    /* This is the specific media query for the NEW pricing cards */
+    @media (max-width: 700px) {
         .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2em; /* Space between cards */
-            margin-bottom: 2em;
+            grid-template-columns: 1fr;
+            /* Stack cards on smaller screens */
         }
 
         .pricing-card {
-            background-color: #ffffff;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px; /* Softer, larger radius */
-            padding: 2em 2.5em; /* Generous padding */
-            text-align: center;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08); /* More pronounced, softer shadow */
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 2em 1.5em;
         }
-        .pricing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-        }
-
-        .pricing-card h3 { /* For "Initial Package" and "Subsequent Visits" */
-            font-size: 1.6rem; /* Larger package title */
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 0.75em;
-        }
-
-        .price-display {
-            margin-bottom: 1em;
-        }
-        .price-display .amount {
-            font-size: 2.8rem; /* Prominent price */
-            font-weight: 700;
-            color: var(--accent-color); /* Using black for price for strong contrast */
-            display: block; /* Ensure it takes its own line */
-            line-height: 1.1;
-        }
-        .price-display .term {
-            font-size: 1rem;
-            color: #666;
-            display: block;
-            margin-top: 0.25em;
-        }
-
-        .pricing-card .package-description {
-            font-size: 0.95rem;
-            color: #555;
-            margin-bottom: 1.5em;
-            min-height: 3em; /* Helps align cards if descriptions vary in length */
-        }
-
-        .features-list {
-            list-style: none;
-            padding: 0;
-            margin: 0 auto 1.5em auto; /* Auto margins for centering block */
-            text-align: left; /* List items themselves are left-aligned */
-            max-width: 260px; /* Control width of list for centering */
-        }
-        .features-list li {
-            margin-bottom: 0.6em;
-            padding-left: 1.8em; /* More space for a nicer icon */
-            position: relative;
-            font-size: 0.9rem;
-            color: #444;
-        }
-        .features-list li::before {
-            content: '✔'; /* Checkmark icon */
-            font-family: sans-serif; /* Ensure checkmark renders well */
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 1.1em;
-            position: absolute;
-            left: 0;
-            top: 0px; /* Fine-tune vertical alignment */
-        }
-
-        .price-note-footer { /* The note about lab tests */
-            font-size: 0.9rem;
-            color: #555;
-            font-style: italic;
-            text-align: center;
-            margin-top: 1.5em; /* Was 1.5em, adjust if needed after removing the second hr */
-        }
-        /* --- END of Modern Pricing Section --- */
-
-
-        /* Call to Action Section */
-        .cta-section {
-            text-align: center; /* Center the button and text */
-            margin-top: 2.5em;
-        }
-        .cta-section .button {
-            margin-bottom: 0.5em; /* Space below button */
-        }
-
-        /* General HR style */
-        hr.fm-divider {
-            border: 0;
-            height: 1px;
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
-            margin: 2.5em 0;
-        }
-
-
-        @media (max-width: 768px) {
-            .provider-section {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-            .provider-image-wrapper {
-                width: 80%;
-                max-width: 300px;
-                margin-bottom: 1.5em;
-                flex-basis: auto;
-            }
-            .provider-image-wrapper img {
-                 height: auto;
-            }
-            .provider-info {
-                padding-top: 0;
-            }
-
-            .lab-list {
-                column-count: 1;
-                text-align: left;
-            }
-            /* Responsive adjustments for pricing cards if needed */
-            /* The .pricing-box media query was part of the old styles and is removed */
-        }
-        /* This is the specific media query for the NEW pricing cards */
-        @media (max-width: 700px) {
-            .pricing-grid {
-                grid-template-columns: 1fr; /* Stack cards on smaller screens */
-            }
-            .pricing-card {
-                padding: 2em 1.5em;
-            }
-        }
-    </style>
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<section class="page-header fm-header" style="background-color: var(--primary-color); color: white; padding: 2em 0; text-align:center;">
+<section class="page-header fm-header"
+    style="background-color: var(--primary-color); color: white; padding: 3em 0; text-align:center;">
     <div class="container">
-        <h1>Functional Medicine</h1>
+        <h1 style="color: white; margin-bottom: 0.5em;">Functional Medicine</h1>
+        <p style="color: rgba(255,255,255,0.9); max-width: 600px; margin: 0 auto 2em; font-size: 1.1rem;">
+            Root-cause healing personalized for your unique biology.
+        </p>
+        <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank"
+            rel="noopener"
+            style="background-color: #ffffff !important; color: var(--primary-color) !important; border: 2px solid white !important;">
+            Book Appointment
+        </a>
     </div>
 </section>
 
-<section class="fm-content reveal">
+<section class="fm-content">
     <div class="container">
-        <div style="text-align: center; margin-bottom: 2em;">
-             <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank" rel="noopener">Book a Functional Medicine Appointment with Sarah Suggs, NP</a>
-        </div>
+        <!-- Button moved to header -->
 
-        <h2>Functional Medicine at Jenks Family Medicine</h2>
-        <p>At Jenks Family Medicine, we are proud to offer Functional Medicine, a personalized and proactive approach to healthcare, led exclusively by our experienced provider, Sarah Suggs, NP, CFMP.</p>
+        <h2 style="margin-top: 2em;">Functional Medicine at Jenks Family Medicine</h2>
+        <p>At Jenks Family Medicine, we are proud to offer Functional Medicine, a personalized and proactive approach to
+            healthcare, led exclusively by our experienced provider, Sarah Suggs, NP, CFMP.</p>
 
         <h3>What is Functional Medicine?</h3>
-        <p>Functional Medicine addresses the root cause of illness, not just the symptoms. It’s an individualized, patient-centered approach designed to optimize health, prevent disease, and enhance your quality of life by examining genetic, biochemical, and lifestyle factors.</p>
+        <p>Functional Medicine addresses the root cause of illness, not just the symptoms. It’s an individualized,
+            patient-centered approach designed to optimize health, prevent disease, and enhance your quality of life by
+            examining genetic, biochemical, and lifestyle factors.</p>
+
+        <div style="text-align: center; margin: 2.5em 0;">
+            <img src="{{ url_for('static', filename='images/fm infographic.jpg') }}"
+                alt="Functional Medicine Infographic"
+                style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        </div>
 
         <hr class="fm-divider">
 
@@ -261,7 +332,12 @@
                 <img src="{{ url_for('static', filename='images/Sarah.jpg') }}" alt="Sarah Suggs, NP, CFMP">
             </div>
             <div class="provider-info">
-                <p>Sarah Suggs, NP, is a Certified Functional Medicine Practitioner (CFMP), a credential that signifies advanced training and expertise in Functional Medicine. Her certification reflects a commitment to understanding the complexities of chronic diseases and applying holistic, evidence-based strategies to patient care. Sarah’s passion lies in collaborating closely with each patient to uncover underlying health issues, develop personalized treatment plans, and guide them toward optimal wellness.</p>
+                <p>Sarah Suggs, NP, is a Certified Functional Medicine Practitioner (CFMP), a credential that signifies
+                    advanced training and expertise in Functional Medicine. Her certification reflects a commitment to
+                    understanding the complexities of chronic diseases and applying holistic, evidence-based strategies
+                    to patient care. Sarah’s passion lies in collaborating closely with each patient to uncover
+                    underlying health issues, develop personalized treatment plans, and guide them toward optimal
+                    wellness.</p>
             </div>
         </div>
 
@@ -276,16 +352,19 @@
             <li><strong>DUTCH Sex Hormone Metabolites</strong> – In-depth sex hormone evaluation</li>
             <li><strong>Saliva Profile III (Cortisol)</strong> – Cortisol monitoring across the day</li>
             <li><strong>Micronutrient SpectraCell</strong> – Nutritional deficiency assessment</li>
-            <li><strong>Metals (Toxic + Nutrient Elements)</strong> – Identification of heavy metals and essential mineral levels</li>
+            <li><strong>Metals (Toxic + Nutrient Elements)</strong> – Identification of heavy metals and essential
+                mineral levels</li>
             <li><strong>Hair Elements Analysis</strong> – Chronic exposure and mineral balance evaluation</li>
-            <li><strong>3×4 Genetics Test + Blueprint Report</strong> – Genetic insights for tailored wellness strategies</li>
+            <li><strong>3×4 Genetics Test + Blueprint Report</strong> – Genetic insights for tailored wellness
+                strategies</li>
         </ul>
 
         <hr class="fm-divider">
 
         <div class="pricing-section">
             <h2>Transparent Pricing</h2>
-            <p>Functional Medicine at our practice is offered as a cash-pay service, enabling us to focus entirely on your care:</p>
+            <p>Functional Medicine at our practice is offered as a cash-pay service, enabling us to focus entirely on
+                your care:</p>
 
             <div class="pricing-grid">
                 <div class="pricing-card">
@@ -315,15 +394,19 @@
                     </ul> -->
                 </div>
             </div>
-            <p class="price-note-footer">Please note: All lab tests are billed separately and paid directly to the respective labs.</p>
+            <p class="price-note-footer">Please note: All lab tests are billed separately and paid directly to the
+                respective labs.</p>
         </div>
 
         <hr class="fm-divider"> <!-- Removed the extra hr here -->
 
         <div class="cta-section">
             <h2>Get Started on Your Path to Wellness</h2>
-            <p>Experience healthcare designed to empower and transform your life. Contact us today to schedule your Functional Medicine appointment with Sarah Suggs, NP, CFMP, and begin your personalized journey toward optimal health.</p>
-            <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank" rel="noopener">Book Appointment</a>
+            <p>Experience healthcare designed to empower and transform your life. Contact us today to schedule your
+                Functional Medicine appointment with Sarah Suggs, NP, CFMP, and begin your personalized journey toward
+                optimal health.</p>
+            <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button" target="_blank"
+                rel="noopener">Book Appointment</a>
             <p style="margin-top: 1em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> to inquire.</p>
         </div>
 

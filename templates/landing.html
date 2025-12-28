@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Appointment - Jenks Family Medicine{% endblock %}
+
+{% block header %}
+<header class="main-header" style="position: absolute; background: transparent; border: none; backdrop-filter: none;">
+    <div class="container landing-header">
+        <a href="{{ url_for('index') }}" class="logo">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo"
+                style="height: 60px;">
+        </a>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding-top: 180px; padding-bottom: 5rem;">
+    <div class="container reveal">
+        <span
+            style="font-family: var(--body-font); font-weight: 500; color: var(--primary-color); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 1rem;">
+            A Better Kind of Primary Care
+        </span>
+        <h1>We Truly Listen to You.</h1>
+        <p class="subheadline">
+            Experience compassionate, unhurried healthcare in Chattanooga. From sick visits to chronic care and veteran
+            exams, our nurse practitioners are here to support your whole family.
+        </p>
+
+        <div class="hero-actions">
+            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">
+                Schedule Appointment
+            </a>
+            <a href="tel:4233735457" class="button button-secondary">
+                Call (423) 373-5457
+            </a>
+        </div>
+
+        <div class="trust-signals">
+            <div class="trust-item">
+                <span style="color: #fbbf24; font-size: 1.2rem;">★★★★★</span>
+                <span>5.0 on Google</span>
+            </div>
+            <div class="trust-item">
+                <span>✓ Accepting New Patients</span>
+            </div>
+            <div class="trust-item">
+                <span>✓ Most Insurance Accepted</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-bg reveal">
+    <div class="container">
+        <div class="text-center mb-2">
+            <h2>Our Core Services</h2>
+            <p>Comprehensive care for ages 5 and up.</p>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <img src="{{ url_for('static', filename='images/Primary Care Img.png') }}" alt="Primary Care">
+                <h3>Primary Care</h3>
+                <p style="color: #64748b; margin-bottom: 1rem;">Complete health management for your family.</p>
+                <ul>
+                    <li>Sick Visits & Physicals</li>
+                    <li>Chronic Disease Management</li>
+                    <li>Women's Health</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <img src="{{ url_for('static', filename='images/Veteran Services Img.png') }}" alt="Veteran Services">
+                <h3>Veteran Services</h3>
+                <p style="color: #64748b; margin-bottom: 1rem;">Specialized care for those who served.</p>
+                <ul>
+                    <li>C&P Disability Exams</li>
+                    <li>VACCN Primary Care</li>
+                    <li>Nexus Letters</li>
+                </ul>
+            </div>
+
+            <div class="service-card">
+                <img src="{{ url_for('static', filename='images/Functional Medicine Img.png') }}"
+                    alt="Functional Medicine">
+                <h3>Functional Medicine</h3>
+                <p style="color: #64748b; margin-bottom: 1rem;">Finding the root cause of illness.</p>
+                <ul>
+                    <li>Holistic Approach</li>
+                    <li>Personalized Plans</li>
+                    <li>In-Depth Analysis</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 3rem;">
+            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">
+                Book Your Visit Now
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="section reveal">
+    <div class="container text-center">
+        <h2>Insurance Accepted</h2>
+        <p class="mb-2">We work with most major providers including:</p>
+        <div
+            style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 2rem; max-width: 800px; margin: 0 auto; font-weight: 500; color: var(--text-color);">
+            <span>Blue Cross Blue Shield</span>
+            <span>United Healthcare</span>
+            <span>Cigna</span>
+            <span>Aetna</span>
+            <span>Medicare</span>
+            <span>Tricare</span>
+            <span>Humana</span>
+            <span>ChampVA</span>
+            <span>VA Community Care</span>
+        </div>
+        <p style="margin-top: 2rem; font-size: 0.9rem; color: #64748b;">
+            *Please verify network status with your insurance card before your appointment.
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<footer class="main-footer" style="padding-top: 3rem;">
+    <div class="container text-center" style="grid-template-columns: 1fr;">
+        <div>
+            <h4>Jenks Family Medicine</h4>
+            <p>3908 Tennessee Avenue, Suite 110, Chattanooga, TN 37409<br>
+                <a href="tel:4233735457" style="color: #94a3b8;">(423) 373-5457</a>
+            </p>
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: #64748b;">
+                © {{ current_year }} Jenks Family Medicine.
+            </p>
+        </div>
+    </div>
+</footer>
+{% endblock %}

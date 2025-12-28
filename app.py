@@ -163,6 +163,11 @@ def privacy_policy():
     return render_template('privacy-policy.html', page_title='Privacy Policy')
 
 
+@app.route('/landing')
+def landing():
+    return render_template('landing.html', page_title='Schedule Appointment')
+
+
 # --- Add other potential routes if needed (e.g., for form submissions) ---
 
 

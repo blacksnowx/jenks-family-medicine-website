@@ -53,146 +53,39 @@
     }
     </script>
 {% endblock %}
-<style>
-    /* Styles for Hero Section */
-    .hero .button {
-        margin-right: 0.5em;
-    }
-
-    /* Styles for Intro Section */
-    .intro-section {
-        padding: 2em 0;
-    }
-
-    /* Styles for Services Highlight Section */
-    .services-highlight {
-        background-color: #f9f9f9;
-        padding: 3em 0;
-    }
-
-    .services-highlight h2 {
-        text-align: center;
-        margin-bottom: 1.5em;
-    }
-
-    .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        /* Slightly wider min card width */
-        gap: 2em;
-        /* text-align: center; Removed from grid, will be on card */
-    }
-
-    .service-card {
-        background-color: #fff;
-        padding: 2em 1.5em;
-        /* Adjusted padding */
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
-        /* Slightly enhanced shadow */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        /* Center items horizontally in the card */
-        text-align: center;
-        /* Center text like h3 initially */
-    }
-
-    .service-card img {
-        height: 150px;
-        /* << INCREASED ICON SIZE from 120px */
-        width: auto;
-        max-width: 100%;
-        margin-bottom: 1.5em;
-        /* Adjusted margin for larger icon */
-        object-fit: contain;
-    }
-
-    .service-card h3 {
-        font-size: 1.3rem;
-        /* Slightly larger heading */
-        margin-bottom: 0.75em;
-        /* More space below heading */
-        color: var(--primary-color);
-    }
-
-    /* Styling for the new bullet list */
-    .service-card ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 0.95rem;
-        /* << SLIGHTLY BIGGER TEXT for list items */
-        color: #444;
-        /* Slightly darker text for better readability */
-        line-height: 1.6;
-        text-align: left;
-        /* List items will be left-aligned */
-        width: 100%;
-        /* Take full width of the text area available */
-        max-width: 220px;
-        /* Constrain width of the list for better readability in center */
-    }
-
-    .service-card li {
-        margin-bottom: 0.5em;
-        padding-left: 1.4em;
-        /* Space for custom bullet */
-        position: relative;
-    }
-
-    .service-card li::before {
-        content: "•";
-        /* Custom bullet */
-        color: var(--primary-color);
-        font-weight: bold;
-        font-size: 1.2em;
-        /* Make bullet a bit more prominent */
-        position: absolute;
-        left: 0;
-        top: 0px;
-        /* Adjust for vertical alignment with text */
-    }
-
-    .service-card ul a {
-        /* Style for the "Learn More" link */
-        font-weight: bold;
-        color: var(--primary-color);
-        /* Ensure link uses primary color */
-    }
-
-    .service-card ul a:hover {
-        text-decoration: underline;
-    }
-</style>
-{% endblock %}
 
 {% block content %}
 <section class="hero">
-    <div class="container">
+    <div class="container reveal">
         <h1>Compassionate Primary Care in Chattanooga</h1>
         <p class="subheadline">
             Jenks Family Medicine: Your partners in health, led by experienced Nurse Practitioners. Specializing in
             family wellness, sick visits, physicals, and dedicated care for U.S. Veterans and Servicemembers.
         </p>
-        <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">Schedule an
-            Appointment</a>
-        <a href="{{ url_for('services') }}" class="button button-secondary">Explore Our Services</a>
+        <div class="hero-actions">
+            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">Schedule
+                Appointment</a>
+            <a href="{{ url_for('services') }}" class="button button-secondary">Explore Our Services</a>
+        </div>
     </div>
 </section>
 
-<section class="intro-section reveal">
-    <div class="container">
+<section class="section section-bg reveal">
+    <div class="container text-center">
         <h2>Dedicated Care for Our Community</h2>
-        <p>Located conveniently in Chattanooga, TN, Jenks Family Medicine is a Nurse Practitioner-led clinic committed
+        <p style="max-width: 800px; margin: 0 auto;">Located conveniently in Chattanooga, TN, Jenks Family Medicine is a
+            Nurse Practitioner-led clinic committed
             to providing accessible, high-quality healthcare. We serve the St. Elmo and Alton Park communities, offering
             personalized care for families and individuals, with a special focus on supporting our Veterans.</p>
     </div>
 </section>
 
-<section class="services-highlight reveal">
+<section class="section reveal">
     <div class="container">
-        <h2>How We Can Help You</h2>
+        <div class="text-center mb-3">
+            <h2>How We Can Help You</h2>
+        </div>
+
         <div class="services-grid">
             <div class="service-card">
                 <img src="{{ url_for('static', filename='images/Primary Care Img.png') }}" alt="Primary Care Icon">
@@ -283,8 +176,4 @@
     </div>
 </section>
 
-{# Add more sections as needed - e.g., Testimonials, Meet the Team Snippet #}
-
 {% endblock %}
-
-{% block year %}{{ current_year }}{% endblock %} {# Pass current_year from Flask #}

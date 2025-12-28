@@ -30,12 +30,12 @@
 
 <body>
     {# Add id="main-header" #}
+    {% block header %}
     <header class="main-header" id="main-header">
         <div class="container">
             <a href="{{ url_for('index') }}" class="logo">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo">
             </a>
-            {# Add id="main-nav" #}
             <nav class="main-nav" id="main-nav">
                 <ul>
                     <li><a href="{{ url_for('index') }}">Home</a></li>
@@ -49,14 +49,14 @@
                             class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
-            {# Add Mobile Nav Toggle Button #}
             <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+                <span></span>
+                <span></span>
+                <span></span>
             </button>
         </div>
     </header>
+    {% endblock %}
 
     <main>
         {% block content %}
@@ -64,6 +64,7 @@
         {% endblock %}
     </main>
 
+    {% block footer %}
     <footer class="main-footer">
         <div class="container">
             <div class="footer-col">
@@ -112,6 +113,7 @@
             © {{ current_year }} Jenks Family Medicine. All Rights Reserved.
         </div>
     </footer>
+    {% endblock %}
 
     {# Link the JavaScript file #}
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
