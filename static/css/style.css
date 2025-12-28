@@ -659,11 +659,16 @@ a:hover {
         width: 80%;
         max-width: 300px;
         height: 100vh;
+        max-height: 100vh;
+        /* Ensure it doesn't exceed viewport */
         background: #fff;
-        padding: 5rem 2rem;
+        padding: 5rem 2rem 2rem;
+        /* Reduced bottom padding */
         flex-direction: column;
         box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
         transition: right 0.3s ease;
+        overflow-y: auto;
+        /* Enable scrolling in landscape */
     }
 
     .main-nav.active {
@@ -675,6 +680,17 @@ a:hover {
         align-items: flex-start;
         gap: 1.5rem;
         width: 100%;
+        margin-left: 0;
+        /* Remove desktop margin */
+    }
+
+    /* Left-align the button in mobile nav */
+    .main-nav .button {
+        width: auto;
+        /* Don't stretch full width */
+        margin-left: 0;
+        /* Align with other links */
+        text-align: left;
     }
 
     .mobile-nav-toggle {
