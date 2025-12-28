@@ -1,95 +1,170 @@
 {% extends "base.html" %}
 
-{% block title %}Welcome - Jenks Family Medicine{% endblock %}
-
-{# {% import 'macros.html' as macros %} #}
+{% block title %}Primary Care & Veteran Services - Jenks Family Medicine{% endblock %}
 
 {% block head %}
-    <meta name="description" content="Jenks Family Medicine offers compassionate primary care in Chattanooga, TN, specializing in family health, veteran exams, and functional medicine.">
-    <style>
-        /* Styles for Hero Section */
-        .hero .button {
-            margin-right: 0.5em;
+{{ super() }}
+<meta name="description"
+    content="Jenks Family Medicine offers compassionate primary care in Chattanooga, TN, specializing in family health, veteran exams, and functional medicine.">
+<script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalBusiness",
+      "name": "Jenks Family Medicine",
+      "image": "{{ url_for('static', filename='images/logo.png', _external=True) }}",
+      "@id": "{{ url_for('index', _external=True) }}",
+      "url": "{{ url_for('index', _external=True) }}",
+      "telephone": "+14233735457",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "3908 Tennessee Avenue, Suite 110",
+        "addressLocality": "Chattanooga",
+        "addressRegion": "TN",
+        "postalCode": "37409",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 35.0066,
+        "longitude": -85.3228
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Friday"
+          ],
+          "opens": "08:00",
+          "closes": "16:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Thursday",
+          "opens": "08:00",
+          "closes": "23:00"
         }
+      ],
+      "sameAs": [
+        "https://www.facebook.com/JenksFamilyMedicine"
+      ]
+    }
+    </script>
+{% endblock %}
+<style>
+    /* Styles for Hero Section */
+    .hero .button {
+        margin-right: 0.5em;
+    }
 
-        /* Styles for Intro Section */
-        .intro-section {
-            padding: 2em 0;
-        }
+    /* Styles for Intro Section */
+    .intro-section {
+        padding: 2em 0;
+    }
 
-        /* Styles for Services Highlight Section */
-        .services-highlight {
-            background-color: #f9f9f9;
-            padding: 3em 0;
-        }
-        .services-highlight h2 {
-            text-align: center;
-            margin-bottom: 1.5em;
-        }
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Slightly wider min card width */
-            gap: 2em;
-            /* text-align: center; Removed from grid, will be on card */
-        }
-        .service-card {
-            background-color: #fff;
-            padding: 2em 1.5em; /* Adjusted padding */
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.07); /* Slightly enhanced shadow */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center items horizontally in the card */
-            text-align: center; /* Center text like h3 initially */
-        }
-        .service-card img {
-            height: 150px; /* << INCREASED ICON SIZE from 120px */
-            width: auto;
-            max-width: 100%;
-            margin-bottom: 1.5em; /* Adjusted margin for larger icon */
-            object-fit: contain;
-        }
-        .service-card h3 {
-            font-size: 1.3rem; /* Slightly larger heading */
-            margin-bottom: 0.75em; /* More space below heading */
-            color: var(--primary-color);
-        }
+    /* Styles for Services Highlight Section */
+    .services-highlight {
+        background-color: #f9f9f9;
+        padding: 3em 0;
+    }
 
-        /* Styling for the new bullet list */
-        .service-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            font-size: 0.95rem; /* << SLIGHTLY BIGGER TEXT for list items */
-            color: #444; /* Slightly darker text for better readability */
-            line-height: 1.6;
-            text-align: left; /* List items will be left-aligned */
-            width: 100%; /* Take full width of the text area available */
-            max-width: 220px; /* Constrain width of the list for better readability in center */
-        }
-        .service-card li {
-            margin-bottom: 0.5em;
-            padding-left: 1.4em; /* Space for custom bullet */
-            position: relative;
-        }
-        .service-card li::before {
-            content: "•"; /* Custom bullet */
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 1.2em; /* Make bullet a bit more prominent */
-            position: absolute;
-            left: 0;
-            top: 0px; /* Adjust for vertical alignment with text */
-        }
-        .service-card ul a { /* Style for the "Learn More" link */
-            font-weight: bold;
-            color: var(--primary-color); /* Ensure link uses primary color */
-        }
-        .service-card ul a:hover {
-            text-decoration: underline;
-        }
+    .services-highlight h2 {
+        text-align: center;
+        margin-bottom: 1.5em;
+    }
 
-    </style>
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        /* Slightly wider min card width */
+        gap: 2em;
+        /* text-align: center; Removed from grid, will be on card */
+    }
+
+    .service-card {
+        background-color: #fff;
+        padding: 2em 1.5em;
+        /* Adjusted padding */
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+        /* Slightly enhanced shadow */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Center items horizontally in the card */
+        text-align: center;
+        /* Center text like h3 initially */
+    }
+
+    .service-card img {
+        height: 150px;
+        /* << INCREASED ICON SIZE from 120px */
+        width: auto;
+        max-width: 100%;
+        margin-bottom: 1.5em;
+        /* Adjusted margin for larger icon */
+        object-fit: contain;
+    }
+
+    .service-card h3 {
+        font-size: 1.3rem;
+        /* Slightly larger heading */
+        margin-bottom: 0.75em;
+        /* More space below heading */
+        color: var(--primary-color);
+    }
+
+    /* Styling for the new bullet list */
+    .service-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.95rem;
+        /* << SLIGHTLY BIGGER TEXT for list items */
+        color: #444;
+        /* Slightly darker text for better readability */
+        line-height: 1.6;
+        text-align: left;
+        /* List items will be left-aligned */
+        width: 100%;
+        /* Take full width of the text area available */
+        max-width: 220px;
+        /* Constrain width of the list for better readability in center */
+    }
+
+    .service-card li {
+        margin-bottom: 0.5em;
+        padding-left: 1.4em;
+        /* Space for custom bullet */
+        position: relative;
+    }
+
+    .service-card li::before {
+        content: "•";
+        /* Custom bullet */
+        color: var(--primary-color);
+        font-weight: bold;
+        font-size: 1.2em;
+        /* Make bullet a bit more prominent */
+        position: absolute;
+        left: 0;
+        top: 0px;
+        /* Adjust for vertical alignment with text */
+    }
+
+    .service-card ul a {
+        /* Style for the "Learn More" link */
+        font-weight: bold;
+        color: var(--primary-color);
+        /* Ensure link uses primary color */
+    }
+
+    .service-card ul a:hover {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -97,9 +172,11 @@
     <div class="container">
         <h1>Compassionate Primary Care in Chattanooga</h1>
         <p class="subheadline">
-            Jenks Family Medicine: Your partners in health, led by experienced Nurse Practitioners. Specializing in family wellness, sick visits, physicals, and dedicated care for U.S. Veterans and Servicemembers.
+            Jenks Family Medicine: Your partners in health, led by experienced Nurse Practitioners. Specializing in
+            family wellness, sick visits, physicals, and dedicated care for U.S. Veterans and Servicemembers.
         </p>
-        <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">Schedule an Appointment</a>
+        <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">Schedule an
+            Appointment</a>
         <a href="{{ url_for('services') }}" class="button button-secondary">Explore Our Services</a>
     </div>
 </section>
@@ -107,7 +184,9 @@
 <section class="intro-section reveal">
     <div class="container">
         <h2>Dedicated Care for Our Community</h2>
-        <p>Located conveniently in Chattanooga, TN, Jenks Family Medicine is a Nurse Practitioner-led clinic committed to providing accessible, high-quality healthcare. We serve the St. Elmo and Alton Park communities, offering personalized care for families and individuals, with a special focus on supporting our Veterans.</p>
+        <p>Located conveniently in Chattanooga, TN, Jenks Family Medicine is a Nurse Practitioner-led clinic committed
+            to providing accessible, high-quality healthcare. We serve the St. Elmo and Alton Park communities, offering
+            personalized care for families and individuals, with a special focus on supporting our Veterans.</p>
     </div>
 </section>
 
@@ -125,7 +204,8 @@
                 </ul>
             </div>
             <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Veteran Services Img.png') }}" alt="Veteran Services Icon">
+                <img src="{{ url_for('static', filename='images/Veteran Services Img.png') }}"
+                    alt="Veteran Services Icon">
                 <h3>Veteran Services</h3>
                 <ul>
                     <li>Expert Compensation & Pension Disability Examinations</li>
@@ -133,7 +213,8 @@
                 </ul>
             </div>
             <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Specialty Exams Img.png') }}" alt="Specialty Exams Icon">
+                <img src="{{ url_for('static', filename='images/Specialty Exams Img.png') }}"
+                    alt="Specialty Exams Icon">
                 <h3>Specialty Exams</h3>
                 <ul>
                     <li>DOT physicals</li>
@@ -142,7 +223,8 @@
                 </ul>
             </div>
             <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Functional Medicine Img.png') }}" alt="Functional Medicine Icon">
+                <img src="{{ url_for('static', filename='images/Functional Medicine Img.png') }}"
+                    alt="Functional Medicine Icon">
                 <h3>Functional Medicine</h3>
                 <ul>
                     <li>A holistic approach to uncover the root causes of health issues.</li>
@@ -165,7 +247,8 @@
                     <span class="reviews-badge__star">★</span>
                 </div>
                 <div class="reviews-badge__details">
-                    <span class="reviews-badge__rating"><span data-reviews-rating>—</span><span class="reviews-badge__out-of">/5</span></span>
+                    <span class="reviews-badge__rating"><span data-reviews-rating>—</span><span
+                            class="reviews-badge__out-of">/5</span></span>
                     <span class="reviews-badge__count"><span data-reviews-count>—</span> Google reviews</span>
                 </div>
             </div>
@@ -173,9 +256,11 @@
             <p class="reviews-subtitle">Real 5-star stories pulled directly from our Google Reviews listing.</p>
         </div>
         <div class="reviews-carousel" data-reviews-carousel>
-            <button class="carousel-control carousel-control--prev" type="button" aria-label="Show previous review" data-reviews-prev>
+            <button class="carousel-control carousel-control--prev" type="button" aria-label="Show previous review"
+                data-reviews-prev>
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M15.5 19a1 1 0 0 1-.7-.29l-6-6a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.41 1.42L10.91 12l5.3 5.29A1 1 0 0 1 15.5 19z" />
+                    <path
+                        d="M15.5 19a1 1 0 0 1-.7-.29l-6-6a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.41 1.42L10.91 12l5.3 5.29A1 1 0 0 1 15.5 19z" />
                 </svg>
             </button>
             <div class="reviews-window" data-reviews-window>
@@ -186,9 +271,11 @@
                     </article>
                 </div>
             </div>
-            <button class="carousel-control carousel-control--next" type="button" aria-label="Show next review" data-reviews-next>
+            <button class="carousel-control carousel-control--next" type="button" aria-label="Show next review"
+                data-reviews-next>
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path d="M8.5 19a1 1 0 0 1-.71-1.71L13.09 12l-5.3-5.29a1 1 0 1 1 1.41-1.42l6 6a1 1 0 0 1 0 1.42l-6 6A1 1 0 0 1 8.5 19z" />
+                    <path
+                        d="M8.5 19a1 1 0 0 1-.71-1.71L13.09 12l-5.3-5.29a1 1 0 1 1 1.41-1.42l6 6a1 1 0 0 1 0 1.42l-6 6A1 1 0 0 1 8.5 19z" />
                 </svg>
             </button>
         </div>

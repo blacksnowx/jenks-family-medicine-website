@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17838591179">
-    </script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
-      gtag('config', 'AW-17838591179');
-    </script>
+<head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Add favicon link here -->
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
+    <link rel="canonical" href="{{ page_url|default(request.base_url) }}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="business.business">
+    <meta property="og:url" content="{{ page_url|default(request.base_url) }}">
+    <meta property="og:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
+    <meta property="og:description"
+        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and functional medicine.">
+    <meta property="og:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="{{ page_url|default(request.base_url) }}">
+    <meta property="twitter:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
+    <meta property="twitter:description"
+        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and functional medicine.">
+    <meta property="twitter:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
     {% block head %}{% endblock %}
 </head>
+
 <body>
     {# Add id="main-header" #}
     <header class="main-header" id="main-header">
@@ -27,7 +37,7 @@
             </a>
             {# Add id="main-nav" #}
             <nav class="main-nav" id="main-nav">
-                 <ul>
+                <ul>
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services & Insurance</a></li>
@@ -35,10 +45,11 @@
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button button-nav">Schedule Appointment</a></li>
+                    <li><a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680"
+                            class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
-             {# Add Mobile Nav Toggle Button #}
+            {# Add Mobile Nav Toggle Button #}
             <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
@@ -54,12 +65,12 @@
     </main>
 
     <footer class="main-footer">
-         <div class="container">
+        <div class="container">
             <div class="footer-col">
                 <h4>Jenks Family Medicine</h4>
                 <p>3908 Tennessee Avenue<br>
-                   Suite 110<br>
-                   Chattanooga, TN 37409</p>
+                    Suite 110<br>
+                    Chattanooga, TN 37409</p>
                 <p>
                     Phone: (423) 373-5457<br>
                     Fax: (423) 380-7154<br>
@@ -68,7 +79,7 @@
             </div>
             <div class="footer-col">
                 <h4>Quick Links</h4>
-                 <ul>
+                <ul>
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services</a></li>
@@ -81,19 +92,20 @@
             </div>
             <div class="footer-col">
                 <h4>Hours</h4>
-                 <p>
+                <p>
                     Monday: 8:00 AM - 4:00 PM<br>
                     Tuesday: 8:00 AM - 4:00 PM<br>
                     Wednesday: 8:00 AM - 4:00 PM<br>
                     Thursday: 8:00 AM - 4:00 PM<br>
                     Friday: 8:00 AM - 4:00 PM<br>
                     Sat/Sun: Closed
-                 </p>
+                </p>
             </div>
-             <div class="footer-col">
+            <div class="footer-col">
                 <h4>Connect</h4>
-                 <!-- Add Actual Social Media Links Here -->
-                 <p><a href="https://www.facebook.com/JenksFamilyMedicine" target="_blank" rel="noopener noreferrer">Facebook</a></p>
+                <!-- Add Actual Social Media Links Here -->
+                <p><a href="https://www.facebook.com/JenksFamilyMedicine" target="_blank"
+                        rel="noopener noreferrer">Facebook</a></p>
             </div>
         </div>
         <div class="footer-bottom">
@@ -101,8 +113,9 @@
         </div>
     </footer>
 
-{# Link the JavaScript file #}
+    {# Link the JavaScript file #}
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
+
 </html>

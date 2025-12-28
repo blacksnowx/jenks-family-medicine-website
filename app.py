@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect, jsonify
+from flask import Flask, render_template, url_for, redirect, jsonify, make_response, request
 import datetime
 import os
 import time
@@ -18,8 +18,11 @@ def get_current_year():
 
 
 @app.context_processor
-def inject_current_year():
-    return {"current_year": get_current_year()}
+def inject_globals():
+    return {
+        "current_year": get_current_year(),
+        "page_url": request.base_url
+    }
 
 
 REVIEWS_CACHE = {"timestamp": 0, "payload": None}
@@ -194,6 +197,44 @@ def google_reviews():
             "fetched_at": payload.get("fetched_at"),
         }
     )
+
+
+@app.route('/sitemap.xml')
+def sitemap():
+    """Generate sitemap.xml dynamically."""
+    host_components = url_for("index", _external=True).split("/")
+    base_url = "/".join(host_components[:3])  # simple way to get protocol + domain
+
+    # Static pages
+    pages = [
+        {"loc": f"{base_url}{url_for('index')}", "changefreq": "weekly", "priority": "1.0"},
+        {"loc": f"{base_url}{url_for('about')}", "changefreq": "monthly", "priority": "0.8"},
+        {"loc": f"{base_url}{url_for('services')}", "changefreq": "monthly", "priority": "0.8"},
+        {"loc": f"{base_url}{url_for('functional_medicine')}", "changefreq": "monthly", "priority": "0.8"},
+        {"loc": f"{base_url}{url_for('veteran_resources')}", "changefreq": "monthly", "priority": "0.8"},
+        {"loc": f"{base_url}{url_for('patient_portal')}", "changefreq": "monthly", "priority": "0.6"},
+        {"loc": f"{base_url}{url_for('contact')}", "changefreq": "monthly", "priority": "0.7"},
+        {"loc": f"{base_url}{url_for('privacy_policy')}", "changefreq": "yearly", "priority": "0.3"},
+    ]
+
+    sitemap_xml = render_template('sitemap_template.xml', pages=pages)
+    response = make_response(sitemap_xml)
+    response.headers["Content-Type"] = "application/xml"
+    return response
+
+
+@app.route('/robots.txt')
+def robots():
+    """Generate robots.txt dynamically."""
+    base_url = request.url_root.rstrip('/')
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        f"Sitemap: {base_url}/sitemap.xml"
+    ]
+    response = make_response("\n".join(lines))
+    response.headers["Content-Type"] = "text/plain"
+    return response
 
 
 if __name__ == '__main__':
