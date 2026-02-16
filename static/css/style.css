@@ -763,6 +763,45 @@ a:hover {
     }
 }
 
+/* --- Site Banner (Admin-controlled announcement) --- */
+.site-banner {
+    background-color: var(--primary-color);
+    color: #fff;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.site-banner__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.65rem 1rem;
+}
+
+.site-banner__text {
+    margin: 0;
+    font-weight: 500;
+    text-align: center;
+}
+
+.site-banner__close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 0.25rem;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.site-banner__close:hover {
+    opacity: 1;
+}
+
 /* --- Utilities --- */
 .is-hidden {
     display: none !important;

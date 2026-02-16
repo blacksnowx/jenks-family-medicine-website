@@ -38,6 +38,17 @@
 </head>
 
 <body>
+    {# Homepage announcement banner (admin-controlled) #}
+    {% if banner and banner.is_active and banner.message %}
+    <div class="site-banner" id="site-banner">
+        <div class="container site-banner__inner">
+            <p class="site-banner__text">{{ banner.message }}</p>
+            <button class="site-banner__close" onclick="document.getElementById('site-banner').style.display='none'"
+                aria-label="Dismiss banner">&times;</button>
+        </div>
+    </div>
+    {% endif %}
+
     {# Add id="main-header" #}
     {% block header %}
     <header class="main-header" id="main-header">
@@ -54,8 +65,7 @@
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680"
-                            class="button button-nav">Schedule Appointment</a></li>
+                    <li><a href="{{ url_for('new_patient') }}" class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
             <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">

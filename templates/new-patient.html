@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block head %}
+<meta name="description"
+    content="Choose a provider accepting new patients at Jenks Family Medicine in Chattanooga, TN.">
+<style>
+    .provider-select-header {
+        background-color: #f8f8f8;
+        padding: 2.5em 0;
+        text-align: center;
+    }
+
+    .provider-select-header h1 {
+        margin-bottom: 0.25em;
+    }
+
+    .provider-select-header p {
+        max-width: 600px;
+        margin: 0 auto;
+        color: var(--text-light);
+        font-size: 1.1rem;
+    }
+
+    .provider-select-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 2.5rem;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .provider-select-card {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .provider-select-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .provider-select-card__image {
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+        object-position: center top;
+    }
+
+    .provider-select-card__body {
+        padding: 2rem 2rem 2.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .provider-select-card__body h3 {
+        font-size: 1.6rem;
+        color: var(--primary-color);
+        margin-bottom: 0.2em;
+    }
+
+    .provider-select-card__title {
+        font-size: 1rem;
+        color: var(--text-light);
+        font-style: italic;
+        margin-bottom: 1em;
+    }
+
+    .provider-select-card__highlights {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1.5em;
+        flex: 1;
+    }
+
+    .provider-select-card__highlights li {
+        position: relative;
+        padding-left: 1.5em;
+        margin-bottom: 0.55em;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+
+    .provider-select-card__highlights li::before {
+        content: "✓";
+        color: var(--primary-color);
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+        top: 1px;
+    }
+
+    .provider-select-card__cta {
+        text-align: center;
+    }
+
+    .provider-select-card__cta .button {
+        width: 100%;
+    }
+
+    @media (max-width: 740px) {
+        .provider-select-grid {
+            grid-template-columns: 1fr;
+            max-width: 420px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="provider-select-header">
+    <div class="container">
+        <h1>Choose Your Provider</h1>
+        <p>The following providers are currently accepting new patients. Select one to learn more and schedule your
+            first
+            visit.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="provider-select-grid">
+
+            <!-- Sarah Suggs -->
+            <div class="provider-select-card reveal">
+                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Sarah.jpg') }}"
+                    alt="Sarah Suggs, NP">
+                <div class="provider-select-card__body">
+                    <h3>Sarah Suggs, NP</h3>
+                    <p class="provider-select-card__title">AANP Board Certified Family Nurse Practitioner</p>
+                    <ul class="provider-select-card__highlights">
+                        <li>Specializing in Functional Medicine (CFMP)</li>
+                        <li>Certified Compensation &amp; Pension Examiner</li>
+                        <li>MSN, University of Alabama at Birmingham</li>
+                    </ul>
+                    <div class="provider-select-card__cta">
+                        <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button"
+                            target="_blank" rel="noopener">Schedule with Sarah</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ehrin Irvin -->
+            <div class="provider-select-card reveal">
+                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Ehrin.jpg') }}"
+                    alt="Ehrin Irvin, NP">
+                <div class="provider-select-card__body">
+                    <h3>Ehrin Irvin, NP</h3>
+                    <p class="provider-select-card__title">AANP Board Certified Family Nurse Practitioner</p>
+                    <ul class="provider-select-card__highlights">
+                        <li>Certified Compensation &amp; Pension Examiner</li>
+                        <li>Certified FMCSA DOT Examiner</li>
+                        <li>MSN, University of Tennessee at Chattanooga</li>
+                    </ul>
+                    <div class="provider-select-card__cta">
+                        <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button"
+                            target="_blank" rel="noopener">Schedule with Ehrin</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
