@@ -62,7 +62,11 @@ def get_rvu_dataset():
             'Jenks, Anne ': 'Anne Jenks',
             'IRVIN, EHRIN ': 'Ehrin Irvin',
             'SUGGS, SARAH ': 'Sarah Suggs',
-            'REDD, DAVID ': 'Anne Jenks'
+            'REDD, DAVID ': 'Anne Jenks',
+            'Anne Jenks, APRN': 'Anne Jenks',
+            'DAVID REDD, MD': 'Anne Jenks',
+            'EHRIN IRVIN, FNP': 'Ehrin Irvin',
+            'SARAH SUGGS, NP': 'Sarah Suggs'
         }
         pc['Provider'] = pc['Rendering Provider'].replace(provider_map_pc).str.upper().str.strip()
         pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
@@ -142,13 +146,15 @@ def generate_rvu_chart(view_type):
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
         
     elif view_type == 'Provider Comparison':
-        weekly_prov = df.groupby(['Week', 'Provider'])['RVU'].sum().reset_index()
+        pivot_df = pd.pivot_table(df, values='RVU', index='Week', columns='Provider', aggfunc='sum', fill_value=0)
+        pivot_df = pivot_df.sort_index()
+        x_vals = pivot_df.index.strftime('%Y-%m-%d').tolist()
         
         colors = ['#37a4db', '#2ecc71', '#f39c12', '#9b59b6']
         for i, provider in enumerate(valid_providers):
-            prov_data = weekly_prov[weekly_prov['Provider'] == provider].sort_values('Week')
-            if not prov_data.empty:
-                ax.plot(prov_data['Week'].dt.strftime('%Y-%m-%d').tolist(), prov_data['RVU'].astype(float).tolist(), marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
+            if provider in pivot_df.columns:
+                y_vals = pivot_df[provider].astype(float).tolist()
+                ax.plot(x_vals, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
                 
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
         ax.set_title('Provider Weekly RVU Comparison', fontsize=14, fontweight='bold')
