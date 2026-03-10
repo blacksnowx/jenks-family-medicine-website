@@ -9,7 +9,7 @@ import time
 import requests
 
 from models import db, User, BannerSettings
-
+from datetime import timezone
 
 def create_app():
     app = Flask(__name__)
@@ -258,6 +258,21 @@ def create_app():
     @app.route('/admin/dashboard', methods=['GET', 'POST'])
     @login_required
     def admin_dashboard():
+        # Check if password needs to be changed (older than 30 days)
+        now = datetime.datetime.now(timezone.utc)
+        needs_password_change = False
+        if current_user.password_changed_at:
+            pwd_changed = current_user.password_changed_at
+            # Make sure pwd_changed is timezone aware before subtracting
+            if pwd_changed.tzinfo is None:
+                pwd_changed = pwd_changed.replace(tzinfo=timezone.utc)
+            password_age = now - pwd_changed
+            if password_age.days >= 30:
+                needs_password_change = True
+        else:
+             # Just in case there is no timestamp
+             needs_password_change = True
+
         banner = BannerSettings.query.first()
         if not banner:
             banner = BannerSettings(is_active=False, message="")
@@ -268,10 +283,15 @@ def create_app():
             action = request.form.get('action')
 
             if action == 'update_banner':
-                banner.is_active = request.form.get('is_active') == 'on'
-                banner.message = request.form.get('message', '').strip()
-                db.session.commit()
-                flash('Banner updated successfully.', 'success')
+                if needs_password_change:
+                     flash('You must change your password before performing any actions.', 'error')
+                elif current_user.role not in ['Owner', 'Admin']:
+                     flash('You do not have permission to perform this action.', 'error')
+                else:
+                    banner.is_active = request.form.get('is_active') == 'on'
+                    banner.message = request.form.get('message', '').strip()
+                    db.session.commit()
+                    flash('Banner updated successfully.', 'success')
 
             elif action == 'change_password':
                 current_password = request.form.get('current_password', '')
@@ -280,18 +300,21 @@ def create_app():
 
                 if not current_user.check_password(current_password):
                     flash('Current password is incorrect.', 'error')
-                elif len(new_password) < 6:
-                    flash('New password must be at least 6 characters.', 'error')
                 elif new_password != confirm_password:
                     flash('New passwords do not match.', 'error')
                 else:
-                    current_user.set_password(new_password)
-                    db.session.commit()
-                    flash('Password changed successfully.', 'success')
+                    is_valid, error_msg = User.validate_password(new_password)
+                    if not is_valid:
+                        flash(error_msg, 'error')
+                    else:
+                        current_user.set_password(new_password)
+                        db.session.commit()
+                        flash('Password changed successfully.', 'success')
+                        needs_password_change = False
 
             return redirect(url_for('admin_dashboard'))
 
-        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner)
+        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change)
 
     @app.route('/admin/logout')
     @login_required

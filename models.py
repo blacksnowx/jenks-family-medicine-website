@@ -17,9 +17,29 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default="Provider")
+    password_changed_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    @staticmethod
+    def validate_password(password: str) -> tuple[bool, str]:
+        """
+        Validates password meets the complexity requirements:
+        10-18 length, hexadecimal characters allowed, plus spaces and special characters.
+        """
+        if len(password) < 10 or len(password) > 18:
+            return False, "Password must be between 10 and 18 characters long."
+            
+        import re
+        # Allow hex (a-f, A-F, 0-9), spaces, and special characters.
+        # This basically means anything EXCEPT non-hex letters (g-z, G-Z)
+        if re.search(r'[g-zG-Z]', password):
+             return False, "Password may only contain hexadecimal characters (a-f, 0-9), spaces, and special characters."
+             
+        return True, ""
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
+        self.password_changed_at = datetime.now(timezone.utc)
 
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)

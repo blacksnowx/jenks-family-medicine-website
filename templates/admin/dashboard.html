@@ -267,7 +267,17 @@
         {% endif %}
         {% endwith %}
 
-        <!-- Banner Management -->
+        {% if needs_password_change %}
+        <div class="flash-messages">
+            <div class="flash-message error" style="font-weight: bold; border-width: 2px;">
+                ⚠️ Your password has expired. You must set a new password before you can access the dashboard.
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not needs_password_change %}
+        <!-- Conditional Banner Management -->
+        {% if current_user.role in ['Owner', 'Admin'] %}
         <div class="admin-panel">
             <h2>📢 Homepage Banner</h2>
             <form method="POST" action="{{ url_for('admin_dashboard') }}">
@@ -296,6 +306,27 @@
                 <button type="submit" class="button">Save Banner</button>
             </form>
         </div>
+        {% endif %}
+
+        <!-- Conditional Owner Functionality -->
+        {% if current_user.role == 'Owner' %}
+        <div class="admin-panel">
+            <h2>👑 Owner Only Features</h2>
+            <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage users, export full system logs,
+                and view revenue analytics.</p>
+        </div>
+        {% endif %}
+
+        <!-- Conditional Admin Functionality -->
+        {% if current_user.role in ['Owner', 'Admin'] %}
+        <div class="admin-panel">
+            <h2>🛠️ Admin Features</h2>
+            <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
+                feedback, and update site content.</p>
+        </div>
+        {% endif %}
+
+        {% endif %} <!-- End not needs_password_change -->
 
         <!-- Change Password -->
         <div class="admin-panel">
@@ -312,7 +343,7 @@
                 <div class="admin-form-group">
                     <label for="new_password">New Password</label>
                     <input type="password" id="new_password" name="new_password" required autocomplete="new-password"
-                        minlength="6">
+                        minlength="10" maxlength="18" placeholder="10-18 length, hex chars + special (no g-z, G-Z)">
                 </div>
 
                 <div class="admin-form-group">
