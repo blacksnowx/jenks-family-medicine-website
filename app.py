@@ -8,7 +8,7 @@ import time
 
 import requests
 
-from models import db, User, BannerSettings
+from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
 
 def create_app():
@@ -292,6 +292,30 @@ def create_app():
                     banner.message = request.form.get('message', '').strip()
                     db.session.commit()
                     flash('Banner updated successfully.', 'success')
+
+            elif action == 'upload_reference_data':
+                if needs_password_change:
+                     flash('You must change your password before performing any actions.', 'error')
+                elif current_user.role != 'Owner':
+                     flash('Only Owners can upload reference data.', 'error')
+                else:
+                    file = request.files.get('reference_file')
+                    file_type = request.form.get('reference_file_type')
+                    if not file or not file.filename:
+                        flash('No file selected.', 'error')
+                    elif not file_type:
+                        flash('No file type selected.', 'error')
+                    else:
+                        file_data = file.read()
+                        ref = ReferenceData.query.filter_by(filename=file_type).first()
+                        if not ref:
+                            ref = ReferenceData(filename=file_type, data=file_data)
+                            db.session.add(ref)
+                        else:
+                            ref.data = file_data
+                            ref.updated_at = datetime.datetime.now(timezone.utc)
+                        db.session.commit()
+                        flash(f'Successfully uploaded and replaced {file_type}.', 'success')
 
             elif action == 'change_password':
                 current_password = request.form.get('current_password', '')

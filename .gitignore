@@ -35,3 +35,15 @@ Thumbs.db
 
 # Private Documents
 JF Brand Guidelines (2).pdf
+
+# Data and Analytics
+.data/
+.analytics/
+data/*.csv
+data/images/*.png
+analytics/
+*output*.txt
+*results*.txt
+test_*.txt
+suite_out.txt
+pip_out*.txt

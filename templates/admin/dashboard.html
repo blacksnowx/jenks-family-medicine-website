@@ -312,6 +312,35 @@
         {% if current_user.role == 'Owner' %}
         <div class="admin-panel">
             <h2>👑 Owner Only Features</h2>
+
+            <h3 style="margin-top: 1.5rem; font-size: 1.1rem; margin-bottom: 0.75rem;">Upload Reference Data</h3>
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+                Upload the latest reference CSV files here. This will replace any existing data for that specific file.
+            </p>
+            <form method="POST" action="{{ url_for('admin_dashboard') }}" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="upload_reference_data">
+
+                <div class="admin-form-group">
+                    <label for="reference_file_type">Select File Type</label>
+                    <select id="reference_file_type" name="reference_file_type" required
+                        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font); margin-bottom: 1rem;">
+                        <option value="" disabled selected>Select a CSV type...</option>
+                        <option value="201 Bills and Payments.csv">201 Bills and Payments.csv</option>
+                        <option value="Charges Export.csv">Charges Export.csv</option>
+                        <option value="bank.csv">bank.csv</option>
+                    </select>
+                </div>
+
+                <div class="admin-form-group">
+                    <label for="reference_file">CSV File</label>
+                    <input type="file" id="reference_file" name="reference_file" accept=".csv" required
+                        style="width: 100%; padding: 0.5rem 0; font-size: 0.95rem;">
+                </div>
+
+                <button type="submit" class="button">Upload and Replace Data</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 2rem 0;">
             <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage users, export full system logs,
                 and view revenue analytics.</p>
         </div>
