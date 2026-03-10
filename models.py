@@ -24,16 +24,20 @@ class User(UserMixin, db.Model):
     def validate_password(password: str) -> tuple[bool, str]:
         """
         Validates password meets the complexity requirements:
-        10-18 length, hexadecimal characters allowed, plus spaces and special characters.
+        10-18 length, alphanumeric characters allowed, plus spaces and special characters.
         """
         if len(password) < 10 or len(password) > 18:
             return False, "Password must be between 10 and 18 characters long."
             
         import re
-        # Allow hex (a-f, A-F, 0-9), spaces, and special characters.
-        # This basically means anything EXCEPT non-hex letters (g-z, G-Z)
-        if re.search(r'[g-zG-Z]', password):
-             return False, "Password may only contain hexadecimal characters (a-f, 0-9), spaces, and special characters."
+        # Allow alphanumeric (a-z, A-Z, 0-9), spaces, and special characters.
+        # This basically means anything EXCEPT control characters or non-ASCII if you want to be strict,
+        # but the prompt specifies "a-zA-Z0-9 + special chars + spaces". We don't need the hex check anymore.
+        # If there are any characters that are NOT in the allowed set, reject it.
+        # \w covers a-zA-Z0-9_, \s covers spaces, and string.punctuation covers specials.
+        # Alternatively, checking for non-allowed chars is easier:
+        if re.search(r'[^a-zA-Z0-9\s!"#$%&\'()*+,\-./:;<=>?@\[\\\]^_`{|}~]', password):
+             return False, "Password may only contain alphanumeric characters, spaces, and special characters."
              
         return True, ""
 

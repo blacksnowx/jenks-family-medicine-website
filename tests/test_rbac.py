@@ -104,11 +104,15 @@ class RBACTestCase(unittest.TestCase):
         self.assertFalse(User.validate_password("123ab! ")[0])
         # Too long
         self.assertFalse(User.validate_password("1234567890abcdef! @" * 2)[0])
-        # Contains non-hex characters (g-z)
-        self.assertFalse(User.validate_password("123456789hello!")[0])
+        # Contains non-allowed characters (control characters etc)
+        self.assertFalse(User.validate_password("123456789hello\x00!")[0])
         
-        # Valid: exactly 10 hex characters, properly valid under the test condition
+        # Valid: exactly 10 hex characters
         self.assertTrue(User.validate_password("abcdef1234")[0])
+        # Valid: 12 chars with spaces and special chars
+        self.assertTrue(User.validate_password("a1 b2 c3 !@#")[0])
+        # Valid: Alphanumeric
+        self.assertTrue(User.validate_password("HelloWorld!!123")[0])
         # Valid: 12 chars with spaces and special chars
         self.assertTrue(User.validate_password("a1 b2 c3 !@#")[0])
         
