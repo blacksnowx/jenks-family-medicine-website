@@ -157,6 +157,7 @@ def generate_rvu_chart(view_type):
         
         ax.plot(weekly['Week'].dt.strftime('%Y-%m-%d').tolist(), weekly['RVU'].astype(float).tolist(), marker='o', color='#37a4db', linewidth=2.5, markersize=8, label='Total Earned RVUs')
         ax.axhline(y=196, color='red', linestyle='--', linewidth=2, label='Company Breakeven (196)')
+        ax.axhline(y=375, color='orange', linestyle='--', linewidth=2, label='Industry Standard (375)')
         
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
         
@@ -172,6 +173,7 @@ def generate_rvu_chart(view_type):
                 ax.plot(x_vals, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
                 
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
+        ax.axhline(y=93.75, color='orange', linestyle='--', linewidth=2, label='Industry Standard (93.75)')
         ax.set_title('Provider Weekly RVU Comparison', fontsize=14, fontweight='bold')
 
     elif view_type in [p.title() for p in valid_providers] or view_type.upper() in valid_providers:
@@ -186,6 +188,7 @@ def generate_rvu_chart(view_type):
             
         ax.plot(prov_data['Week'].dt.strftime('%Y-%m-%d').tolist(), prov_data['RVU'].astype(float).tolist(), marker='o', color='#2ecc71', linewidth=2.5, markersize=8, label=f'{display_name} Earned RVUs')
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
+        ax.axhline(y=93.75, color='orange', linestyle='--', linewidth=2, label='Industry Standard (93.75)')
         ax.set_title(f'{display_name} - Weekly RVUs', fontsize=14, fontweight='bold')
         
     else:
