@@ -114,6 +114,7 @@ def get_rvu_dataset():
     master_df['RVU'] = pd.to_numeric(master_df['RVU'], errors='coerce').fillna(0)
     master_df = master_df.dropna(subset=['Date Of Service'])
     master_df = master_df[master_df['Date Of Service'] >= '2025-10-01']
+    master_df = master_df[master_df['Date Of Service'] <= '2026-02-27']
     
     # 4. Add Week Grouping
     master_df['Week'] = data_loader.get_week_ending_friday(master_df['Date Of Service'])
@@ -128,6 +129,20 @@ def generate_rvu_chart(view_type):
 
     # Sort data by Week explicitly
     df = df.sort_values('Week')
+
+    # Add 216 extra RVUs divided evenly across all available weeks for Anne Jenks
+    unique_weeks = df['Week'].unique()
+    if len(unique_weeks) > 0:
+        extra_per_week = 216.0 / len(unique_weeks)
+        dummy_rows = pd.DataFrame({
+            'Week': unique_weeks,
+            'Provider': 'ANNE JENKS',
+            'RVU': extra_per_week,
+            'Category': 'Manual Adjustment'
+        })
+        df = pd.concat([df, dummy_rows], ignore_index=True)
+        # Re-sort after adding dummy rows
+        df = df.sort_values('Week')
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
