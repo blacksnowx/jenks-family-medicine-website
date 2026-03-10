@@ -10,6 +10,7 @@ import requests
 
 from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
+from data import rvu_analytics
 
 def create_app():
     app = Flask(__name__)
@@ -336,9 +337,37 @@ def create_app():
                         flash('Password changed successfully.', 'success')
                         needs_password_change = False
 
+            elif action == 'generate_rvu_report':
+                if needs_password_change:
+                    flash('You must change your password before performing any actions.', 'error')
+                else:
+                    selected_view = request.form.get('rvu_view', 'Company Wide')
+                    
+                    # Store selected view in session or pass directly to template
+                    # For simplicity, we just render the template with the selection
+                    return render_template('admin/dashboard.html', 
+                                           page_title='Admin Dashboard', 
+                                           banner=banner, 
+                                           needs_password_change=needs_password_change,
+                                           active_tab='section-reports',
+                                           rvu_view=selected_view)
+
             return redirect(url_for('admin_dashboard'))
 
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change)
+
+    @app.route('/admin/reports/rvu_image')
+    @login_required
+    def rvu_image():
+        view_type = request.args.get('view_type', 'Company Wide')
+        try:
+            image_bytes = rvu_analytics.generate_rvu_chart(view_type)
+            response = make_response(image_bytes)
+            response.headers.set('Content-Type', 'image/png')
+            return response
+        except Exception as e:
+            app.logger.error(f"Error generating RVU chart: {e}")
+            return "Error generating chart", 500
 
     @app.route('/admin/logout')
     @login_required

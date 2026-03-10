@@ -321,11 +321,53 @@
             <button class="tab-button" onclick="openTab('section-password', this)">Change Password</button>
         </div>
 
-        <!-- Reports Section (Default) -->
-        <div id="section-reports" class="tab-content" style="display: block;">
+        <!-- Reports Section -->
+        <div id="section-reports" class="tab-content" {% if active_tab=='section-reports' or not active_tab
+            %}style="display: block;" {% else %}style="display: none;" {% endif %}>
             <div class="admin-panel">
-                <h2>📊 Reports</h2>
-                <p style="color: var(--text-light); font-size: 0.95rem;">Reports coming soon...</p>
+                <h2>📊 Weekly RVU Reports</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Select a view below to generate the latest RVU data (starting 10/1/25).
+                </p>
+
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
+                    <input type="hidden" name="action" value="generate_rvu_report">
+                    <div class="admin-form-group" style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex-grow: 1;">
+                            <label for="rvu_view">Provider View</label>
+                            <select id="rvu_view" name="rvu_view"
+                                style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font);">
+                                <option value="Company Wide" {% if rvu_view=='Company Wide' %}selected{% endif %}>
+                                    Company Wide (Total)</option>
+                                <option value="Provider Comparison" {% if rvu_view=='Provider Comparison' %}selected{%
+                                    endif %}>Provider Comparison</option>
+                                <option value="Anne Jenks" {% if rvu_view=='Anne Jenks' %}selected{% endif %}>Anne Jenks
+                                </option>
+                                <option value="Ehrin Irvin" {% if rvu_view=='Ehrin Irvin' %}selected{% endif %}>Ehrin
+                                    Irvin</option>
+                                <option value="Heather Mayo" {% if rvu_view=='Heather Mayo' %}selected{% endif %}>
+                                    Heather Mayo</option>
+                                <option value="Sarah Suggs" {% if rvu_view=='Sarah Suggs' %}selected{% endif %}>Sarah
+                                    Suggs</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="button" style="margin-top: 0; padding: 0.75rem 1.5rem;">Generate
+                            Chart</button>
+                    </div>
+                </form>
+
+                {% if rvu_view %}
+                <div
+                    style="border: 1px solid #e5e7eb; border-radius: var(--radius-md); padding: 1rem; background: #fafafa; text-align: center;">
+                    <img src="{{ url_for('rvu_image', view_type=rvu_view) }}" alt="RVU Chart"
+                        style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                </div>
+                {% else %}
+                <div
+                    style="border: 1px dashed #e5e7eb; border-radius: var(--radius-md); padding: 3rem 1rem; text-align: center; color: var(--text-light); background: #fafafa;">
+                    Select a view above and click "Generate Chart" to view the data.
+                </div>
+                {% endif %}
             </div>
         </div>
 

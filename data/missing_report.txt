@@ -1,0 +1,15 @@
+--- RECONCILIATION ---
+Total rows in raw CSV: 2442
+Total rows with Provider 'Sarah Suggs': 1293
+Total Sarah Suggs rows with missing/invalid Date of Service: 3
+
+Missing Dates:
+       Patient_ID     Provider Date of Service
+2432  5138872.5.1  Sarah Suggs             NaN
+2433          NaN  Sarah Suggs             NaN
+2434          NaN  Sarah Suggs             NaN
+
+Total Sarah Suggs rows after dropping missing dates: 1290
+Total appointments accounted for in weekly roll-up column 'Total_Appts': 1290
+
+CONCLUSION: NO, 3 Sarah Suggs bills are missing from the weekly roll-up (due to invalid/missing dates).

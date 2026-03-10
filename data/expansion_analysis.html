@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JFM Expansion Analysis | Should We Move?</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --card-border: #334155;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --accent: #3b82f6;
+            --accent2: #8b5cf6;
+            --green: #10b981;
+            --green-dim: #065f46;
+            --red: #ef4444;
+            --red-dim: #7f1d1d;
+            --orange: #f59e0b;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Hero / Verdict */
+        .hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .hero .subtitle {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        .verdict-box {
+            margin: 30px auto;
+            max-width: 700px;
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid var(--green);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+        }
+
+        .verdict-box h2 {
+            color: var(--green);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .verdict-box p {
+            color: var(--text-dim);
+            font-size: 1rem;
+        }
+
+        /* Section Styles */
+        .section {
+            padding: 50px 0;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .section-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .section-desc {
+            color: var(--text-dim);
+            margin-bottom: 25px;
+            max-width: 800px;
+        }
+
+        /* KPI Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .kpi {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .kpi .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .kpi .value {
+            font-size: 1.6rem;
+            font-weight: 800;
+        }
+
+        .kpi .sub {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+        }
+
+        .kpi.green .value {
+            color: var(--green);
+        }
+
+        .kpi.red .value {
+            color: var(--red);
+        }
+
+        .kpi.blue .value {
+            color: var(--accent);
+        }
+
+        .kpi.orange .value {
+            color: var(--orange);
+        }
+
+        .kpi.cyan .value {
+            color: var(--cyan);
+        }
+
+        .kpi.purple .value {
+            color: var(--accent2);
+        }
+
+        /* Chart containers */
+        .chart-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Side-by-side charts */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 10px 14px;
+            text-align: right;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .data-table th {
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table td:first-child,
+        .data-table th:first-child {
+            text-align: left;
+        }
+
+        .data-table tr.total {
+            font-weight: 700;
+            border-top: 2px solid var(--accent);
+        }
+
+        .data-table .highlight {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .data-table .warn {
+            color: var(--red);
+        }
+
+        .data-table .dim {
+            color: var(--text-dim);
+        }
+
+        /* Callout boxes */
+        .callout {
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+
+        .callout.green {
+            border-color: var(--green);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .callout.red {
+            border-color: var(--red);
+            background: rgba(239, 68, 68, 0.06);
+        }
+
+        .callout.blue {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        .callout.orange {
+            border-color: var(--orange);
+            background: rgba(245, 158, 11, 0.06);
+        }
+
+        .callout h4 {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .callout p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Pros/Cons grid */
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pros-cons ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .pros-cons li {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--card-border);
+            font-size: 0.9rem;
+        }
+
+        .pros-cons li::before {
+            margin-right: 8px;
+        }
+
+        .pro-list li::before {
+            content: "✓";
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .con-list li::before {
+            content: "✗";
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+        }
+
+        /* Pill badge */
+        .pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pill.green {
+            background: var(--green-dim);
+            color: var(--green);
+        }
+
+        .pill.red {
+            background: var(--red-dim);
+            color: var(--red);
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .highlight-num {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--green);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== HERO / VERDICT ========== -->
+    <div class="hero">
+        <h1>Should JFM Expand to Suite 102?</h1>
+        <p class="subtitle">Data-driven analysis for Jenks Family Medicine — Generated February 20, 2026</p>
+        <div class="verdict-box">
+            <h2>✓ Recommendation: Sign the Lease</h2>
+            <p>Your revenue has grown 33% in the last 6 months. You're adding ~13 new patients per week with zero sign
+                of
+                slowing. You're already cramped. The math works — and the risk of <em>not</em> expanding may be greater
+                than the risk of expanding.</p>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- ========== 1. REVENUE TRAJECTORY ========== -->
+        <div class="section" id="revenue">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <h2>Revenue Is on a Clear Upward Trajectory</h2>
+            </div>
+            <p class="section-desc">JFM's quarterly revenue has grown from near-zero to over $199K/quarter. The practice
+                turned profitable in Q3 2024 and has stayed profitable since.</p>
+
+            <div class="kpi-row">
+                <div class="kpi green">
+                    <div class="label">Current Annualized Revenue</div>
+                    <div class="value">$784K</div>
+                    <div class="sub">Based on last 26 weeks</div>
+                </div>
+                <div class="kpi green">
+                    <div class="label">H2 2025 vs H1 2025</div>
+                    <div class="value">+33%</div>
+                    <div class="sub">Revenue growth rate</div>
+                </div>
+                <div class="kpi blue">
+                    <div class="label">Latest Quarter Profit</div>
+                    <div class="value">$29.7K</div>
+                    <div class="sub">Q4 2025</div>
+                </div>
+                <div class="kpi purple">
+                    <div class="label">Total Revenue to Date</div>
+                    <div class="value">$1.23M</div>
+                    <div class="sub">Since inception</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Quarterly Revenue by Source</h3>
+                <div class="chart-wrap"><canvas id="quarterlyRevenueChart"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Monthly Primary Care Charges (Service Charge Amounts)</h3>
+                <div class="chart-wrap"><canvas id="monthlyChargesChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- ========== 2. PATIENT GROWTH ========== -->
+        <div class="section" id="patients">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <h2>Patient Growth Is Strong and Consistent</h2>
+            </div>
+            <p class="section-desc">After excluding one-time event weeks, JFM acquires 12.8 new patients per week with a
+                tight standard deviation of 4.6. The probability of a sustained drop below 5/week is essentially zero.
+            </p>
+
+            <div class="kpi-row">
+                <div class="kpi green">
+                    <div class="label">Current Patient Population</div>
+                    <div class="value">1,479</div>
+                    <div class="sub">+109.8% growth in 52 weeks</div>
+                </div>
+                <div class="kpi blue">
+                    <div class="label">New Patients / Week</div>
+                    <div class="value">12.8</div>
+                    <div class="sub">Std dev: 4.6</div>
+                </div>
+                <div class="kpi cyan">
+                    <div class="label">Projected Pop. (1yr)</div>
+                    <div class="value">2,145</div>
+                    <div class="sub">+666 new patients expected</div>
+                </div>
+                <div class="kpi green">
+                    <div class="label">Risk of Sustained Drop</div>
+                    <div class="value">0.0%</div>
+                    <div class="sub">P(&lt;5/wk for 4+ consecutive wks)</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Weekly New Patients (Last 52 Weeks, Outliers Excluded)</h3>
+                <div class="chart-wrap"><canvas id="newPatientsChart"></canvas></div>
+            </div>
+
+            <div class="callout green">
+                <h4>What This Means for Expansion</h4>
+                <p>At 12.8 new patients/week, you'll add ~666 patients over the next year. Your current space is already
+                    cramped at 1,479 patients. In a larger space, with more exam rooms and better flow, you could
+                    comfortably accommodate 2,000+ patients and potentially increase throughput per day.</p>
+            </div>
+        </div>
+
+        <!-- ========== 3. LEASE COST COMPARISON ========== -->
+        <div class="section" id="lease">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <h2>The Lease Cost Analysis</h2>
+            </div>
+            <p class="section-desc">The new lease costs more — but you get 115% more space, 5 months of free rent, and
+                the ability to grow. Here's the full 65-month comparison.</p>
+
+            <div class="two-col">
+                <div class="kpi blue" style="text-align:left; padding: 24px;">
+                    <div class="label">Current Space</div>
+                    <div class="value" style="font-size:1.3rem;">~1,500 sq ft</div>
+                    <div class="sub" style="margin-top:12px; line-height:1.8;">
+                        $2,650/month flat<br>
+                        No NNN / CAM charges<br>
+                        65-month total: <strong>$172,250</strong>
+                    </div>
+                </div>
+                <div class="kpi purple" style="text-align:left; padding: 24px;">
+                    <div class="label">New Space (Suite 102)</div>
+                    <div class="value" style="font-size:1.3rem;">3,224 sq ft</div>
+                    <div class="sub" style="margin-top:12px; line-height:1.8;">
+                        $0 → $5,360/mo base + $1,032 NNN<br>
+                        5 months free rent<br>
+                        65-month total: <strong>$356,767</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card" style="margin-top:24px;">
+                <h3>Monthly Total Cost: Current vs. New Lease (65 Months)</h3>
+                <div class="chart-wrap"><canvas id="leaseCompareChart"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Cumulative Cost Over Lease Term</h3>
+                <div class="chart-wrap"><canvas id="cumulativeCostChart"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Full Lease Cost Breakdown</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Months</th>
+                            <th>Base Rent</th>
+                            <th>NNN/CAM</th>
+                            <th>Monthly Total</th>
+                            <th>Period Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Abatement</td>
+                            <td>1–5</td>
+                            <td>$0</td>
+                            <td>$1,032</td>
+                            <td>$1,032</td>
+                            <td>$5,159</td>
+                        </tr>
+                        <tr>
+                            <td>Year 1</td>
+                            <td>6–17</td>
+                            <td>$3,761</td>
+                            <td>$1,032</td>
+                            <td>$4,793</td>
+                            <td>$57,516</td>
+                        </tr>
+                        <tr>
+                            <td>Year 2</td>
+                            <td>18–29</td>
+                            <td>$4,836</td>
+                            <td>$1,032</td>
+                            <td>$5,868</td>
+                            <td>$70,412</td>
+                        </tr>
+                        <tr>
+                            <td>Year 3</td>
+                            <td>30–41</td>
+                            <td>$5,005</td>
+                            <td>$1,032</td>
+                            <td>$6,037</td>
+                            <td>$72,440</td>
+                        </tr>
+                        <tr>
+                            <td>Year 4</td>
+                            <td>42–53</td>
+                            <td>$5,180</td>
+                            <td>$1,032</td>
+                            <td>$6,212</td>
+                            <td>$74,540</td>
+                        </tr>
+                        <tr>
+                            <td>Year 5</td>
+                            <td>54–65</td>
+                            <td>$5,360</td>
+                            <td>$1,032</td>
+                            <td>$6,392</td>
+                            <td>$76,700</td>
+                        </tr>
+                        <tr class="total">
+                            <td>TOTAL</td>
+                            <td>65 mo</td>
+                            <td colspan="2"></td>
+                            <td></td>
+                            <td class="highlight">$356,767</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="dim">+ $40,000 buildout investment</td>
+                            <td></td>
+                            <td class="warn">$396,767</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========== 4. BREAK-EVEN & ROI ========== -->
+        <div class="section" id="breakeven">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <h2>Break-Even & Return on Investment</h2>
+            </div>
+            <p class="section-desc">The new lease costs $185K more over 65 months, plus $40K in buildout — a total
+                extra investment of $225K. You only need to generate $797/week in additional revenue to cover the
+                difference — that's about 6 extra patient visits per week.</p>
+
+            <div class="kpi-row">
+                <div class="kpi orange">
+                    <div class="label">Additional Lease Cost</div>
+                    <div class="value">$185K</div>
+                    <div class="sub">New lease vs. staying put (65 mo)</div>
+                </div>
+                <div class="kpi orange">
+                    <div class="label">+ Buildout Investment</div>
+                    <div class="value">$40K</div>
+                    <div class="sub">One-time capital expense</div>
+                </div>
+                <div class="kpi green">
+                    <div class="label">Weekly Revenue Needed</div>
+                    <div class="value">$797/wk</div>
+                    <div class="sub">To break even on extra cost</div>
+                </div>
+                <div class="kpi green">
+                    <div class="label">Extra Patients Needed</div>
+                    <div class="value">~6/week</div>
+                    <div class="sub">At ~$134 avg revenue per visit</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Revenue Needed vs. Current Trajectory</h3>
+                <div class="chart-wrap"><canvas id="breakevenChart"></canvas></div>
+            </div>
+
+            <div class="callout blue">
+                <h4>The Key Insight</h4>
+                <p>You're currently adding <strong>12.8 new patients per week</strong>. You only need <strong>~6
+                        additional visits per week</strong> to cover the expansion costs. With more space, more exam
+                    rooms, and better workflow, achieving 6+ more visits/week from your growing patient base is not just
+                    likely — it's almost certain. Your PC charges are already forecast to grow 58.6%.</p>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-card">
+                    <h3>Revenue Per Square Foot</h3>
+                    <div class="chart-wrap"><canvas id="revPerSqftChart"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>Patients Per Square Foot</h3>
+                    <div class="chart-wrap"><canvas id="patientsPerSqftChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== 5. CAPACITY vs INDUSTRY STANDARD ========== -->
+        <div class="section" id="capacity">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <h2>Capacity vs. Industry Standards</h2>
+            </div>
+            <p class="section-desc">At 12.8 new patients/week, your patient panel will reach ~5,084 by the end of the
+                65-month lease. Here's how that maps to industry-standard clinic sizing for family medicine practices.
+            </p>
+
+            <div class="chart-card">
+                <h3>Industry Standard: Clinic Size by Patient Panel</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Patient Panel</th>
+                            <th>Providers Needed</th>
+                            <th>Recommended Sq Footage</th>
+                            <th>Your Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2,000 patients</td>
+                            <td>1 provider</td>
+                            <td>1,200 - 1,500 sq ft</td>
+                            <td><span class="pill red">CURRENT (cramped)</span></td>
+                        </tr>
+                        <tr style="background: rgba(16,185,129,0.06);">
+                            <td><strong>5,000 patients</strong></td>
+                            <td><strong>2-3 providers</strong></td>
+                            <td><strong>3,000 - 4,500 sq ft</strong></td>
+                            <td><span class="pill green">NEW SPACE (3,224 sf)</span></td>
+                        </tr>
+                        <tr>
+                            <td>10,000 patients</td>
+                            <td>5 providers</td>
+                            <td>6,000 - 7,500 sq ft</td>
+                            <td class="dim">Future growth</td>
+                        </tr>
+                        <tr>
+                            <td>20,000 patients</td>
+                            <td>10 providers</td>
+                            <td>12,000 - 15,000 sq ft</td>
+                            <td class="dim">Future growth</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="kpi-row">
+                <div class="kpi red">
+                    <div class="label">Current: ~1,500 sq ft</div>
+                    <div class="value">1,479 patients</div>
+                    <div class="sub">Right at the ceiling for 1-provider / 1,500 sf</div>
+                </div>
+                <div class="kpi green">
+                    <div class="label">End of Lease (Month 65)</div>
+                    <div class="value">~5,084 patients</div>
+                    <div class="sub">3,224 sf fits the 5K tier (3,000-4,500)</div>
+                </div>
+                <div class="kpi blue">
+                    <div class="label">Providers at End of Lease</div>
+                    <div class="value">2-3 needed</div>
+                    <div class="sub">Industry standard for 5K panel</div>
+                </div>
+                <div class="kpi cyan">
+                    <div class="label">Hit 2K Patients</div>
+                    <div class="value">Month 9</div>
+                    <div class="sub">Nov 2026 - already outgrowing current space</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>65-Month Patient Growth Projection vs. Space Capacity</h3>
+                <div class="chart-wrap" style="height:350px;"><canvas id="growthProjectionChart"></canvas></div>
+            </div>
+
+            <div class="callout green">
+                <h4>The New Space Is Right-Sized for the Lease Term</h4>
+                <p>At 3,224 sq ft, Suite 102 falls squarely within the industry-standard range (3,000-4,500 sq ft) for a
+                    5,000-patient panel. You'll reach ~5,084 patients by month 63 — just before the lease ends. This
+                    means the new space will serve you well for the <strong>entire lease term</strong> without becoming
+                    cramped again. Your current 1,500 sq ft space will be maxed out by month 9.</p>
+            </div>
+
+            <div class="callout orange">
+                <h4>Plan Ahead: You'll Need 2-3 Providers</h4>
+                <p>Industry standards call for 2-3 providers to manage a 5,000-patient panel. As your panel grows past
+                    2,000-3,000, consider when to bring on a second provider. The additional exam rooms in the new space
+                    will make this operationally feasible.</p>
+            </div>
+        </div>
+
+        <!-- ========== 6. RISK ASSESSMENT ========== -->
+        <div class="section" id="risk">
+            <div class="section-header">
+                <div class="section-number">6</div>
+                <h2>Risk Assessment</h2>
+            </div>
+
+            <div class="pros-cons">
+                <div class="chart-card">
+                    <h3 style="color: var(--green);">Reasons to Move</h3>
+                    <ul class="pro-list">
+                        <li>Revenue growing 33% half-over-half</li>
+                        <li>12.8 new patients/week with 0% dropout risk</li>
+                        <li>PC charges forecast +58.6% growth</li>
+                        <li>Currently cramped at 1 sq ft per patient</li>
+                        <li>5 months free rent during buildout</li>
+                        <li>Only need $797/wk extra to break even</li>
+                        <li>Same building — patients keep same address</li>
+                        <li>Existing $3K deposit transfers over</li>
+                        <li>Old lease terminates when new space opens</li>
+                        <li>115% more space to grow into</li>
+                    </ul>
+                </div>
+                <div class="chart-card">
+                    <h3 style="color: var(--red);">Risks to Consider</h3>
+                    <ul class="con-list">
+                        <li>$40K upfront buildout investment</li>
+                        <li>Monthly cost jumps from $2,650 to $4,793-$6,392</li>
+                        <li>5-year commitment (65 months total)</li>
+                        <li>NNN charges may increase over time</li>
+                        <li>$7K security deposit ($4K net new)</li>
+                        <li>Revenue trend R² is low (high variance)</li>
+                        <li>Disruption during buildout/transition</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Monthly Profit vs. New Lease Cost Headroom</h3>
+                <div class="chart-wrap"><canvas id="profitHeadroomChart"></canvas></div>
+            </div>
+
+            <div class="callout green">
+                <h4>Bottom Line on Risk</h4>
+                <p>Your worst quarterly profit in the last 4 quarters was $2,874 (Q2 2025). Even in that weakest
+                    quarter, your monthly profit (~$958/mo) would have covered a significant portion of the incremental
+                    lease cost. With the recent trajectory (Q4 2025 profit: $29.7K = $9,914/mo), you have substantial
+                    headroom for the higher rent. The question isn't whether you can afford the new space — it's whether
+                    you can afford <em>not</em> to have it.</p>
+            </div>
+        </div>
+
+        <!-- ========== 7. BUILDOUT FINANCING ANALYSIS ========== -->
+        <div class="section" id="financing">
+            <div class="section-header">
+                <div class="section-number">7</div>
+                <h2>Buildout Financing: Cash vs. Line of Credit</h2>
+            </div>
+            <p class="section-desc">The $40,000 buildout can be paid in cash or financed with a business line of credit.
+                Using current rates from Chattanooga-area lenders (Feb 2026), here's how each option plays out.</p>
+
+            <div class="chart-card">
+                <h3>Current Chattanooga Business LOC Rates (Feb 2026)</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Lender</th>
+                            <th>Type</th>
+                            <th>Rate Range</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>TVFCU</td>
+                            <td>Secured LOC</td>
+                            <td>~7.5 - 9.0%</td>
+                            <td>Local CU, competitive for medical practices</td>
+                        </tr>
+                        <tr>
+                            <td>Bank of Tennessee / TriStar</td>
+                            <td>Business LOC</td>
+                            <td>~7.2 - 8.5%</td>
+                            <td>Regional banks, relationship rates</td>
+                        </tr>
+                        <tr>
+                            <td>Wells Fargo / PNC</td>
+                            <td>BusinessLine</td>
+                            <td>~9.25 - 10.5%</td>
+                            <td>Prime + 1.75% to Prime + 3%</td>
+                        </tr>
+                        <tr>
+                            <td>Cornerstone FCU</td>
+                            <td>Unsecured LOC</td>
+                            <td>~12.75%</td>
+                            <td>No collateral required, up to $50K</td>
+                        </tr>
+                        <tr>
+                            <td>Pathway Lending</td>
+                            <td>SB Loan</td>
+                            <td>~12 - 15%</td>
+                            <td>CDFI; longer process, flexible approval</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top:12px; font-size:0.8rem; color:var(--text-dim);">Based on WSJ Prime Rate of 7.50%
+                    (Feb 2026). Rates vary by credit, collateral, and relationship.</p>
+            </div>
+
+            <div class="kpi-row">
+                <div class="kpi green">
+                    <div class="label">Option A: Cash</div>
+                    <div class="value">$40,000</div>
+                    <div class="sub">Total cost = $40,000 (no interest)</div>
+                </div>
+                <div class="kpi blue">
+                    <div class="label">Option B: LOC @ 8.5% / 36 mo</div>
+                    <div class="value">$45,457</div>
+                    <div class="sub">$1,263/mo — $5,457 total interest</div>
+                </div>
+                <div class="kpi purple">
+                    <div class="label">Option C: LOC @ 8.5% / 24 mo</div>
+                    <div class="value">$43,637</div>
+                    <div class="sub">$1,818/mo — $3,637 total interest</div>
+                </div>
+                <div class="kpi orange">
+                    <div class="label">Option D: LOC @ 10.5% / 36 mo</div>
+                    <div class="value">$46,804</div>
+                    <div class="sub">$1,300/mo — $6,804 total interest</div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Cumulative Cash Out the Door: Buildout Only</h3>
+                <div class="chart-wrap" style="height:350px;"><canvas id="financingChart"></canvas></div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Detailed Financing Comparison</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Scenario</th>
+                            <th>Rate</th>
+                            <th>Term</th>
+                            <th>Monthly Pmt</th>
+                            <th>Total Paid</th>
+                            <th>Interest Cost</th>
+                            <th>Cash Day 1</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: rgba(16,185,129,0.04);">
+                            <td><strong>A. Pay Cash</strong></td>
+                            <td>N/A</td>
+                            <td>Immediate</td>
+                            <td>N/A</td>
+                            <td class="highlight">$40,000</td>
+                            <td class="highlight">$0</td>
+                            <td class="warn">-$40,000</td>
+                        </tr>
+                        <tr>
+                            <td><strong>B. LOC (Best Rate)</strong></td>
+                            <td>8.50%</td>
+                            <td>36 months</td>
+                            <td>$1,263</td>
+                            <td>$45,457</td>
+                            <td class="warn">$5,457</td>
+                            <td class="highlight">$0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>C. LOC (Best, Shorter)</strong></td>
+                            <td>8.50%</td>
+                            <td>24 months</td>
+                            <td>$1,818</td>
+                            <td>$43,637</td>
+                            <td class="warn">$3,637</td>
+                            <td class="highlight">$0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>D. LOC (National Bank)</strong></td>
+                            <td>10.50%</td>
+                            <td>36 months</td>
+                            <td>$1,300</td>
+                            <td>$46,804</td>
+                            <td class="warn">$6,804</td>
+                            <td class="highlight">$0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout blue">
+                <h4>Financing Recommendation</h4>
+                <p><strong>Pay cash if you have the reserves.</strong> You save $3,637–$6,804 in interest. That said, if
+                    $40K depletes your operating reserves to an uncomfortable level, a 24-month LOC at 8.5% from TVFCU
+                    or Bank of Tennessee only costs $3,637 in interest ($152/mo extra) — a small price to keep cash on
+                    hand. The 36-month option at a national bank rate of 10.5% is the worst option at $6,804 in
+                    interest, but even that adds only $189/mo. <strong>None of these scenarios change the fundamental
+                        recommendation to sign the lease.</strong></p>
+            </div>
+        </div>
+
+        <!-- ========== 8. FINAL RECOMMENDATION ========== -->
+        <div class="section" id="recommendation" style="border-bottom: none;">
+            <div class="section-header">
+                <div class="section-number">8</div>
+                <h2>Final Recommendation</h2>
+            </div>
+
+            <div class="verdict-box" style="max-width:100%;">
+                <h2>✓ Sign the Lease</h2>
+                <p style="font-size: 1.05rem; line-height: 1.8; color: var(--text);">
+                    The data overwhelmingly supports expansion. Here's the summary:
+                </p>
+                <div
+                    style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 16px;">
+                    <div style="padding: 16px; background: rgba(16,185,129,0.06); border-radius: 10px;">
+                        <strong style="color: var(--green);">Revenue supports it</strong><br>
+                        <span style="color:var(--text-dim); font-size:0.9rem;">$784K annualized revenue, growing 33%
+                            H/H. You're profitable and accelerating.</span>
+                    </div>
+                    <div style="padding: 16px; background: rgba(16,185,129,0.06); border-radius: 10px;">
+                        <strong style="color: var(--green);">Patient demand supports it</strong><br>
+                        <span style="color:var(--text-dim); font-size:0.9rem;">12.8 new patients/week, 0% risk of
+                            sustained decline. Population headed to 2,145 in a year.</span>
+                    </div>
+                    <div style="padding: 16px; background: rgba(16,185,129,0.06); border-radius: 10px;">
+                        <strong style="color: var(--green);">The math works</strong><br>
+                        <span style="color:var(--text-dim); font-size:0.9rem;">Only $797/week (~6 visits) in extra
+                            revenue needed. Your forecast projects 58.6% charges growth.</span>
+                    </div>
+                    <div style="padding: 16px; background: rgba(245,158,11,0.06); border-radius: 10px;">
+                        <strong style="color: var(--orange);">Negotiate if possible</strong><br>
+                        <span style="color:var(--text-dim); font-size:0.9rem;">Consider asking for a TI (tenant
+                            improvement) allowance to offset the $40K buildout, or a longer rent abatement
+                            period.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <div class="footer">
+        Jenks Family Medicine Expansion Analysis &bull; Generated Feb 20, 2026 &bull; Data through Feb 20, 2026
+    </div>
+
+    <script>
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = '#334155';
+        Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+
+        // ===== 1. Quarterly Revenue =====
+        new Chart(document.getElementById('quarterlyRevenueChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Q1 24', 'Q2 24', 'Q3 24', 'Q4 24', 'Q1 25', 'Q2 25', 'Q3 25', 'Q4 25', 'Q1 26*'],
+                datasets: [
+                    { label: 'VA Revenue', data: [31140, 54370, 110005, 102488, 92915, 91245, 127285, 135500, 59735], backgroundColor: 'rgba(59,130,246,0.7)', stack: 'rev' },
+                    { label: 'PC Revenue', data: [5134, 14669, 32854, 52351, 58031, 57528, 71810, 64062, 50334], backgroundColor: 'rgba(139,92,246,0.7)', stack: 'rev' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'K' }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ===== Monthly Charges =====
+        new Chart(document.getElementById('monthlyChargesChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan 24', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+                    'Jan 25', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan 26', 'Feb*'],
+                datasets: [{
+                    label: 'Monthly Charges',
+                    data: [2410, 2830, 4540, 8599, 10895, 10164, 14760, 20328, 38491, 62782, 58745, 56944,
+                        65820, 72035, 58419, 60676, 70001, 68897, 78532, 85598, 115944, 92207, 78420, 87599, 86053, 55606],
+                    borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)',
+                    fill: true, tension: 0.3, pointRadius: 2, borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => '$' + ctx.raw.toLocaleString() } } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'K' }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45 } }
+                }
+            }
+        });
+
+        // ===== 2. New Patients Chart =====
+        new Chart(document.getElementById('newPatientsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['2/21', '2/28', '3/7', '3/14', '3/21', '3/28', '4/4', '4/11', '4/18', '4/25',
+                    '5/16', '5/23', '5/30', '6/6', '6/13', '6/20', '6/27', '7/4', '7/11', '7/18', '7/25',
+                    '8/1', '8/8', '8/15', '8/22', '8/29', '9/5', '9/12', '9/26', '10/3', '10/10', '10/17',
+                    '10/24', '10/31', '11/7', '11/14', '11/21', '11/28', '12/5', '12/12', '12/19', '12/26',
+                    '1/2', '1/9', '1/16', '1/23', '1/30', '2/6', '2/13'],
+                datasets: [
+                    {
+                        label: 'New Patients', data: [19, 17, 17, 6, 11, 14, 11, 9, 4, 11, 11, 15, 10, 11, 9, 13, 16, 12, 11, 14, 9, 10, 2, 25, 20, 16, 18, 20, 14, 15, 14, 13, 14, 15, 18, 13, 19, 8, 11, 8, 12, 5, 7, 15, 15, 11, 16, 18, 5],
+                        backgroundColor: 'rgba(59,130,246,0.6)', borderRadius: 3
+                    },
+                    {
+                        label: '4wk MA', data: [19, 18, 17.7, 14.8, 12.8, 12, 10.5, 11.2, 9.5, 8.8, 8.8, 10.2, 11.8, 11.8, 11.2, 10.8, 12.2, 12.5, 13, 13.2, 11.5, 11, 8.8, 11.5, 14.2, 15.8, 19.8, 18.5, 17, 16.8, 15.8, 14, 14, 14, 15, 15, 16.2, 14.5, 12.8, 11.5, 9.8, 9, 8, 9.8, 10.5, 12, 14.2, 15, 12.5],
+                        type: 'line', borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 20 } }
+                }
+            }
+        });
+
+        // ===== 3. Lease Comparison =====
+        const months = Array.from({ length: 65 }, (_, i) => i + 1);
+        const currentCost = months.map(() => 2650);
+        const newCost = months.map(m => {
+            const nnn = 1032;
+            if (m <= 5) return nnn;
+            if (m <= 17) return 3761 + nnn;
+            if (m <= 29) return 4836 + nnn;
+            if (m <= 41) return 5005 + nnn;
+            if (m <= 53) return 5180 + nnn;
+            return 5360 + nnn;
+        });
+
+        new Chart(document.getElementById('leaseCompareChart'), {
+            type: 'line',
+            data: {
+                labels: months.map(m => 'M' + m),
+                datasets: [
+                    { label: 'Current ($2,650/mo)', data: currentCost, borderColor: '#94a3b8', borderWidth: 2, pointRadius: 0, borderDash: [5, 3] },
+                    { label: 'New Lease (Total)', data: newCost, borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => '$' + v.toLocaleString() }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 15 } }
+                }
+            }
+        });
+
+        // Cumulative cost
+        let cumCurrent = [], cumNew = [], runCurrent = 0, runNew = 40000; // buildout included
+        currentCost.forEach((c, i) => { runCurrent += c; cumCurrent.push(runCurrent); runNew += newCost[i]; cumNew.push(runNew); });
+
+        new Chart(document.getElementById('cumulativeCostChart'), {
+            type: 'line',
+            data: {
+                labels: months.map(m => 'M' + m),
+                datasets: [
+                    { label: 'Stay (Cumulative)', data: cumCurrent, borderColor: '#94a3b8', borderWidth: 2, pointRadius: 0, fill: false, borderDash: [5, 3] },
+                    { label: 'Move (incl. $40K buildout)', data: cumNew, borderColor: '#ef4444', borderWidth: 2, pointRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+                scales: {
+                    y: { ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'K' }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 15 } }
+                }
+            }
+        });
+
+        // ===== 4. Break-even Chart =====
+        const weeksOut = Array.from({ length: 52 }, (_, i) => i + 1);
+        const currentTrajectory = weeksOut.map(w => 15092 + (w * 40)); // ~$15K/wk growing ~$40/wk
+        const breakEvenLine = weeksOut.map(() => 15092 + 797); // Current + needed extra
+
+        new Chart(document.getElementById('breakevenChart'), {
+            type: 'line',
+            data: {
+                labels: weeksOut.map(w => 'Wk ' + w),
+                datasets: [
+                    { label: 'Projected Revenue Trajectory', data: currentTrajectory, borderColor: '#10b981', borderWidth: 2.5, pointRadius: 0, fill: false },
+                    { label: 'Break-Even Target ($797/wk extra)', data: breakEvenLine, borderColor: '#f59e0b', borderWidth: 2, borderDash: [8, 4], pointRadius: 0, fill: false },
+                    { label: 'Current Run Rate', data: weeksOut.map(() => 15092), borderColor: '#94a3b8', borderWidth: 1.5, borderDash: [3, 3], pointRadius: 0, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() + '/wk' } } },
+                scales: {
+                    y: { ticks: { callback: v => '$' + (v / 1000).toFixed(1) + 'K' }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12 } }
+                }
+            }
+        });
+
+        // Rev per sqft
+        new Chart(document.getElementById('revPerSqftChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Current Space', 'New Space (at same rate)', 'New Space (projected)'],
+                datasets: [{
+                    label: '$/sq ft/year',
+                    data: [523, 243, 395],
+                    backgroundColor: ['rgba(239,68,68,0.6)', 'rgba(59,130,246,0.6)', 'rgba(16,185,129,0.6)'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '$' + ctx.raw + '/sq ft/yr' } } },
+                scales: {
+                    x: { ticks: { callback: v => '$' + v }, grid: { color: '#1e293b' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // Patients per sqft
+        new Chart(document.getElementById('patientsPerSqftChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Current (1,479 pts)', 'New Space (1,479 pts)', 'New Space (2,145 pts)'],
+                datasets: [{
+                    label: 'Sq ft per patient',
+                    data: [1.0, 2.2, 1.5],
+                    backgroundColor: ['rgba(239,68,68,0.6)', 'rgba(16,185,129,0.6)', 'rgba(245,158,11,0.6)'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + ' sq ft/patient' } } },
+                scales: {
+                    x: { ticks: { callback: v => v + ' sf' }, grid: { color: '#1e293b' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ===== 6. Profit Headroom Chart =====
+        const monthlyLabels2025 = ['Jan 25', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan 26', 'Feb*'];
+        const monthlyProfit = [
+            // Approximate monthly profits from weekly data
+            2440, 5127, 1261, -2070, -2325, 2040, 1437, 2636, 5902, 2766, 3526, 2790, 2947, -695
+        ];
+        const extraCostLine = monthlyLabels2025.map(() => 2650); // Additional monthly cost (avg new - current)
+
+        new Chart(document.getElementById('profitHeadroomChart'), {
+            type: 'bar',
+            data: {
+                labels: monthlyLabels2025,
+                datasets: [
+                    {
+                        label: 'Monthly Profit', data: monthlyProfit,
+                        backgroundColor: monthlyProfit.map(v => v >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.5)'),
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Avg Additional Lease Cost', data: extraCostLine,
+                        type: 'line', borderColor: '#f59e0b', borderWidth: 2, borderDash: [6, 3], pointRadius: 0, fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.raw.toLocaleString() } } },
+                scales: {
+                    y: { ticks: { callback: v => '$' + (v / 1000).toFixed(1) + 'K' }, grid: { color: '#1e293b' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // ===== 5. Growth Projection Chart =====
+        const projMonths = Array.from({ length: 66 }, (_, i) => i);
+        const patientGrowth = projMonths.map(m => Math.round(1479 + (12.8 * m * 4.333)));
+        // Industry standard capacity bands
+        const currentSpaceMax = projMonths.map(() => 2000);  // ~1,500sf ceiling
+        const newSpaceLow = projMonths.map(() => 5000);      // new space upper comfort (3,224sf in 3K-4.5K range)
+
+        new Chart(document.getElementById('growthProjectionChart'), {
+            type: 'line',
+            data: {
+                labels: projMonths.map(m => m === 0 ? 'Now' : 'M' + m),
+                datasets: [
+                    {
+                        label: 'Projected Patient Panel',
+                        data: patientGrowth,
+                        borderColor: '#3b82f6', borderWidth: 3, pointRadius: 0, fill: false, tension: 0.1
+                    },
+                    {
+                        label: 'Current Space Max (~1,500sf = 2,000 pts)',
+                        data: currentSpaceMax,
+                        borderColor: '#ef4444', borderWidth: 2, borderDash: [8, 4], pointRadius: 0, fill: false
+                    },
+                    {
+                        label: 'New Space Tier (3,224sf = 5,000 pts)',
+                        data: newSpaceLow,
+                        borderColor: '#10b981', borderWidth: 2, borderDash: [8, 4], pointRadius: 0, fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString() + ' patients' } },
+                    annotation: {}
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false, min: 1000, max: 6000,
+                        ticks: { callback: v => v.toLocaleString() },
+                        grid: { color: '#1e293b' }
+                    },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 15 } }
+                }
+            }
+        });
+
+        // ===== 7. Financing Chart =====
+        // Amortization calculation helper
+        function calcPayment(principal, annualRate, months) {
+            const r = annualRate / 12;
+            return principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
+        }
+
+        const finMonths = Array.from({ length: 37 }, (_, i) => i);
+        const cashPaid = finMonths.map(m => m === 0 ? 40000 : 40000); // all upfront
+
+        // Option B: 8.5% / 36 mo
+        const pmtB = calcPayment(40000, 0.085, 36); // ~$1,263
+        const cumB = finMonths.map(m => Math.round(Math.min(m * pmtB, 36 * pmtB)));
+
+        // Option C: 8.5% / 24 mo
+        const pmtC = calcPayment(40000, 0.085, 24); // ~$1,818
+        const cumC = finMonths.map(m => Math.round(Math.min(m * pmtC, 24 * pmtC)));
+
+        // Option D: 10.5% / 36 mo
+        const pmtD = calcPayment(40000, 0.105, 36); // ~$1,300
+        const cumD = finMonths.map(m => Math.round(Math.min(m * pmtD, 36 * pmtD)));
+
+        new Chart(document.getElementById('financingChart'), {
+            type: 'line',
+            data: {
+                labels: finMonths.map(m => m === 0 ? 'Day 1' : 'M' + m),
+                datasets: [
+                    {
+                        label: 'A. Cash ($40K upfront)',
+                        data: cashPaid,
+                        borderColor: '#10b981', borderWidth: 2.5, pointRadius: 0,
+                        fill: false, borderDash: [0]
+                    },
+                    {
+                        label: 'B. LOC 8.5% / 36mo ($45,457)',
+                        data: cumB,
+                        borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, fill: false
+                    },
+                    {
+                        label: 'C. LOC 8.5% / 24mo ($43,637)',
+                        data: cumC,
+                        borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 0, fill: false
+                    },
+                    {
+                        label: 'D. LOC 10.5% / 36mo ($46,804)',
+                        data: cumD,
+                        borderColor: '#f59e0b', borderWidth: 2, pointRadius: 0, fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    tooltip: { callbacks: { label: ctx => ctx.dataset.label.split('(')[0] + ': $' + ctx.raw.toLocaleString() } }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true, max: 50000,
+                        ticks: { callback: v => '$' + (v / 1000).toFixed(0) + 'K' },
+                        grid: { color: '#1e293b' }
+                    },
+                    x: { grid: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 12 } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
