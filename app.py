@@ -12,6 +12,7 @@ from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
 from data import rvu_analytics
 from data.data_loader import get_database_url
+from data import owner_analytics
 
 def create_app():
     app = Flask(__name__)
@@ -377,6 +378,18 @@ def create_app():
         except Exception as e:
             app.logger.error(f"Error generating bonus report: {e}")
             return jsonify({'error': 'Failed to generate report'}), 500
+
+    @app.route('/admin/reports/owner_analytics')
+    @login_required
+    def owner_analytics_data():
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        try:
+            data = owner_analytics.get_all_analytics()
+            return jsonify(data)
+        except Exception as e:
+            app.logger.error(f"Error generating owner analytics: {e}")
+            return jsonify({'error': 'Failed to generate analytics data'}), 500
 
     @app.route('/admin/logout')
     @login_required

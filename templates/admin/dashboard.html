@@ -313,6 +313,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openTab('section-reports', this)">Reports</button>
             {% if current_user.role == 'Owner' %}
+            <button class="tab-button" onclick="openTab('section-owner-analytics', this); initOwnerAnalytics();">Owner Analytics</button>
             <button class="tab-button" onclick="openTab('section-upload', this)">Upload Data</button>
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
@@ -397,6 +398,96 @@
             {% endif %}
         </div>
 
+        <!-- Owner Analytics Section -->
+        {% if current_user.role == 'Owner' %}
+        <div id="section-owner-analytics" class="tab-content" style="display: none;">
+
+            <!-- Loading state -->
+            <div id="oa-loading" style="text-align: center; padding: 3rem 1rem;">
+                <p style="color: var(--text-light); font-size: 1rem;">Loading analytics data...</p>
+            </div>
+
+            <!-- Error state -->
+            <div id="oa-error" style="display: none;">
+                <div class="admin-panel">
+                    <p style="color: #991b1b;">&#x26A0; Failed to load analytics. Ensure CSV files have been uploaded via the Upload Data tab.</p>
+                </div>
+            </div>
+
+            <!-- Content (shown after data loads) -->
+            <div id="oa-content" style="display: none;">
+
+                <!-- Quick Nav -->
+                <div class="admin-panel" style="padding: 0.85rem 1.5rem; margin-bottom: 1.25rem;">
+                    <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; align-items: center;">
+                        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em;">Jump to:</span>
+                        <a href="#oa-scorecards" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">Scorecards</a>
+                        <a href="#oa-trends" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">Trends</a>
+                        <a href="#oa-breakeven" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">Breakeven</a>
+                        <a href="#oa-monthly" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">Monthly</a>
+                        <a href="#oa-recommendations" style="color: var(--primary-color); font-weight: 600; font-size: 0.9rem; text-decoration: none;">Recommendations</a>
+                        <button onclick="refreshOwnerAnalytics()" style="margin-left: auto; background: none; border: 1px solid #d1d5db; border-radius: 6px; padding: 4px 12px; font-size: 0.8rem; cursor: pointer; color: var(--text-light);">&#x21BB; Refresh</button>
+                    </div>
+                </div>
+
+                <!-- 1. Provider Scorecards -->
+                <div id="oa-scorecards" class="admin-panel">
+                    <h2>&#x1F464; Provider Scorecards</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.25rem;">Per-provider summary since Oct 1, 2025. Trend is based on last 4 weeks vs prior 4 weeks.</p>
+                    <div id="scorecard-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;"></div>
+                </div>
+
+                <!-- 2. Trend Analysis -->
+                <div id="oa-trends" class="admin-panel">
+                    <h2>&#x1F4C8; Trend Analysis</h2>
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Rolling 4-Week Average by Provider</p>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="chart-rolling4"></canvas>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 1.5rem 0;">
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Week-over-Week % Change (Company Total)</p>
+                    <div style="position: relative; height: 220px;">
+                        <canvas id="chart-wow"></canvas>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 1.5rem 0;">
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Cumulative RVU Race</p>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="chart-cumulative"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. Breakeven Analysis -->
+                <div id="oa-breakeven" class="admin-panel">
+                    <h2>&#x1F3AF; Breakeven Analysis</h2>
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Company-Wide Distance from Breakeven (196 RVUs/week)</p>
+                    <div style="position: relative; height: 260px;">
+                        <canvas id="chart-co-breakeven"></canvas>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 1.5rem 0;">
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em;">Provider Benchmark Summary</p>
+                    <div id="breakeven-table"></div>
+                </div>
+
+                <!-- 4. Monthly Overview -->
+                <div id="oa-monthly" class="admin-panel">
+                    <h2>&#x1F4C5; Monthly Overview</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">Stacked monthly RVU totals by provider vs company breakeven and industry standard targets.</p>
+                    <div style="position: relative; height: 340px;">
+                        <canvas id="chart-monthly"></canvas>
+                    </div>
+                </div>
+
+                <!-- 5. Recommendations -->
+                <div id="oa-recommendations" class="admin-panel">
+                    <h2>&#x1F4A1; Recommendations</h2>
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">Auto-generated insights based on current production data.</p>
+                    <div id="recommendations-list"></div>
+                </div>
+
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Conditional Banner Management -->
         {% if current_user.role in ['Owner', 'Admin'] %}
         <div id="section-banner" class="tab-content" style="display: none;">
@@ -472,9 +563,7 @@
 
                 <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 2rem 0;">
                 <h2>👑 Owner Only Features</h2>
-                <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage users, export full system
-                    logs,
-                    and view revenue analytics.</p>
+                <p style="color: var(--text-light); font-size: 0.95rem;">Owner Analytics are available in the <strong>Owner Analytics</strong> tab — including Provider Scorecards, Trend Analysis, Breakeven Analysis, Monthly Overview, and Recommendations. Coming soon: user management and system logs.</p>
             </div>
         </div>
         {% endif %}
@@ -519,6 +608,7 @@
         ⚠️ Your session will expire soon due to inactivity.
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         // --- Tabs Logic ---
         function openTab(tabId, element) {
@@ -620,6 +710,272 @@
                     tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
                 });
         })();
+
+        // -------------------------------------------------------
+        // Owner Analytics
+        // -------------------------------------------------------
+        let _oaLoaded = false;
+        const _chartInstances = {};
+
+        function initOwnerAnalytics() {
+            if (!_oaLoaded) {
+                _oaLoaded = true;
+                _fetchAnalytics();
+            }
+        }
+
+        function refreshOwnerAnalytics() {
+            _oaLoaded = false;
+            document.getElementById('oa-content').style.display = 'none';
+            document.getElementById('oa-error').style.display = 'none';
+            document.getElementById('oa-loading').style.display = 'block';
+            initOwnerAnalytics();
+        }
+
+        async function _fetchAnalytics() {
+            const loading = document.getElementById('oa-loading');
+            const error = document.getElementById('oa-error');
+            const content = document.getElementById('oa-content');
+            if (!loading) return;
+            try {
+                const resp = await fetch('/admin/reports/owner_analytics');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+                loading.style.display = 'none';
+                content.style.display = 'block';
+                _renderScorecards(data.scorecards);
+                _renderTrends(data.trends);
+                _renderBreakeven(data.breakeven);
+                _renderMonthly(data.monthly);
+                _renderRecommendations(data.recommendations);
+            } catch (e) {
+                if (loading) loading.style.display = 'none';
+                if (error) error.style.display = 'block';
+                console.error('Owner analytics error:', e);
+            }
+        }
+
+        function _destroyChart(id) {
+            if (_chartInstances[id]) { _chartInstances[id].destroy(); delete _chartInstances[id]; }
+        }
+
+        function _baseOptions(yLabel, beginAtZero) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 11 } } }
+                },
+                scales: {
+                    x: { ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+                    y: {
+                        title: { display: !!yLabel, text: yLabel || '', font: { size: 11 } },
+                        grid: { color: '#f3f4f6' },
+                        beginAtZero: !!beginAtZero
+                    }
+                }
+            };
+        }
+
+        function _statCell(label, value) {
+            return `<div style="text-align:center;padding:0.4rem;background:#f9fafb;border-radius:4px;">
+                <div style="font-size:0.95rem;font-weight:700;color:#111827;">${value}</div>
+                <div style="font-size:0.7rem;color:#6b7280;margin-top:2px;">${label}</div>
+            </div>`;
+        }
+
+        function _renderScorecards(scorecards) {
+            const grid = document.getElementById('scorecard-grid');
+            if (!grid || !scorecards) return;
+            grid.innerHTML = '';
+            const icons = { Improving: '&#x2191;', Stable: '&#x2192;', Declining: '&#x2193;' };
+            const tColor = { Improving: '#166534', Stable: '#1e40af', Declining: '#991b1b' };
+            const tBg = { Improving: '#f0fdf4', Stable: '#eff6ff', Declining: '#fef2f2' };
+            for (const [name, s] of Object.entries(scorecards)) {
+                const card = document.createElement('div');
+                card.style.cssText = 'border:1px solid #e5e7eb;border-radius:8px;padding:1rem;';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span style="width:12px;height:12px;border-radius:50%;background:${s.color};display:inline-block;flex-shrink:0;"></span>
+                            <strong style="font-size:0.95rem;">${name}</strong>
+                        </div>
+                        <span style="font-size:0.75rem;font-weight:600;padding:2px 8px;border-radius:999px;background:${tBg[s.trend]};color:${tColor[s.trend]};white-space:nowrap;">
+                            ${icons[s.trend]} ${s.trend}
+                        </span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;">
+                        ${_statCell('Total RVUs', s.total_rvus)}
+                        ${_statCell('Avg / Week', s.avg_weekly)}
+                        ${_statCell('Std Dev', s.std_dev)}
+                        ${_statCell('Breakeven Rate', s.breakeven_hit_rate + '%')}
+                        ${_statCell('Industry Rate', s.industry_hit_rate + '%')}
+                        ${_statCell('Weeks Tracked', s.weeks_count)}
+                        ${_statCell('Best Week', s.best_week)}
+                        ${_statCell('Worst Week', s.worst_week)}
+                        ${_statCell('Trend \u0394', (s.trend_pct > 0 ? '+' : '') + s.trend_pct + '%')}
+                    </div>`;
+                grid.appendChild(card);
+            }
+        }
+
+        function _renderTrends(trends) {
+            if (!trends || !trends.weeks) return;
+            const { weeks, providers, company, benchmarks: b } = trends;
+
+            // Rolling 4-week average
+            _destroyChart('chart-rolling4');
+            const benchDatasets = [
+                { label: 'Breakeven (49)', data: weeks.map(() => b.ind_breakeven), borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false },
+                { label: 'Industry (82)', data: weeks.map(() => b.ind_industry), borderColor: '#f97316', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false }
+            ];
+            _chartInstances['chart-rolling4'] = new Chart(
+                document.getElementById('chart-rolling4').getContext('2d'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: weeks,
+                        datasets: Object.entries(providers).map(([name, d]) => ({
+                            label: name, data: d.rolling4, borderColor: d.color,
+                            backgroundColor: d.color + '18', borderWidth: 2.5,
+                            pointRadius: 3, tension: 0.3, fill: false
+                        })).concat(benchDatasets)
+                    },
+                    options: _baseOptions('RVUs', false)
+                }
+            );
+
+            // WoW % Change
+            _destroyChart('chart-wow');
+            const wowColors = company.wow_pct.map(v => v >= 0 ? '#27ae60bb' : '#e74c3cbb');
+            const wowOpts = _baseOptions('%', false);
+            wowOpts.plugins.legend = { display: false };
+            _chartInstances['chart-wow'] = new Chart(
+                document.getElementById('chart-wow').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: weeks,
+                        datasets: [{ label: 'WoW % Change', data: company.wow_pct, backgroundColor: wowColors, borderWidth: 0 }]
+                    },
+                    options: wowOpts
+                }
+            );
+
+            // Cumulative Race
+            _destroyChart('chart-cumulative');
+            _chartInstances['chart-cumulative'] = new Chart(
+                document.getElementById('chart-cumulative').getContext('2d'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: weeks,
+                        datasets: Object.entries(providers).map(([name, d]) => ({
+                            label: name, data: d.cumulative, borderColor: d.color,
+                            borderWidth: 2.5, pointRadius: 2, tension: 0.2, fill: false
+                        }))
+                    },
+                    options: _baseOptions('Cumulative RVUs', false)
+                }
+            );
+        }
+
+        function _renderBreakeven(breakeven) {
+            if (!breakeven || !breakeven.weeks) return;
+            const { weeks, company_distances: dists, providers } = breakeven;
+
+            // Company distance bar
+            _destroyChart('chart-co-breakeven');
+            _chartInstances['chart-co-breakeven'] = new Chart(
+                document.getElementById('chart-co-breakeven').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: weeks,
+                        datasets: [{
+                            label: 'RVUs vs Breakeven (196)',
+                            data: dists,
+                            backgroundColor: dists.map(v => v >= 0 ? '#27ae6088' : '#e74c3c88'),
+                            borderColor: dists.map(v => v >= 0 ? '#27ae60' : '#e74c3c'),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: (() => {
+                        const o = _baseOptions('RVUs from Breakeven', false);
+                        o.plugins.legend = { display: false };
+                        return o;
+                    })()
+                }
+            );
+
+            // Provider hit rate table
+            const tableDiv = document.getElementById('breakeven-table');
+            if (!tableDiv) return;
+            const rows = Object.entries(providers).map(([name, d]) => `
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding:0.5rem 0.75rem;display:flex;align-items:center;gap:0.5rem;">
+                        <span style="width:10px;height:10px;border-radius:50%;background:${d.color};display:inline-block;flex-shrink:0;"></span>${name}
+                    </td>
+                    <td style="padding:0.5rem 0.75rem;text-align:center;font-weight:600;">${d.avg_weekly}</td>
+                    <td style="padding:0.5rem 0.75rem;text-align:center;">
+                        <span style="color:${d.avg_weekly >= 49 ? '#166534' : '#991b1b'};font-weight:600;">${d.hit_rate}%</span>
+                    </td>
+                    <td style="padding:0.5rem 0.75rem;text-align:center;">
+                        <span style="color:${d.industry_hit_rate >= 50 ? '#166534' : '#991b1b'};font-weight:600;">${d.industry_hit_rate}%</span>
+                    </td>
+                </tr>`).join('');
+            tableDiv.innerHTML = `
+                <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                    <thead>
+                        <tr style="border-bottom:2px solid #e5e7eb;">
+                            <th style="padding:0.5rem 0.75rem;text-align:left;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Provider</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Avg/Week</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Breakeven Rate (&ge;49)</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Industry Rate (&ge;82)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+
+        function _renderMonthly(monthly) {
+            if (!monthly || !monthly.months) return;
+            _destroyChart('chart-monthly');
+            const providerDatasets = Object.entries(monthly.providers).map(([name, d]) => ({
+                type: 'bar', label: name, data: d.values,
+                backgroundColor: d.color + 'bb', borderColor: d.color, borderWidth: 1, stack: 'providers'
+            }));
+            const lineDatasets = [
+                { type: 'line', label: 'Breakeven Target', data: monthly.company_breakeven, borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 2, pointRadius: 3, fill: false },
+                { type: 'line', label: 'Industry Standard', data: monthly.company_industry, borderColor: '#f97316', borderDash: [6, 3], borderWidth: 2, pointRadius: 3, fill: false }
+            ];
+            _chartInstances['chart-monthly'] = new Chart(
+                document.getElementById('chart-monthly').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: { labels: monthly.months, datasets: [...providerDatasets, ...lineDatasets] },
+                    options: _baseOptions('Total RVUs', true)
+                }
+            );
+        }
+
+        function _renderRecommendations(recs) {
+            const div = document.getElementById('recommendations-list');
+            if (!div || !recs) return;
+            const styles = {
+                success: { bg: '#f0fdf4', border: '#bbf7d0', color: '#166534', icon: '&#x2705;' },
+                warning: { bg: '#fefce8', border: '#fde68a', color: '#854d0e', icon: '&#x26A0;&#xFE0F;' },
+                alert:   { bg: '#fef2f2', border: '#fecaca', color: '#991b1b', icon: '&#x1F534;' },
+                info:    { bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af', icon: '&#x2139;&#xFE0F;' }
+            };
+            div.innerHTML = recs.map(r => {
+                const s = styles[r.type] || styles.info;
+                return `<div style="background:${s.bg};border:1px solid ${s.border};color:${s.color};padding:0.7rem 1rem;border-radius:6px;margin-bottom:0.5rem;font-size:0.9rem;display:flex;gap:0.6rem;align-items:flex-start;">
+                    <span style="flex-shrink:0;font-size:1rem;">${s.icon}</span><span>${r.text}</span>
+                </div>`;
+            }).join('');
+        }
     </script>
 </body>
 
