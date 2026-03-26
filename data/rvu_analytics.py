@@ -57,18 +57,7 @@ def get_rvu_dataset():
     if pc is None or pc.empty:
         pc_df = pd.DataFrame()
     else:
-        # Standardize Provider Names for PC
-        provider_map_pc = {
-            'Jenks, Anne ': 'Anne Jenks',
-            'IRVIN, EHRIN ': 'Ehrin Irvin',
-            'SUGGS, SARAH ': 'Sarah Suggs',
-            'REDD, DAVID ': 'Anne Jenks',
-            'Anne Jenks, APRN': 'Anne Jenks',
-            'DAVID REDD, MD': 'Anne Jenks',
-            'EHRIN IRVIN, FNP': 'Ehrin Irvin',
-            'SARAH SUGGS, NP': 'Sarah Suggs'
-        }
-        pc['Provider'] = pc['Rendering Provider'].replace(provider_map_pc).str.upper().str.strip()
+        pc['Provider'] = pc['Rendering Provider'].apply(data_loader.normalize_provider)
         pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
         pc['Total Charge Amount'] = pc.get('Service Charge Amount', pc.get('Total Charge Amount', 0))
         if pc['Total Charge Amount'].dtype == object:
@@ -94,10 +83,7 @@ def get_rvu_dataset():
     else:
         va = va.rename(columns={'Sarah Suggs ': 'Provider'})
         va['Date of Service'] = pd.to_datetime(va['Date of Service'], errors='coerce')
-        va['Provider'] = va['Provider'].str.strip().replace({
-            '0': 'Anne Jenks', 'sArah Suggs': 'Sarah Suggs',
-            'SArah Suggs': 'Sarah Suggs', 'Sarah Suggs': 'Sarah Suggs'
-        }).str.upper().str.strip()
+        va['Provider'] = va['Provider'].apply(data_loader.normalize_provider)
         
         # Apply RVU Logic
         va['RVU'] = va.apply(_get_va_rvu_val, axis=1)
@@ -146,8 +132,7 @@ def generate_rvu_chart(view_type):
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
-    # Standardize names for filtering
-    valid_providers = ['ANNE JENKS', 'EHRIN IRVIN', 'HEATHER MAYO', 'SARAH SUGGS']
+    valid_providers = data_loader.VALID_PROVIDERS
     df = df[df['Provider'].isin(valid_providers)]
 
     if view_type == 'Company Wide':

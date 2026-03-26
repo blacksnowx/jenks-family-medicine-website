@@ -11,6 +11,7 @@ import requests
 from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
 from data import rvu_analytics
+from data.data_loader import get_database_url
 
 def create_app():
     app = Flask(__name__)
@@ -19,11 +20,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
     # Database — prefer DATABASE_URL (Heroku Postgres), fall back to local SQLite.
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///site.db")
-    # Heroku sets postgres:// but SQLAlchemy requires postgresql://
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Session timeout — 5 minutes of inactivity

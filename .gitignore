@@ -40,10 +40,28 @@ JF Brand Guidelines (2).pdf
 .data/
 .analytics/
 data/*.csv
-data/images/*.png
+data/images/
 analytics/
+
+# Debug/test output
 *output*.txt
 *results*.txt
 test_*.txt
 suite_out.txt
 pip_out*.txt
+pytest_out.txt
+*_utf8.txt
+
+# Jupyter notebooks (exploratory analysis)
+*.ipynb
+
+# Generated reports
+data/*.html
+data/forecast_report.md
+
+# Sensitive credentials
+db_url.txt
+
+# Heroku diagnostic dumps
+heroku_*.txt
+remotes*.txt

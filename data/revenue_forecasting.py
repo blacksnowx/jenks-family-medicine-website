@@ -1,18 +1,12 @@
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from datetime import timedelta
-import os
 
 try:
     from . import data_loader
 except ImportError:
     import data_loader
-
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
 def forecast_primary_care_charges(df_pc, forecast_weeks=26, seasonal_period=4):
     """

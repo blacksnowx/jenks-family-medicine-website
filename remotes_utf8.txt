@@ -1,2 +1,0 @@
-﻿origin	https://github.com/blacksnowx/jenks-family-medicine-website.git (fetch)
-origin	https://github.com/blacksnowx/jenks-family-medicine-website.git (push)

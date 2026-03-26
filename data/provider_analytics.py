@@ -1,16 +1,11 @@
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import os
 
 try:
     from . import data_loader
 except ImportError:
     import data_loader
-
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
 ESTABLISHED_EM = {'99211', '99212', '99213', '99214', '99215'}
 NEW_PATIENT_EM = {'99202', '99203', '99204', '99205'}
