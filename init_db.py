@@ -14,10 +14,15 @@ sys.path.insert(0, os.path.dirname(__file__))
 from app import create_app  # noqa: E402
 from models import BannerSettings, User, db  # noqa: E402
 
+from datetime import datetime, timedelta, timezone
+
 SEED_USERS = [
-    {"email": "brittany@jenksfamilymedicine.com", "password": "brittany123"},
-    {"email": "tyler@jenksfamilymedicine.com", "password": "tyler123"},
-    {"email": "anne@jenksfamilymedicine.com", "password": "anne123"},
+    {"email": "anne@jenksfamilymedicine.com", "password": "anne123", "role": "Owner"},
+    {"email": "tyler@jenksfamilymedicine.com", "password": "tyler123", "role": "Owner"},
+    {"email": "brittany@jenksfamilymedicine.com", "password": "brittany123", "role": "Admin"},
+    {"email": "sarah@jenksfamilymedicine.com", "password": "sarah123", "role": "Provider"},
+    {"email": "heather@jenksfamilymedicine.com", "password": "heather123", "role": "Provider"},
+    {"email": "ehrin@jenksfamilymedicine.com", "password": "ehrin123", "role": "Provider"},
 ]
 
 
@@ -31,10 +36,12 @@ def seed() -> None:
             if existing:
                 print(f"  ✓ User already exists: {user_data['email']}")
                 continue
-            user = User(email=user_data["email"])
+            user = User(email=user_data["email"], role=user_data["role"])
             user.set_password(user_data["password"])
+            # Expire password immediately upon creation
+            user.password_changed_at = datetime.now(timezone.utc) - timedelta(days=31)
             db.session.add(user)
-            print(f"  + Created user: {user_data['email']}")
+            print(f"  + Created {user_data['role']}: {user_data['email']}")
 
         # Ensure a BannerSettings row exists.
         if not BannerSettings.query.first():
