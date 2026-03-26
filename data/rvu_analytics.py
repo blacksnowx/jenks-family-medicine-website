@@ -114,7 +114,7 @@ def get_rvu_dataset():
     master_df['RVU'] = pd.to_numeric(master_df['RVU'], errors='coerce').fillna(0)
     master_df = master_df.dropna(subset=['Date Of Service'])
     master_df = master_df[master_df['Date Of Service'] >= '2025-10-01']
-    master_df = master_df[master_df['Date Of Service'] <= '2026-02-27']
+    # Removed hardcoded upper bound to automatically include latest data
     
     # 4. Add Week Grouping
     master_df['Week'] = data_loader.get_week_ending_friday(master_df['Date Of Service'])
