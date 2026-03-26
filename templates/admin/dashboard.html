@@ -369,6 +369,32 @@
                 </div>
                 {% endif %}
             </div>
+
+            {% if current_user.role == 'Owner' %}
+            <div class="admin-panel" style="margin-top: 2rem;">
+                <h2>💰 Quarterly Bonus Report</h2>
+                <p id="bonus-quarter-info" style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Loading...
+                </p>
+
+                <div style="overflow-x: auto;">
+                    <table id="bonus-table" style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="background: #f1f5f9; text-align: left;">
+                                <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0;">Provider</th>
+                                <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">RVUs Earned</th>
+                                <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Bonus Earned</th>
+                                <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Projected RVUs</th>
+                                <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Projected Bonus</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bonus-tbody">
+                            <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-light);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Conditional Banner Management -->
@@ -559,6 +585,41 @@
         });
 
         resetTimers();
+
+        // --- Bonus Report (Owner only) ---
+        (function loadBonusReport() {
+            const tbody = document.getElementById('bonus-tbody');
+            const info = document.getElementById('bonus-quarter-info');
+            if (!tbody) return; // not Owner
+
+            fetch("{{ url_for('bonus_report') }}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) { tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Error loading report.</td></tr>'; return; }
+
+                    const pct = Math.round(data.days_elapsed / data.days_in_quarter * 100);
+                    info.textContent = data.quarter_label + ' — Day ' + data.days_elapsed + ' of ' + data.days_in_quarter + ' (' + pct + '% complete)';
+
+                    const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+                    let rows = '';
+                    data.providers.forEach(p => {
+                        const earnedColor = p.bonus_earned > 0 ? '#16a34a' : 'inherit';
+                        const projColor = p.projected_bonus > 0 ? '#16a34a' : 'inherit';
+                        rows += '<tr style="border-bottom:1px solid #e5e7eb;">'
+                            + '<td style="padding:0.75rem 1rem;font-weight:500;">' + p.provider + '</td>'
+                            + '<td style="padding:0.75rem 1rem;text-align:right;">' + p.rvus_earned.toFixed(1) + '</td>'
+                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + earnedColor + ';font-weight:600;">' + fmt(p.bonus_earned) + '</td>'
+                            + '<td style="padding:0.75rem 1rem;text-align:right;color:var(--text-light);font-style:italic;">' + p.projected_rvus.toFixed(1) + '</td>'
+                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + projColor + ';font-style:italic;">' + fmt(p.projected_bonus) + '</td>'
+                            + '</tr>';
+                    });
+                    tbody.innerHTML = rows;
+                })
+                .catch(() => {
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
+                });
+        })();
     </script>
 </body>
 
