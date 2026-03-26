@@ -239,6 +239,39 @@
             z-index: 9999;
             border: 1px solid #ffc107;
         }
+
+        /* Tabs */
+        .admin-tabs {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            padding: 0.75rem 0.25rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1px;
+            white-space: nowrap;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #374151;
+            border-bottom-color: #d1d5db;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
     </style>
 </head>
 
@@ -276,84 +309,182 @@
         {% endif %}
 
         {% if not needs_password_change %}
+
+        <div class="admin-tabs">
+            <button class="tab-button active" onclick="openTab('section-reports', this)">Reports</button>
+            {% if current_user.role == 'Owner' %}
+            <button class="tab-button" onclick="openTab('section-upload', this)">Upload Data</button>
+            {% endif %}
+            {% if current_user.role in ['Owner', 'Admin'] %}
+            <button class="tab-button" onclick="openTab('section-banner', this)">Site Banner</button>
+            {% endif %}
+            <button class="tab-button" onclick="openTab('section-password', this)">Change Password</button>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="section-reports" class="tab-content" {% if active_tab=='section-reports' or not active_tab
+            %}style="display: block;" {% else %}style="display: none;" {% endif %}>
+            <div class="admin-panel">
+                <h2>📊 Weekly RVU Reports</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Select a view below to generate the latest RVU data (starting 10/1/25).
+                </p>
+
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
+                    <input type="hidden" name="action" value="generate_rvu_report">
+                    <div class="admin-form-group" style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex-grow: 1;">
+                            <label for="rvu_view">Provider View</label>
+                            <select id="rvu_view" name="rvu_view"
+                                style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font);">
+                                <option value="Company Wide" {% if rvu_view=='Company Wide' %}selected{% endif %}>
+                                    Company Wide (Total)</option>
+                                <option value="Provider Comparison" {% if rvu_view=='Provider Comparison' %}selected{%
+                                    endif %}>Provider Comparison</option>
+                                <option value="Anne Jenks" {% if rvu_view=='Anne Jenks' %}selected{% endif %}>Anne Jenks
+                                </option>
+                                <option value="Ehrin Irvin" {% if rvu_view=='Ehrin Irvin' %}selected{% endif %}>Ehrin
+                                    Irvin</option>
+                                <option value="Heather Mayo" {% if rvu_view=='Heather Mayo' %}selected{% endif %}>
+                                    Heather Mayo</option>
+                                <option value="Sarah Suggs" {% if rvu_view=='Sarah Suggs' %}selected{% endif %}>Sarah
+                                    Suggs</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="button" style="margin-top: 0; padding: 0.75rem 1.5rem;">Generate
+                            Chart</button>
+                    </div>
+                </form>
+
+                {% if rvu_view %}
+                <div
+                    style="border: 1px solid #e5e7eb; border-radius: var(--radius-md); padding: 1rem; background: #fafafa; text-align: center;">
+                    <img src="{{ url_for('rvu_image', view_type=rvu_view) }}" alt="RVU Chart"
+                        style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                </div>
+                {% else %}
+                <div
+                    style="border: 1px dashed #e5e7eb; border-radius: var(--radius-md); padding: 3rem 1rem; text-align: center; color: var(--text-light); background: #fafafa;">
+                    Select a view above and click "Generate Chart" to view the data.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Conditional Banner Management -->
         {% if current_user.role in ['Owner', 'Admin'] %}
-        <div class="admin-panel">
-            <h2>📢 Homepage Banner</h2>
-            <form method="POST" action="{{ url_for('admin_dashboard') }}">
-                <input type="hidden" name="action" value="update_banner">
+        <div id="section-banner" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>📢 Homepage Banner</h2>
+                <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                    <input type="hidden" name="action" value="update_banner">
 
-                <div class="toggle-row">
-                    <label class="toggle-switch">
-                        <input type="checkbox" name="is_active" id="banner-toggle" {{ 'checked' if banner.is_active
-                            else '' }} onchange="updatePreview()">
-                        <span class="toggle-slider"></span>
-                    </label>
-                    <span class="toggle-label">Show banner on homepage</span>
-                </div>
+                    <div class="toggle-row">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="is_active" id="banner-toggle" {{ 'checked' if banner.is_active
+                                else '' }} onchange="updatePreview()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Show banner on homepage</span>
+                    </div>
 
-                <div class="admin-form-group">
-                    <label for="banner-message">Banner Message</label>
-                    <textarea id="banner-message" name="message" placeholder="e.g. We are now accepting new patients!"
-                        oninput="updatePreview()">{{ banner.message }}</textarea>
-                </div>
+                    <div class="admin-form-group">
+                        <label for="banner-message">Banner Message</label>
+                        <textarea id="banner-message" name="message"
+                            placeholder="e.g. We are now accepting new patients!"
+                            oninput="updatePreview()">{{ banner.message }}</textarea>
+                    </div>
 
-                <p class="banner-preview-label">Preview</p>
-                <div class="banner-preview" id="banner-preview">
-                    <span id="preview-text">{{ banner.message }}</span>
-                </div>
+                    <p class="banner-preview-label">Preview</p>
+                    <div class="banner-preview" id="banner-preview">
+                        <span id="preview-text">{{ banner.message }}</span>
+                    </div>
 
-                <button type="submit" class="button">Save Banner</button>
-            </form>
+                    <button type="submit" class="button">Save Banner</button>
+                </form>
+            </div>
+
+            <div class="admin-panel">
+                <h2>🛠️ Admin Features</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
+                    feedback, and update site content.</p>
+            </div>
         </div>
         {% endif %}
 
         <!-- Conditional Owner Functionality -->
         {% if current_user.role == 'Owner' %}
-        <div class="admin-panel">
-            <h2>👑 Owner Only Features</h2>
-            <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage users, export full system logs,
-                and view revenue analytics.</p>
-        </div>
-        {% endif %}
+        <div id="section-upload" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>👑 Upload Reference Data</h2>
+                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Upload the latest reference CSV files here. This will replace any existing data for that specific
+                    file.
+                </p>
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="upload_reference_data">
 
-        <!-- Conditional Admin Functionality -->
-        {% if current_user.role in ['Owner', 'Admin'] %}
-        <div class="admin-panel">
-            <h2>🛠️ Admin Features</h2>
-            <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
-                feedback, and update site content.</p>
+                    <div class="admin-form-group">
+                        <label for="reference_file_type">Select File Type</label>
+                        <select id="reference_file_type" name="reference_file_type" required
+                            style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font); margin-bottom: 1rem;">
+                            <option value="" disabled selected>Select a CSV type...</option>
+                            <option value="201 Bills and Payments.csv">201 Bills and Payments.csv</option>
+                            <option value="Charges Export.csv">Charges Export.csv</option>
+                            <option value="bank.csv">bank.csv</option>
+                        </select>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label for="reference_file">CSV File</label>
+                        <input type="file" id="reference_file" name="reference_file" accept=".csv" required
+                            style="width: 100%; padding: 0.5rem 0; font-size: 0.95rem;">
+                    </div>
+
+                    <button type="submit" class="button">Upload and Replace Data</button>
+                </form>
+
+                <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 2rem 0;">
+                <h2>👑 Owner Only Features</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage users, export full system
+                    logs,
+                    and view revenue analytics.</p>
+            </div>
         </div>
         {% endif %}
 
         {% endif %} <!-- End not needs_password_change -->
 
         <!-- Change Password -->
-        <div class="admin-panel">
-            <h2>🔒 Change Password</h2>
-            <form method="POST" action="{{ url_for('admin_dashboard') }}">
-                <input type="hidden" name="action" value="change_password">
+        <div id="section-password" class="tab-content" {% if not needs_password_change %}style="display: none;" {% else
+            %}style="display: block;" {% endif %}>
+            <div class="admin-panel">
+                <h2>🔒 Change Password</h2>
+                <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                    <input type="hidden" name="action" value="change_password">
 
-                <div class="admin-form-group">
-                    <label for="current_password">Current Password</label>
-                    <input type="password" id="current_password" name="current_password" required
-                        autocomplete="current-password">
-                </div>
+                    <div class="admin-form-group">
+                        <label for="current_password">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" required
+                            autocomplete="current-password">
+                    </div>
 
-                <div class="admin-form-group">
-                    <label for="new_password">New Password</label>
-                    <input type="password" id="new_password" name="new_password" required autocomplete="new-password"
-                        minlength="10" maxlength="18" placeholder="10-18 length, alphanumeric + special chars">
-                </div>
+                    <div class="admin-form-group">
+                        <label for="new_password">New Password</label>
+                        <input type="password" id="new_password" name="new_password" required
+                            autocomplete="new-password" minlength="10" maxlength="18"
+                            placeholder="10-18 length, alphanumeric + special chars">
+                    </div>
 
-                <div class="admin-form-group">
-                    <label for="confirm_password">Confirm New Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required
-                        autocomplete="new-password">
-                </div>
+                    <div class="admin-form-group">
+                        <label for="confirm_password">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                            autocomplete="new-password">
+                    </div>
 
-                <button type="submit" class="button">Update Password</button>
-            </form>
+                    <button type="submit" class="button">Update Password</button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -363,6 +494,27 @@
     </div>
 
     <script>
+        // --- Tabs Logic ---
+        function openTab(tabId, element) {
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const target = document.getElementById(tabId);
+            if (target) {
+                target.style.display = 'block';
+            }
+            if (element) {
+                element.classList.add('active');
+            }
+        }
+
         // --- Banner preview ---
         function updatePreview() {
             const toggle = document.getElementById('banner-toggle');

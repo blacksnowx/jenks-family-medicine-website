@@ -66,3 +66,20 @@ class BannerSettings(db.Model):
 
     def __repr__(self) -> str:
         return f"<BannerSettings active={self.is_active}>"
+
+
+class ReferenceData(db.Model):
+    """Stores the reference CSV files securely in the database."""
+
+    __tablename__ = "reference_data"
+
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(100), unique=True, nullable=False)
+    data = db.Column(db.LargeBinary, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    def __repr__(self) -> str:
+        return f"<ReferenceData {self.filename}>"
+

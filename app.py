@@ -8,8 +8,10 @@ import time
 
 import requests
 
-from models import db, User, BannerSettings
+from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
+from data import rvu_analytics
+from data.data_loader import get_database_url
 
 def create_app():
     app = Flask(__name__)
@@ -18,11 +20,7 @@ def create_app():
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
     # Database — prefer DATABASE_URL (Heroku Postgres), fall back to local SQLite.
-    database_url = os.environ.get("DATABASE_URL", "sqlite:///site.db")
-    # Heroku sets postgres:// but SQLAlchemy requires postgresql://
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Session timeout — 5 minutes of inactivity
@@ -293,6 +291,30 @@ def create_app():
                     db.session.commit()
                     flash('Banner updated successfully.', 'success')
 
+            elif action == 'upload_reference_data':
+                if needs_password_change:
+                     flash('You must change your password before performing any actions.', 'error')
+                elif current_user.role != 'Owner':
+                     flash('Only Owners can upload reference data.', 'error')
+                else:
+                    file = request.files.get('reference_file')
+                    file_type = request.form.get('reference_file_type')
+                    if not file or not file.filename:
+                        flash('No file selected.', 'error')
+                    elif not file_type:
+                        flash('No file type selected.', 'error')
+                    else:
+                        file_data = file.read()
+                        ref = ReferenceData.query.filter_by(filename=file_type).first()
+                        if not ref:
+                            ref = ReferenceData(filename=file_type, data=file_data)
+                            db.session.add(ref)
+                        else:
+                            ref.data = file_data
+                            ref.updated_at = datetime.datetime.now(timezone.utc)
+                        db.session.commit()
+                        flash(f'Successfully uploaded and replaced {file_type}.', 'success')
+
             elif action == 'change_password':
                 current_password = request.form.get('current_password', '')
                 new_password = request.form.get('new_password', '')
@@ -312,9 +334,37 @@ def create_app():
                         flash('Password changed successfully.', 'success')
                         needs_password_change = False
 
+            elif action == 'generate_rvu_report':
+                if needs_password_change:
+                    flash('You must change your password before performing any actions.', 'error')
+                else:
+                    selected_view = request.form.get('rvu_view', 'Company Wide')
+                    
+                    # Store selected view in session or pass directly to template
+                    # For simplicity, we just render the template with the selection
+                    return render_template('admin/dashboard.html', 
+                                           page_title='Admin Dashboard', 
+                                           banner=banner, 
+                                           needs_password_change=needs_password_change,
+                                           active_tab='section-reports',
+                                           rvu_view=selected_view)
+
             return redirect(url_for('admin_dashboard'))
 
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change)
+
+    @app.route('/admin/reports/rvu_image')
+    @login_required
+    def rvu_image():
+        view_type = request.args.get('view_type', 'Company Wide')
+        try:
+            image_bytes = rvu_analytics.generate_rvu_chart(view_type)
+            response = make_response(image_bytes)
+            response.headers.set('Content-Type', 'image/png')
+            return response
+        except Exception as e:
+            app.logger.error(f"Error generating RVU chart: {e}")
+            return "Error generating chart", 500
 
     @app.route('/admin/logout')
     @login_required
