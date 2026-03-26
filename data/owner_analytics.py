@@ -4,6 +4,7 @@ Computes Provider Scorecards, Trend Analysis, Breakeven Analysis,
 Monthly Aggregation, and Recommendations Engine.
 """
 import pandas as pd
+from datetime import datetime, timedelta
 
 try:
     from . import rvu_analytics
@@ -24,8 +25,15 @@ INDUSTRY_COMPANY = 328
 
 
 def _get_adjusted_df():
-    """Return RVU dataset with Anne Jenks +216 adj applied (matches chart generation)."""
+    """Return RVU dataset with Anne Jenks +216 adj applied, excluding the
+    current week (t-7 days) since that data hasn't been processed through
+    insurance yet and would skew analytics."""
     df = rvu_analytics.get_rvu_dataset()
+    if df.empty:
+        return df
+    # Exclude the most recent 7 days — current week data is incomplete
+    cutoff = pd.Timestamp(datetime.now() - timedelta(days=7))
+    df = df[pd.to_datetime(df['Week']) <= cutoff]
     if df.empty:
         return df
     unique_weeks = df['Week'].unique()
@@ -256,7 +264,9 @@ def get_recommendations():
 
 
 def get_all_analytics():
+    cutoff = (datetime.now() - timedelta(days=7)).strftime('%b %d, %Y')
     return {
+        'data_cutoff': cutoff,
         'scorecards': get_scorecards(),
         'trends': get_trends(),
         'breakeven': get_breakeven_analysis(),

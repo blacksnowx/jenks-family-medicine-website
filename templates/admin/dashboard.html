@@ -430,6 +430,9 @@
                     </div>
                 </div>
 
+                <!-- Data cutoff notice -->
+                <p id="oa-data-cutoff" style="color: var(--text-light); font-size: 0.85rem; font-style: italic; margin-bottom: 1rem; padding: 0 0.25rem;"></p>
+
                 <!-- 1. Provider Scorecards -->
                 <div id="oa-scorecards" class="admin-panel">
                     <h2>&#x1F464; Provider Scorecards</h2>
@@ -744,6 +747,11 @@
                 if (data.error) throw new Error(data.error);
                 loading.style.display = 'none';
                 content.style.display = 'block';
+                // Show data cutoff notice
+                const cutoffEl = document.getElementById('oa-data-cutoff');
+                if (cutoffEl && data.data_cutoff) {
+                    cutoffEl.textContent = 'Data through ' + data.data_cutoff + ' (current week excluded — not yet processed through insurance)';
+                }
                 _renderScorecards(data.scorecards);
                 _renderTrends(data.trends);
                 _renderBreakeven(data.breakeven);
