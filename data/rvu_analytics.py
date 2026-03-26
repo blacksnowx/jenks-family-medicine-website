@@ -4,6 +4,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import io
 import re
+from datetime import date
 
 try:
     from . import data_loader
@@ -193,6 +194,114 @@ def generate_rvu_chart(view_type):
     plt.close(fig)
     img_buffer.seek(0)
     return img_buffer.getvalue()
+
+def calculate_bonus(rvus):
+    """Calculate quarterly bonus for a given RVU total.
+
+    Tiers:
+      $25 per RVU over 689 (up to 735)
+      $30 per RVU over 735 (up to 827)
+      $35 per RVU over 827
+    """
+    if rvus <= 689:
+        return 0.0
+    bonus = 0.0
+    # Tier 1: 690–735 at $25/RVU
+    tier1 = min(rvus, 735) - 689
+    bonus += tier1 * 25
+    # Tier 2: 736–827 at $30/RVU
+    if rvus > 735:
+        tier2 = min(rvus, 827) - 735
+        bonus += tier2 * 30
+    # Tier 3: 828+ at $35/RVU
+    if rvus > 827:
+        tier3 = rvus - 827
+        bonus += tier3 * 35
+    return bonus
+
+
+def get_quarterly_bonus_report(today=None):
+    """Return per-provider bonus data for the current calendar quarter.
+
+    Returns a dict with 'quarter_label', 'days_elapsed', 'days_in_quarter',
+    and 'providers' (list of per-provider dicts).
+    """
+    if today is None:
+        today = date.today()
+
+    # Determine current quarter boundaries
+    q = (today.month - 1) // 3
+    quarter_start = date(today.year, q * 3 + 1, 1)
+    if q < 3:
+        quarter_end = date(today.year, (q + 1) * 3 + 1, 1)
+    else:
+        quarter_end = date(today.year + 1, 1, 1)
+
+    days_elapsed = (today - quarter_start).days + 1  # inclusive of today
+    days_in_quarter = (quarter_end - quarter_start).days
+    quarter_label = f"Q{q + 1} {today.year}"
+
+    # Load RVU dataset and filter to current quarter
+    df = get_rvu_dataset()
+    if df.empty:
+        return {
+            'quarter_label': quarter_label,
+            'days_elapsed': days_elapsed,
+            'days_in_quarter': days_in_quarter,
+            'providers': [],
+        }
+
+    mask = (
+        (df['Date Of Service'] >= pd.Timestamp(quarter_start))
+        & (df['Date Of Service'] < pd.Timestamp(quarter_end))
+    )
+    qdf = df[mask]
+
+    # Include the Anne Jenks manual 216-RVU adjustment, prorated to this quarter
+    # (get_rvu_dataset spreads it across ALL weeks since 2025-10-01, so we
+    #  compute the per-quarter share based on weeks in this quarter vs total)
+    all_weeks = df['Week'].unique()
+    quarter_weeks = qdf['Week'].unique()
+    if len(all_weeks) > 0 and len(quarter_weeks) > 0:
+        adjustment_this_quarter = 216.0 * len(quarter_weeks) / len(all_weeks)
+    else:
+        adjustment_this_quarter = 0.0
+
+    # Sum RVUs per provider (from raw data, without the chart adjustment)
+    provider_rvus = qdf.groupby('Provider')['RVU'].sum()
+
+    providers = []
+    for prov in data_loader.VALID_PROVIDERS:
+        rvus_earned = float(provider_rvus.get(prov, 0.0))
+
+        # Add Anne Jenks manual adjustment
+        if prov == 'ANNE JENKS':
+            rvus_earned += adjustment_this_quarter
+
+        bonus_earned = calculate_bonus(rvus_earned)
+
+        # Extrapolate to full quarter
+        if days_elapsed > 0:
+            projected_rvus = rvus_earned * days_in_quarter / days_elapsed
+        else:
+            projected_rvus = 0.0
+        projected_bonus = calculate_bonus(projected_rvus)
+
+        providers.append({
+            'provider': prov.title(),
+            'rvus_earned': round(rvus_earned, 1),
+            'bonus_earned': round(bonus_earned, 2),
+            'projected_rvus': round(projected_rvus, 1),
+            'projected_bonus': round(projected_bonus, 2),
+        })
+
+    return {
+        'quarter_label': quarter_label,
+        'days_elapsed': days_elapsed,
+        'days_in_quarter': days_in_quarter,
+        'providers': providers,
+    }
+
 
 def _generate_error_chart(message):
     fig, ax = plt.subplots(figsize=(8, 4))

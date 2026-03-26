@@ -366,6 +366,18 @@ def create_app():
             app.logger.error(f"Error generating RVU chart: {e}")
             return "Error generating chart", 500
 
+    @app.route('/admin/reports/bonus')
+    @login_required
+    def bonus_report():
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Forbidden'}), 403
+        try:
+            data = rvu_analytics.get_quarterly_bonus_report()
+            return jsonify(data)
+        except Exception as e:
+            app.logger.error(f"Error generating bonus report: {e}")
+            return jsonify({'error': 'Failed to generate report'}), 500
+
     @app.route('/admin/logout')
     @login_required
     def admin_logout():
