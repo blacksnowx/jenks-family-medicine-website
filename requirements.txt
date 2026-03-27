@@ -9,3 +9,5 @@ numpy
 scipy
 matplotlib
 statsmodels
+google-api-python-client>=2.0  # Google Sheets API for VA C&P data ingestion
+google-auth>=2.0               # Service account authentication for Google APIs

@@ -370,6 +370,31 @@ def create_app():
             app.logger.error(f"Error generating RVU chart: {e}")
             return "Error generating chart", 500
 
+    @app.route('/admin/api/pull-data', methods=['POST'])
+    @login_required
+    def admin_pull_data():
+        """
+        Trigger the automated data ingestion pipeline (Owner only).
+        Returns JSON so the admin UI can display live feedback.
+        """
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Only Owners can trigger data ingestion.'}), 403
+
+        source = request.json.get('source', 'all') if request.is_json else 'all'
+        sources = None
+        if source == 'va':
+            sources = ['va']
+        elif source == 'pc':
+            sources = ['pc']
+
+        try:
+            from data.data_ingestion import run_ingestion_pipeline
+            results = run_ingestion_pipeline(sources=sources)
+            return jsonify({'status': 'ok', 'results': results})
+        except Exception as exc:
+            app.logger.error(f"Data ingestion error: {exc}")
+            return jsonify({'status': 'error', 'error': str(exc)}), 500
+
     @app.route('/admin/reports/owner_analytics')
     @login_required
     def owner_analytics_data():
@@ -434,6 +459,50 @@ def create_app():
 
 # --- Application entry-point ---
 app = create_app()
+
+
+# --- CLI commands ---
+
+import click
+
+
+@app.cli.command("pull-data")
+@click.option(
+    "--source",
+    default="all",
+    type=click.Choice(["all", "va", "pc"], case_sensitive=False),
+    help="Data source to pull: 'va' (Google Sheets), 'pc' (Tebra), or 'all'.",
+)
+def pull_data_command(source):
+    """Pull RVU source data from external APIs and store in the database.
+
+    VA data is pulled from Google Sheets (requires GOOGLE_SHEETS_CREDENTIALS).
+    Primary Care data is pulled from the Tebra/Kareo SOAP API (requires TEBRAKEY).
+    """
+    from data.data_ingestion import run_ingestion_pipeline
+
+    sources = None  # defaults to ['va', 'pc']
+    if source == "va":
+        sources = ["va"]
+    elif source == "pc":
+        sources = ["pc"]
+
+    click.echo(f"Starting data ingestion (source={source})...")
+    results = run_ingestion_pipeline(sources=sources)
+
+    any_error = False
+    for src, result in results.items():
+        if result["status"] == "ok":
+            click.echo(f"  OK  {src.upper()}: {result['rows']} rows ingested")
+        else:
+            click.echo(f"  ERR {src.upper()}: {result['error']}", err=True)
+            any_error = True
+
+    if any_error:
+        raise SystemExit(1)
+
+    click.echo("Done.")
+
 
 if __name__ == '__main__':
     app.run(debug=False)
