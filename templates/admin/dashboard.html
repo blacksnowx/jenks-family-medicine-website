@@ -313,6 +313,7 @@
         <div class="admin-tabs">
             <button class="tab-button active" onclick="openTab('section-reports', this)">Reports</button>
             {% if current_user.role == 'Owner' %}
+            <button class="tab-button" onclick="openTab('section-pull-data', this)">Pull Data</button>
             <button class="tab-button" onclick="openTab('section-upload', this)">Upload Data</button>
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
@@ -408,6 +409,49 @@
                 <h2>🛠️ Admin Features</h2>
                 <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
                     feedback, and update site content.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Pull Data Tab (Owner only) -->
+        {% if current_user.role == 'Owner' %}
+        <div id="section-pull-data" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>👑 Pull Data from Sources</h2>
+                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Automatically pull the latest data from Google Sheets (VA C&amp;P exams) and
+                    Tebra (primary care charges). New records are merged with existing data —
+                    duplicates are automatically skipped.
+                </p>
+
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                    <button id="btn-pull-all" class="button" onclick="triggerPullData('all')">
+                        Pull All Sources
+                    </button>
+                    <button id="btn-pull-va" class="button" style="background: #2ecc71;" onclick="triggerPullData('va')">
+                        Pull VA Only (Google Sheets)
+                    </button>
+                    <button id="btn-pull-pc" class="button" style="background: #f39c12;" onclick="triggerPullData('pc')">
+                        Pull Primary Care Only (Tebra)
+                    </button>
+                </div>
+
+                <!-- Status area -->
+                <div id="pull-data-status" style="display: none;">
+                    <div id="pull-data-loading" style="display: none; padding: 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); color: #1e40af; font-size: 0.9rem;">
+                        ⏳ Pulling data from external sources&hellip; This may take up to 30 seconds.
+                    </div>
+                    <div id="pull-data-results" style="display: none;"></div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 2rem 0;">
+                <h3 style="font-size: 1rem; color: var(--text-light); font-weight: 600; margin-bottom: 0.5rem;">
+                    Requirements
+                </h3>
+                <ul style="color: var(--text-light); font-size: 0.85rem; line-height: 1.8; margin: 0; padding-left: 1.25rem;">
+                    <li><strong>VA data:</strong> Heroku config var <code>GOOGLE_SHEETS_CREDENTIALS</code> must be set to the GCP service account JSON</li>
+                    <li><strong>Primary Care data:</strong> Heroku config var <code>TEBRAKEY</code> must be set to the Tebra customer API key</li>
+                </ul>
             </div>
         </div>
         {% endif %}
@@ -513,6 +557,65 @@
             if (element) {
                 element.classList.add('active');
             }
+        }
+
+        // --- Pull Data ---
+        function triggerPullData(source) {
+            const statusDiv = document.getElementById('pull-data-status');
+            const loadingDiv = document.getElementById('pull-data-loading');
+            const resultsDiv = document.getElementById('pull-data-results');
+            const buttons = ['btn-pull-all', 'btn-pull-va', 'btn-pull-pc']
+                .map(id => document.getElementById(id));
+
+            // Show loading, hide previous results
+            statusDiv.style.display = 'block';
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+            buttons.forEach(b => { if (b) b.disabled = true; });
+
+            fetch("{{ url_for('admin_pull_data') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ source: source })
+            })
+            .then(res => res.json())
+            .then(data => {
+                loadingDiv.style.display = 'none';
+                resultsDiv.style.display = 'block';
+
+                if (data.status === 'ok') {
+                    let html = '<div style="padding:1rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-md);font-size:0.9rem;color:#166534;">';
+                    html += '<strong>Data pull complete.</strong><ul style="margin:0.5rem 0 0 1.25rem;line-height:1.9;">';
+                    const r = data.results || {};
+                    if (r.va) {
+                        if (r.va.status === 'ok') {
+                            html += `<li>VA: ${r.va.rows} rows stored</li>`;
+                        } else {
+                            html += `<li style="color:#991b1b;">VA failed: ${r.va.error}</li>`;
+                        }
+                    }
+                    if (r.pc) {
+                        if (r.pc.status === 'ok') {
+                            html += `<li>Primary Care: ${r.pc.rows} total rows (${r.pc.new_rows} new)</li>`;
+                        } else {
+                            html += `<li style="color:#991b1b;">Primary Care failed: ${r.pc.error}</li>`;
+                        }
+                    }
+                    html += '</ul></div>';
+                    resultsDiv.innerHTML = html;
+                } else {
+                    resultsDiv.innerHTML = `<div style="padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);font-size:0.9rem;color:#991b1b;"><strong>Error:</strong> ${data.error || 'Unknown error'}</div>`;
+                }
+            })
+            .catch(err => {
+                loadingDiv.style.display = 'none';
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = `<div style="padding:1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);font-size:0.9rem;color:#991b1b;"><strong>Request failed:</strong> ${err.message}</div>`;
+            })
+            .finally(() => {
+                buttons.forEach(b => { if (b) b.disabled = false; });
+            });
         }
 
         // --- Banner preview ---
