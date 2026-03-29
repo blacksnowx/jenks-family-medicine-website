@@ -45,6 +45,7 @@ logger = logging.getLogger(__name__)
 SOAP_ENDPOINT = "https://webservice.kareo.com/services/soap/2.1/KareoServices.svc"
 
 SOAP_ACTION_GET_CHARGES = "http://www.kareo.com/api/schemas/2.1/IKareoServices/GetCharges"
+SOAP_ACTION_GET_PRACTICES = "http://www.kareo.com/api/schemas/2.1/IKareoServices/GetPractices"
 
 # Namespaces used in Kareo SOAP XML — Kareo uses SOAP 1.1
 NS_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/"
@@ -69,6 +70,82 @@ OUTPUT_COLUMNS = [
     "Encounter ID",   # hashed with eid_ prefix
     "Patient ID",     # hashed with pid_ prefix
 ]
+
+# ---------------------------------------------------------------------------
+# Practice discovery
+# ---------------------------------------------------------------------------
+
+def get_practice_ids(customer_key: str, username: str, password: str) -> list[dict]:
+    """
+    Call GetPractices to retrieve all practices accessible with these credentials.
+
+    Returns a list of dicts with 'ID' and 'Name' keys (practice info is not PHI).
+    Logs available practices so the admin can set TEBRA_PRACTICE_ID correctly.
+    """
+    envelope = f"""<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:kar="http://www.kareo.com/api/schemas/2.1">
+  <soap:Header/>
+  <soap:Body>
+    <kar:GetPractices>
+      <kar:request>
+        <kar:RequestHeader>
+          <kar:CustomerKey>{customer_key}</kar:CustomerKey>
+          <kar:User>{username}</kar:User>
+          <kar:Password>{password}</kar:Password>
+        </kar:RequestHeader>
+        <kar:Fields>
+          <kar:PracticeFields>
+            <kar:ID>true</kar:ID>
+            <kar:Name>true</kar:Name>
+          </kar:PracticeFields>
+        </kar:Fields>
+      </kar:request>
+    </kar:GetPractices>
+  </soap:Body>
+</soap:Envelope>"""
+
+    try:
+        resp = requests.post(
+            SOAP_ENDPOINT,
+            data=envelope.encode("utf-8"),
+            headers={
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": f'"{SOAP_ACTION_GET_PRACTICES}"',
+            },
+            timeout=30,
+        )
+    except requests.RequestException as exc:
+        logger.error("GetPractices HTTP request failed: %s", exc)
+        return []
+
+    if resp.status_code != 200:
+        logger.error("GetPractices returned HTTP %d", resp.status_code)
+        return []
+
+    try:
+        root = ET.fromstring(resp.text)
+    except ET.ParseError as exc:
+        logger.error("GetPractices XML parse error: %s", exc)
+        return []
+
+    practices = []
+    for p in root.findall(f".//{{{NS_KAREO}}}PracticeData"):
+        pid = p.findtext(f"{{{NS_KAREO}}}ID", "").strip()
+        name = p.findtext(f"{{{NS_KAREO}}}Name", "").strip()
+        if pid:
+            practices.append({"ID": pid, "Name": name})
+
+    if practices:
+        for p in practices:
+            logger.info("TEBRA_PRACTICE available: ID=%s Name=%s", p["ID"], p["Name"])
+    else:
+        # DEBUG: log raw response snippet to diagnose
+        logger.warning("GetPractices returned no practices. Raw snippet: %s", resp.text[:500])
+
+    return practices
+
 
 # ---------------------------------------------------------------------------
 # SOAP request builder
@@ -293,6 +370,15 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
         raise RuntimeError("TEBRA_USER and TEBRA_PASSWORD env vars are required.")
 
     practice_id = os.environ.get("TEBRA_PRACTICE_ID", "")
+    if not practice_id:
+        # Without a practice filter the Kareo API often returns 0 records.
+        # Discover available practice IDs so the admin can set TEBRA_PRACTICE_ID.
+        logger.warning(
+            "TEBRA_PRACTICE_ID not set — calling GetPractices to discover available practices. "
+            "Set TEBRA_PRACTICE_ID to one of the IDs logged below to fix 0-record responses."
+        )
+        get_practice_ids(customer_key, username, password)
+
     request_delay = float(os.environ.get("TEBRA_REQUEST_DELAY", "1.1"))
     page_size = int(os.environ.get("TEBRA_PAGE_SIZE", "100"))
     page_size = min(max(page_size, 1), 200)  # clamp to [1, 200]
@@ -362,8 +448,13 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
             page_number, len(rows), len(all_rows), total_count,
         )
 
-        # Stop if we've collected all records or got an empty page
-        if not rows or len(all_rows) >= total_count:
+        # Stop conditions:
+        # - Empty page means no more data regardless of total_count
+        # - Kareo known quirk: TotalCount can be 0 even when records exist,
+        #   so only use total_count as a stop signal when it's > 0
+        if not rows:
+            break
+        if total_count > 0 and len(all_rows) >= total_count:
             break
 
         page_number += 1
