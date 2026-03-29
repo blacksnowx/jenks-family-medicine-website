@@ -185,6 +185,13 @@ def load_pc_data(csv_path=CHARGES_CSV):
             df = pd.read_csv(csv_path)
     except Exception:
         return pd.DataFrame()
+    # Remove duplicate column names — the merged CSV may have duplicates if the
+    # original manually-uploaded CSV had repeated column headers.  Keeping only
+    # the first occurrence is safe: load_pc_data only uses the canonical column
+    # names, so a duplicate would just carry redundant (or misaligned) data.
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+
     df['Date Of Service'] = pd.to_datetime(df['Date Of Service'], errors='coerce')
     
     # Clean currency columns
