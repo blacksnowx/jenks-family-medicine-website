@@ -168,7 +168,10 @@ def load_va_data(csv_path=VA_CSV):
         df = df.rename(columns={'Sarah Suggs ': 'Provider'})
     elif 'Sarah Suggs' in df.columns:
         df = df.rename(columns={'Sarah Suggs': 'Provider'})
-        
+    # Dedup again — rename may create a second 'Provider' if one already existed
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+
     # Date processing
     df['Date of Service'] = pd.to_datetime(df['Date of Service'], errors='coerce')
     df = df.dropna(subset=['Date of Service']).copy()
