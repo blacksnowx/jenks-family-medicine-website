@@ -393,7 +393,7 @@ def create_app():
             response.headers.set('Content-Type', 'image/png')
             return response
         except Exception as e:
-            app.logger.error(f"Error generating RVU chart: {e}")
+            app.logger.error("Error generating RVU chart: %s", e, exc_info=True)
             return "Error generating chart", 500
 
     @app.route('/admin/reports/bonus')
@@ -405,7 +405,7 @@ def create_app():
             data = rvu_analytics.get_quarterly_bonus_report()
             return jsonify(data)
         except Exception as e:
-            app.logger.error(f"Error generating bonus report: {e}")
+            app.logger.error("Error generating bonus report: %s", e, exc_info=True)
             return jsonify({'error': 'Failed to generate report'}), 500
 
     @app.route('/admin/reports/owner_analytics')
@@ -417,7 +417,7 @@ def create_app():
             data = owner_analytics.get_all_analytics()
             return jsonify(data)
         except Exception as e:
-            app.logger.error(f"Error generating owner analytics: {e}")
+            app.logger.error("Error generating owner analytics: %s", e, exc_info=True)
             return jsonify({'error': 'Failed to generate analytics data'}), 500
 
     # -------------------------------------------------------------------

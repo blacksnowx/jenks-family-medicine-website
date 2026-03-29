@@ -12,8 +12,14 @@ except ImportError:
     import data_loader
 
 def _get_clinical_rvu_val(row):
-    services = str(row.get('Procedure Codes with Modifiers', row.get('Procedure Code'))).upper()
-    charges = row.get('Service Charge Amount', 0)
+    _svc_raw = row.get('Procedure Codes with Modifiers', row.get('Procedure Code'))
+    # row.get() can return a Series if the DataFrame has duplicate column names;
+    # extract the first scalar value in that case.
+    if isinstance(_svc_raw, pd.Series):
+        _svc_raw = _svc_raw.iloc[0] if not _svc_raw.empty else ''
+    services = str(_svc_raw).upper()
+    _chg_raw = row.get('Service Charge Amount', 0)
+    charges = float(_chg_raw.iloc[0]) if isinstance(_chg_raw, pd.Series) and not _chg_raw.empty else (float(_chg_raw) if _chg_raw else 0.0)
     if "FUNCTIONAL" in services and "INITIAL" in services: return 3.75
     if "FUNCTIONAL" in services: return 2.50
     if "NEXUS" in services or charges == 200.00: return 2.5
@@ -25,8 +31,12 @@ def _get_clinical_rvu_val(row):
     return 0.0
 
 def _get_clinical_rvu_cat(row):
-    services = str(row.get('Procedure Codes with Modifiers', row.get('Procedure Code'))).upper()
-    charges = row.get('Service Charge Amount', 0)
+    _svc_raw = row.get('Procedure Codes with Modifiers', row.get('Procedure Code'))
+    if isinstance(_svc_raw, pd.Series):
+        _svc_raw = _svc_raw.iloc[0] if not _svc_raw.empty else ''
+    services = str(_svc_raw).upper()
+    _chg_raw = row.get('Service Charge Amount', 0)
+    charges = float(_chg_raw.iloc[0]) if isinstance(_chg_raw, pd.Series) and not _chg_raw.empty else (float(_chg_raw) if _chg_raw else 0.0)
     if "FUNCTIONAL" in services and "INITIAL" in services: return "Func Med Initial"
     if "FUNCTIONAL" in services: return "Func Med Subsequent"
     if "NEXUS" in services or charges == 200.00: return "Nexus Letter"

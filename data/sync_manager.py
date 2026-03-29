@@ -43,6 +43,15 @@ def _load_existing_csv(filename: str) -> pd.DataFrame:
 
     try:
         df = pd.read_csv(blob)
+        # Deduplicate column names — a manually-uploaded CSV may have repeated
+        # headers; keeping only the first occurrence prevents downstream errors
+        # where row.get(col) returns a Series instead of a scalar.
+        if df.columns.duplicated().any():
+            dupes = list(df.columns[df.columns.duplicated(keep=False)].unique())
+            logger.warning(
+                "Removing duplicate column names from '%s': %s", filename, dupes
+            )
+            df = df.loc[:, ~df.columns.duplicated()]
         logger.info("Loaded existing '%s': %d rows", filename, len(df))
         return df
     except Exception as exc:
@@ -115,11 +124,11 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
         logger.info("Charges merge: 0 new records (all %d fetched already existed)", len(new_data))
         return existing.copy(), 0
 
-    # Align columns between existing and new before concat
-    all_cols = list(existing.columns)
-    for col in truly_new.columns:
-        if col not in all_cols:
-            all_cols.append(col)
+    # Align columns between existing and new before concat.
+    # Use dict.fromkeys to preserve order while deduplicating.
+    all_cols = list(dict.fromkeys(list(existing.columns) + [
+        col for col in truly_new.columns if col not in existing.columns
+    ]))
 
     merged = pd.concat(
         [existing.reindex(columns=all_cols), truly_new.reindex(columns=all_cols)],
