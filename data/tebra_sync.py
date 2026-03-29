@@ -1,7 +1,7 @@
 """
 Tebra (Kareo) SOAP API sync for charge data.
 
-Pulls charge records from the Tebra SOAP 2.1 API and returns a DataFrame
+Pulls charge records from the Tebra SOAP API and returns a DataFrame
 with the same column names that data_loader.load_pc_data() expects from
 'Charges Export.csv'.
 
@@ -15,18 +15,12 @@ Required env vars:
   TEBRA_USER     — API username (practice admin account)
   TEBRA_PASSWORD — API password
   PII_HASH_SECRET — Secret for deterministic PII hashing (see pii_utils.py)
-
-Optional env vars:
-  TEBRA_PRACTICE_ID    — Filter by practice ID (leave blank for all)
-  TEBRA_REQUEST_DELAY  — Seconds between paginated requests (default 1.1)
-  TEBRA_PAGE_SIZE      — Records per page request (default 100, max 200)
 """
 
 import logging
 import os
-import time
 import xml.etree.ElementTree as ET
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 import pandas as pd
 import requests
@@ -44,12 +38,13 @@ logger = logging.getLogger(__name__)
 
 SOAP_ENDPOINT = "https://webservice.kareo.com/services/soap/2.1/KareoServices.svc"
 
-SOAP_ACTION_GET_CHARGES = "http://www.kareo.com/api/schemas/2.1/IKareoServices/GetCharges"
-SOAP_ACTION_GET_PRACTICES = "http://www.kareo.com/api/schemas/2.1/IKareoServices/GetPractices"
+# Bug 2 fix: correct SOAPAction URLs (no /2.1, no IKareoServices)
+SOAP_ACTION_GET_CHARGES = "http://www.kareo.com/api/schemas/KareoServices/GetCharges"
+SOAP_ACTION_GET_PRACTICES = "http://www.kareo.com/api/schemas/KareoServices/GetPractices"
 
-# Namespaces used in Kareo SOAP XML — Kareo uses SOAP 1.1
+# Bug 1 fix: correct namespace (no /2.1 suffix)
 NS_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/"
-NS_KAREO = "http://www.kareo.com/api/schemas/2.1"
+NS_KAREO = "http://www.kareo.com/api/schemas/"
 
 # Columns in the output DataFrame — must match Charges Export.csv column names
 # exactly as expected by data_loader.load_pc_data()
@@ -80,12 +75,13 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
     Call GetPractices to retrieve all practices accessible with these credentials.
 
     Returns a list of dicts with 'ID' and 'Name' keys (practice info is not PHI).
-    Logs available practices so the admin can set TEBRA_PRACTICE_ID correctly.
+    Logs available practices so the admin can verify credentials are working.
     """
+    # Bug 1 fix: correct namespace; Bug 8 fix: no PracticeFields wrapper
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:kar="http://www.kareo.com/api/schemas/2.1">
+    xmlns:kar="http://www.kareo.com/api/schemas/">
   <soap:Header/>
   <soap:Body>
     <kar:GetPractices>
@@ -96,10 +92,8 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
           <kar:Password>{password}</kar:Password>
         </kar:RequestHeader>
         <kar:Fields>
-          <kar:PracticeFields>
-            <kar:ID>true</kar:ID>
-            <kar:Name>true</kar:Name>
-          </kar:PracticeFields>
+          <kar:ID>true</kar:ID>
+          <kar:Name>true</kar:Name>
         </kar:Fields>
       </kar:request>
     </kar:GetPractices>
@@ -117,18 +111,36 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
             timeout=30,
         )
     except requests.RequestException as exc:
-        logger.error("GetPractices HTTP request failed: %s", exc)
+        logger.warning("GetPractices HTTP request failed: %s", exc)
         return []
 
     if resp.status_code != 200:
-        logger.error("GetPractices returned HTTP %d", resp.status_code)
+        logger.warning("GetPractices returned HTTP %d: %s", resp.status_code, resp.text[:500])
         return []
 
     try:
         root = ET.fromstring(resp.text)
     except ET.ParseError as exc:
-        logger.error("GetPractices XML parse error: %s", exc)
+        logger.warning("GetPractices XML parse error: %s", exc)
         return []
+
+    # Check ErrorResponse and SecurityResponse
+    result = root.find(f".//{{{NS_KAREO}}}GetPracticesResult")
+    if result is not None:
+        error_el = result.find(f"{{{NS_KAREO}}}ErrorResponse")
+        if error_el is not None:
+            is_error = error_el.findtext(f"{{{NS_KAREO}}}IsError", "").strip().lower()
+            if is_error == "true":
+                msg = error_el.findtext(f"{{{NS_KAREO}}}ErrorMessage", "").strip()
+                logger.warning("GetPractices API error: %s", msg)
+                return []
+
+        sec_el = result.find(f"{{{NS_KAREO}}}SecurityResponse")
+        if sec_el is not None:
+            authenticated = sec_el.findtext(f"{{{NS_KAREO}}}Authenticated", "").strip().lower()
+            if authenticated != "true":
+                logger.warning("GetPractices: authentication failed")
+                return []
 
     practices = []
     for p in root.findall(f".//{{{NS_KAREO}}}PracticeData"):
@@ -139,9 +151,8 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
 
     if practices:
         for p in practices:
-            logger.info("TEBRA_PRACTICE available: ID=%s Name=%s", p["ID"], p["Name"])
+            logger.warning("TEBRA practice available: ID=%s Name=%s", p["ID"], p["Name"])
     else:
-        # DEBUG: log raw response snippet to diagnose
         logger.warning("GetPractices returned no practices. Raw snippet: %s", resp.text[:500])
 
     return practices
@@ -152,23 +163,24 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
 # ---------------------------------------------------------------------------
 
 def _build_soap_envelope(customer_key: str, username: str, password: str,
-                          start_date: str, end_date: str,
-                          practice_id: str = "", page_size: int = 100,
-                          page_number: int = 1) -> str:
+                          start_date: str, end_date: str) -> str:
     """
     Build the SOAP XML envelope for the GetCharges request.
 
     Only non-PII fields are requested. Patient names, DOBs, addresses, etc.
     are deliberately excluded from the Fields specification.
-    """
-    practice_filter = ""
-    if practice_id:
-        practice_filter = f"<kar:PracticeID>{practice_id}</kar:PracticeID>"
 
+    Fixes applied:
+      - Bug 1: correct xmlns (no /2.1)
+      - Bug 3: FromServiceDate/ToServiceDate (not ServiceStartDate/ServiceEndDate)
+      - Bug 4: no <Paging> element (API returns all records in one response)
+      - Bug 5: field flags directly in <Fields>, no <ChargeFields> wrapper
+      - Bug 6: no <PracticeID> in Filter (not valid in ChargeFilter schema)
+    """
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:kar="http://www.kareo.com/api/schemas/2.1">
+    xmlns:kar="http://www.kareo.com/api/schemas/">
   <soap:Header/>
   <soap:Body>
     <kar:GetCharges>
@@ -179,33 +191,26 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:Password>{password}</kar:Password>
         </kar:RequestHeader>
         <kar:Filter>
-          <kar:ServiceStartDate>{start_date}</kar:ServiceStartDate>
-          <kar:ServiceEndDate>{end_date}</kar:ServiceEndDate>
-          {practice_filter}
+          <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
+          <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
         </kar:Filter>
         <kar:Fields>
-          <kar:ChargeFields>
-            <kar:ServiceDate>true</kar:ServiceDate>
-            <kar:RenderingProvider>true</kar:RenderingProvider>
-            <kar:ServiceAmount>true</kar:ServiceAmount>
-            <kar:PrimaryInsuranceContractAdjustment>true</kar:PrimaryInsuranceContractAdjustment>
-            <kar:SecondaryInsuranceContractAdjustment>true</kar:SecondaryInsuranceContractAdjustment>
-            <kar:OtherInsuranceContractAdjustment>true</kar:OtherInsuranceContractAdjustment>
-            <kar:PrimaryInsurancePayment>true</kar:PrimaryInsurancePayment>
-            <kar:SecondaryInsurancePayment>true</kar:SecondaryInsurancePayment>
-            <kar:OtherInsurancePayment>true</kar:OtherInsurancePayment>
-            <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
-            <kar:OtherAdjustment>true</kar:OtherAdjustment>
-            <kar:ProcedureCode>true</kar:ProcedureCode>
-            <kar:ProcedureCodeWithModifiers>true</kar:ProcedureCodeWithModifiers>
-            <kar:EncounterID>true</kar:EncounterID>
-            <kar:PatientID>true</kar:PatientID>
-          </kar:ChargeFields>
+          <kar:ServiceDate>true</kar:ServiceDate>
+          <kar:RenderingProvider>true</kar:RenderingProvider>
+          <kar:ServiceAmount>true</kar:ServiceAmount>
+          <kar:PrimaryInsuranceContractAdjustment>true</kar:PrimaryInsuranceContractAdjustment>
+          <kar:SecondaryInsuranceContractAdjustment>true</kar:SecondaryInsuranceContractAdjustment>
+          <kar:OtherInsuranceContractAdjustment>true</kar:OtherInsuranceContractAdjustment>
+          <kar:PrimaryInsurancePayment>true</kar:PrimaryInsurancePayment>
+          <kar:SecondaryInsurancePayment>true</kar:SecondaryInsurancePayment>
+          <kar:OtherInsurancePayment>true</kar:OtherInsurancePayment>
+          <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
+          <kar:OtherAdjustment>true</kar:OtherAdjustment>
+          <kar:ProcedureCode>true</kar:ProcedureCode>
+          <kar:ProcedureCodeWithModifiers>true</kar:ProcedureCodeWithModifiers>
+          <kar:EncounterID>true</kar:EncounterID>
+          <kar:PatientID>true</kar:PatientID>
         </kar:Fields>
-        <kar:Paging>
-          <kar:PageSize>{page_size}</kar:PageSize>
-          <kar:PageNumber>{page_number}</kar:PageNumber>
-        </kar:Paging>
       </kar:request>
     </kar:GetCharges>
   </soap:Body>
@@ -225,86 +230,55 @@ def _parse_text(element, tag: str, ns: str = NS_KAREO) -> str:
     return ""
 
 
-def _parse_charges_response(xml_text: str) -> tuple[list[dict], int]:
+def _parse_charges_response(xml_text: str) -> list[dict]:
     """
     Parse the GetCharges SOAP response XML.
 
-    Returns:
-        (rows, total_count) where rows is a list of dicts (one per charge)
-        and total_count is the reported total record count.
+    Returns a list of dicts (one per charge).
+    Response structure: GetChargesResult > ErrorResponse + SecurityResponse + Charges
 
     PII SAFETY: Patient ID and Encounter ID are hashed before inclusion.
     """
     try:
         root = ET.fromstring(xml_text)
     except ET.ParseError as exc:
-        logger.error("Failed to parse SOAP response XML: %s", exc)
-        return [], 0
+        logger.warning("Failed to parse SOAP response XML: %s", exc)
+        return []
 
-    # Navigate: Envelope → Body → GetChargesResponse → GetChargesResult
     body = root.find(f"{{{NS_ENVELOPE}}}Body")
     if body is None:
-        logger.error("SOAP response has no Body element")
-        return [], 0
+        logger.warning("SOAP response has no Body element")
+        return []
 
-    # DEBUG: log the tag names of direct children of Body (no values, just structure)
-    body_child_tags = [child.tag for child in body]
-    logger.info("TEBRA_DEBUG body_child_tags: %s", body_child_tags)
-
-    # Try both with and without namespace on response element
-    result = None
-    matched_path = None
-    for path in [
-        f"{{{NS_KAREO}}}GetChargesResponse/{{{NS_KAREO}}}GetChargesResult",
-        ".//{{{NS_KAREO}}}GetChargesResult",
-    ]:
-        result = body.find(path)
-        if result is not None:
-            matched_path = path
-            break
-
+    result = body.find(f".//{{{NS_KAREO}}}GetChargesResult")
     if result is None:
-        logger.error("GetChargesResult not found in SOAP response")
-        # DEBUG: walk the full tag tree (no values) to find where data lives
-        def _log_tags(el, depth=0, max_depth=6):
-            if depth > max_depth:
-                return
-            logger.info("TEBRA_DEBUG tag_tree depth=%d tag=%s", depth, el.tag)
-            for child in list(el)[:5]:  # only first 5 children at each level
-                _log_tags(child, depth + 1, max_depth)
-        _log_tags(root)
-        return [], 0
+        logger.warning(
+            "GetChargesResult not found in SOAP response. Body child tags: %s",
+            [child.tag for child in body],
+        )
+        return []
 
-    logger.info("TEBRA_DEBUG GetChargesResult found via path: %s", matched_path)
+    # Bug 7 fix: check ErrorResponse.IsError (no TotalCount in this API)
+    error_el = result.find(f"{{{NS_KAREO}}}ErrorResponse")
+    if error_el is not None:
+        is_error = error_el.findtext(f"{{{NS_KAREO}}}IsError", "").strip().lower()
+        if is_error == "true":
+            msg = error_el.findtext(f"{{{NS_KAREO}}}ErrorMessage", "").strip()
+            logger.warning("Tebra API error: %s", msg)
+            return []
 
-    # DEBUG: log child tag names of result (no values)
-    result_child_tags = [child.tag for child in result]
-    logger.info("TEBRA_DEBUG result_child_tags: %s", result_child_tags)
-
-    # Check for API-level errors
-    error_response = result.find(f"{{{NS_KAREO}}}ErrorResponse")
-    if error_response is not None:
-        error_msg = _parse_text(error_response, "ErrorMessage")
-        logger.error("Tebra API error: %s", error_msg)
-        return [], 0
-
-    # Total record count for pagination
-    total_el = result.find(f"{{{NS_KAREO}}}TotalCount")
-    total_count = int(total_el.text.strip()) if (total_el is not None and total_el.text) else 0
-    logger.info("TEBRA_DEBUG TotalCount=%d", total_count)
+    # Check SecurityResponse.Authenticated
+    sec_el = result.find(f"{{{NS_KAREO}}}SecurityResponse")
+    if sec_el is not None:
+        authenticated = sec_el.findtext(f"{{{NS_KAREO}}}Authenticated", "").strip().lower()
+        if authenticated != "true":
+            logger.warning("Tebra API: authentication failed")
+            return []
 
     charges_el = result.find(f"{{{NS_KAREO}}}Charges")
     if charges_el is None:
-        logger.warning("TEBRA_DEBUG Charges element not found in result")
-        return [], total_count
-
-    # DEBUG: count child elements and log their tag names (first 3 unique)
-    all_charge_children = list(charges_el)
-    unique_child_tags = list(dict.fromkeys(c.tag for c in all_charge_children))[:3]
-    logger.info(
-        "TEBRA_DEBUG Charges element found: %d children, sample tags: %s",
-        len(all_charge_children), unique_child_tags,
-    )
+        logger.warning("Charges element not found in GetChargesResult")
+        return []
 
     rows = []
     for charge in charges_el.findall(f"{{{NS_KAREO}}}ChargeData"):
@@ -338,7 +312,7 @@ def _parse_charges_response(xml_text: str) -> tuple[list[dict], int]:
         }
         rows.append(row)
 
-    return rows, total_count
+    return rows
 
 
 # ---------------------------------------------------------------------------
@@ -369,103 +343,57 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     if not username or not password:
         raise RuntimeError("TEBRA_USER and TEBRA_PASSWORD env vars are required.")
 
-    practice_id = os.environ.get("TEBRA_PRACTICE_ID", "")
-    if not practice_id:
-        # Without a practice filter the Kareo API often returns 0 records.
-        # Discover available practice IDs so the admin can set TEBRA_PRACTICE_ID.
-        logger.warning(
-            "TEBRA_PRACTICE_ID not set — calling GetPractices to discover available practices. "
-            "Set TEBRA_PRACTICE_ID to one of the IDs logged below to fix 0-record responses."
-        )
-        get_practice_ids(customer_key, username, password)
-
-    request_delay = float(os.environ.get("TEBRA_REQUEST_DELAY", "1.1"))
-    page_size = int(os.environ.get("TEBRA_PAGE_SIZE", "100"))
-    page_size = min(max(page_size, 1), 200)  # clamp to [1, 200]
-
     start_str = start_date.strftime("%m/%d/%Y")
     end_str = end_date.strftime("%m/%d/%Y")
 
-    logger.info(
-        "Starting Tebra charge sync: %s to %s (page_size=%d, delay=%.1fs)",
-        start_str, end_str, page_size, request_delay,
+    logger.warning("Starting Tebra charge sync: %s to %s", start_str, end_str)
+
+    # Bug 4 fix: single request — no pagination loop
+    envelope = _build_soap_envelope(
+        customer_key=customer_key,
+        username=username,
+        password=password,
+        start_date=start_str,
+        end_date=end_str,
     )
 
-    all_rows: list[dict] = []
-    page_number = 1
-
-    while True:
-        envelope = _build_soap_envelope(
-            customer_key=customer_key,
-            username=username,
-            password=password,
-            start_date=start_str,
-            end_date=end_str,
-            practice_id=practice_id,
-            page_size=page_size,
-            page_number=page_number,
+    try:
+        response = requests.post(
+            SOAP_ENDPOINT,
+            data=envelope.encode("utf-8"),
+            headers={
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
+            },
+            timeout=60,
         )
-
-        try:
-            response = requests.post(
-                SOAP_ENDPOINT,
-                data=envelope.encode("utf-8"),
-                headers={
-                    "Content-Type": "text/xml; charset=utf-8",
-                    "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
-                },
-                timeout=30,
-            )
-        except requests.RequestException as exc:
-            logger.error("HTTP request to Tebra API failed (page %d): %s", page_number, exc)
-            break
-
-        logger.info(
-            "Tebra API response: page=%d status=%d content_length=%d",
-            page_number, response.status_code, len(response.content),
-        )
-
-        if response.status_code != 200:
-            # Log the response body for debugging — but truncate to 2000 chars
-            # to avoid accidentally logging large payloads with embedded PII.
-            snippet = response.text[:2000] if response.text else "(empty)"
-            logger.error(
-                "Tebra API non-200 response (page %d, status %d). Body snippet: %s",
-                page_number, response.status_code, snippet,
-            )
-            break
-
-        # DEBUG: log raw XML structure (first 500 chars, tags only — no PII values)
-        raw_snippet = response.text[:500] if response.text else "(empty)"
-        logger.info("TEBRA_DEBUG raw_response_snippet (no PII): %s", raw_snippet)
-        logger.info("TEBRA_DEBUG content_length=%d", len(response.content))
-
-        rows, total_count = _parse_charges_response(response.text)
-        all_rows.extend(rows)
-
-        logger.info(
-            "Page %d: fetched %d records (running total: %d / reported total: %d)",
-            page_number, len(rows), len(all_rows), total_count,
-        )
-
-        # Stop conditions:
-        # - Empty page means no more data regardless of total_count
-        # - Kareo known quirk: TotalCount can be 0 even when records exist,
-        #   so only use total_count as a stop signal when it's > 0
-        if not rows:
-            break
-        if total_count > 0 and len(all_rows) >= total_count:
-            break
-
-        page_number += 1
-        time.sleep(request_delay)  # respect rate limit
-
-    if not all_rows:
-        logger.warning("Tebra sync returned 0 records for %s to %s", start_str, end_str)
+    except requests.RequestException as exc:
+        logger.warning("HTTP request to Tebra API failed: %s", exc)
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 
-    df = pd.DataFrame(all_rows, columns=OUTPUT_COLUMNS)
-    logger.info("Tebra sync complete: %d records fetched", len(df))
+    logger.warning(
+        "Tebra API response: status=%d content_length=%d",
+        response.status_code, len(response.content),
+    )
+
+    if response.status_code != 200:
+        snippet = response.text[:2000] if response.text else "(empty)"
+        logger.warning(
+            "Tebra API non-200 response (status %d). Body snippet: %s",
+            response.status_code, snippet,
+        )
+        return pd.DataFrame(columns=OUTPUT_COLUMNS)
+
+    rows = _parse_charges_response(response.text)
+
+    if not rows:
+        logger.warning("Tebra sync returned 0 records for %s to %s", start_str, end_str)
+        # Run practice discovery to help diagnose auth/config issues
+        get_practice_ids(customer_key, username, password)
+        return pd.DataFrame(columns=OUTPUT_COLUMNS)
+
+    df = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)
+    logger.warning("Tebra sync complete: %d records fetched", len(df))
     return df
 
 
@@ -484,7 +412,7 @@ def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFram
         start_date = today - timedelta(days=90)
 
     if start_date > end_date:
-        logger.info("Tebra: nothing to sync (start_date %s > end_date %s)", start_date, end_date)
+        logger.warning("Tebra: nothing to sync (start_date %s > end_date %s)", start_date, end_date)
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 
     return fetch_charges(start_date, end_date)
