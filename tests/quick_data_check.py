@@ -197,7 +197,9 @@ def check_charges_export():
         info("Rendering Provider column missing — skipping provider diagnostics")
         return df
 
-    raw_providers = df["Rendering Provider"].dropna().astype(str)
+    # Keep full-length series (aligned with df index) for boolean indexing
+    raw_providers_full = df["Rendering Provider"].fillna("").astype(str)
+    raw_providers = raw_providers_full[raw_providers_full != ""]
 
     # Count of each unique raw provider name
     provider_counts = raw_providers.value_counts()
@@ -224,7 +226,7 @@ def check_charges_export():
         total_ehrin = sum(provider_counts[r] for r in ehrin_raw)
         info(f"Ehrin Irvin rows: {total_ehrin:,}")
         # Check if any of Ehrin's rows are from the API (have eid_ Encounter IDs)
-        ehrin_df = df[raw_providers.isin(ehrin_raw)]
+        ehrin_df = df[raw_providers_full.isin(ehrin_raw)]
         if "Encounter ID" in ehrin_df.columns:
             api_rows = ehrin_df["Encounter ID"].astype(str).str.startswith("eid_").sum()
             csv_rows = (~ehrin_df["Encounter ID"].astype(str).str.startswith("eid_")).sum()
