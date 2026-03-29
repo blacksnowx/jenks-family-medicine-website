@@ -5,6 +5,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 import datetime
 import os
 import time
+import threading
 
 import requests
 
@@ -437,14 +438,22 @@ def create_app():
 
         try:
             from data import sync_manager
-            if sync_type == 'tebra':
-                result = sync_manager.run_tebra_sync()
-            elif sync_type == 'sheets':
-                result = sync_manager.run_sheets_sync()
-            else:
-                result = sync_manager.run_all_syncs()
 
-            return jsonify(result)
+            def _run_sync():
+                with app.app_context():
+                    try:
+                        if sync_type == 'tebra':
+                            sync_manager.run_tebra_sync()
+                        elif sync_type == 'sheets':
+                            sync_manager.run_sheets_sync()
+                        else:
+                            sync_manager.run_all_syncs()
+                    except Exception as exc:
+                        app.logger.error("Background sync error (%s): %s", sync_type, exc)
+
+            t = threading.Thread(target=_run_sync, daemon=True)
+            t.start()
+            return jsonify({'status': 'started', 'message': f'{sync_type} sync started in background. Check status for progress.'})
 
         except Exception as exc:
             app.logger.error("Sync endpoint error (%s): %s", sync_type, exc)
