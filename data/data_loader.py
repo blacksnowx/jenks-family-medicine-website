@@ -77,6 +77,8 @@ def get_csv_from_db(filename):
 
 def normalize_provider(name):
     """Normalize a provider name to its canonical uppercase form."""
+    if isinstance(name, pd.Series):
+        name = name.iloc[0] if not name.empty else None
     if pd.isna(name):
         return name
     raw = str(name).strip()
@@ -159,6 +161,9 @@ def load_va_data(csv_path=VA_CSV):
             df = pd.read_csv(csv_path)
     except Exception:
         return pd.DataFrame()
+    # Remove duplicate column names — same fix as load_pc_data
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
     if 'Sarah Suggs ' in df.columns:
         df = df.rename(columns={'Sarah Suggs ': 'Provider'})
     elif 'Sarah Suggs' in df.columns:
@@ -217,6 +222,9 @@ def load_pc_data(csv_path=CHARGES_CSV):
         chg = row['Service Charge Amount']
         adj = row['Total Adjustments']
         pay = row['Total Payments']
+        if isinstance(chg, pd.Series): chg = chg.iloc[0] if not chg.empty else 0.0
+        if isinstance(adj, pd.Series): adj = adj.iloc[0] if not adj.empty else 0.0
+        if isinstance(pay, pd.Series): pay = pay.iloc[0] if not pay.empty else 0.0
         if adj == 0 and pay == 0 and chg > 0:
             return chg * 0.3287
         return chg - adj
