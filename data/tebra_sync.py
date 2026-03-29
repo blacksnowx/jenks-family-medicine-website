@@ -46,8 +46,8 @@ SOAP_ENDPOINT = "https://webservice.kareo.com/services/soap/2.1/KareoServices.sv
 
 SOAP_ACTION_GET_CHARGES = "http://www.kareo.com/api/schemas/2.1/IKareoServices/GetCharges"
 
-# Namespaces used in Kareo SOAP XML
-NS_ENVELOPE = "http://www.w3.org/2003/05/soap-envelope"
+# Namespaces used in Kareo SOAP XML — Kareo uses SOAP 1.1
+NS_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/"
 NS_KAREO = "http://www.kareo.com/api/schemas/2.1"
 
 # Columns in the output DataFrame — must match Charges Export.csv column names
@@ -90,7 +90,7 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
 
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
-    xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
     xmlns:kar="http://www.kareo.com/api/schemas/2.1">
   <soap:Header/>
   <soap:Body>
@@ -295,8 +295,8 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
                 SOAP_ENDPOINT,
                 data=envelope.encode("utf-8"),
                 headers={
-                    "Content-Type": "application/soap+xml; charset=utf-8",
-                    "SOAPAction": SOAP_ACTION_GET_CHARGES,
+                    "Content-Type": "text/xml; charset=utf-8",
+                    "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
                 },
                 timeout=30,
             )
