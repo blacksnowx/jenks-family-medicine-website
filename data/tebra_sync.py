@@ -20,6 +20,7 @@ Required env vars:
 import logging
 import os
 import re
+import time
 import xml.etree.ElementTree as ET
 from datetime import date, timedelta
 
@@ -152,7 +153,7 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
 
     if practices:
         for p in practices:
-            logger.warning("TEBRA practice available: ID=%s Name=%s", p["ID"], p["Name"])
+            logger.info("Tebra practice available: ID=%s Name=%s", p["ID"], p["Name"])
     else:
         logger.warning("GetPractices returned no practices. Raw snippet: %s", resp.text[:500])
 
@@ -263,58 +264,46 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
     result = body.find(f".//{{{NS_KAREO}}}GetChargesResult")
     if result is None:
         body_tags = [child.tag for child in body]
-        logger.warning(
-            "GetChargesResult not found in SOAP response. Body child tags: %s",
-            body_tags,
-        )
-        # Extract and print the SOAP Fault so we know WHY it failed
         fault_el = body.find(f"{{{NS_ENVELOPE}}}Fault")
         if fault_el is not None:
             faultcode = fault_el.findtext("faultcode") or fault_el.findtext(f"{{{NS_ENVELOPE}}}Code") or ""
             faultstring = fault_el.findtext("faultstring") or fault_el.findtext(f"{{{NS_ENVELOPE}}}Reason") or ""
-            # Try nested detail
             detail_el = fault_el.find("detail")
             detail = ET.tostring(detail_el, encoding="unicode") if detail_el is not None else ""
-            print(f"TEBRA_SYNC: SOAP FAULT DETECTED", flush=True)
-            print(f"TEBRA_SYNC: FAULT faultcode={faultcode!r}", flush=True)
-            print(f"TEBRA_SYNC: FAULT faultstring={faultstring!r}", flush=True)
-            print(f"TEBRA_SYNC: FAULT detail (structure only)={_xml_structure_only(detail, 500)!r}", flush=True)
+            logger.warning(
+                "Tebra SOAP Fault: faultcode=%r faultstring=%r detail=%s",
+                faultcode, faultstring, _xml_structure_only(detail, 500),
+            )
         else:
-            print(f"TEBRA_SYNC: No GetChargesResult and no Fault element. Body tags: {body_tags}", flush=True)
+            logger.warning(
+                "GetChargesResult not found in SOAP response. Body child tags: %s", body_tags
+            )
         return []
 
     # Bug 7 fix: check ErrorResponse.IsError (no TotalCount in this API)
     error_el = result.find(f"{{{NS_KAREO}}}ErrorResponse")
     if error_el is not None:
         is_error = error_el.findtext(f"{{{NS_KAREO}}}IsError", "").strip().lower()
-        print(f"TEBRA_SYNC: ErrorResponse IsError = {is_error!r}", flush=True)
         if is_error == "true":
             msg = error_el.findtext(f"{{{NS_KAREO}}}ErrorMessage", "").strip()
             logger.warning("Tebra API error: %s", msg)
-            print(f"TEBRA_SYNC: ErrorResponse ErrorMessage = {msg!r}", flush=True)
             return []
-    else:
-        print(f"TEBRA_SYNC: No ErrorResponse element in GetChargesResult", flush=True)
 
     # Check SecurityResponse.Authenticated
     sec_el = result.find(f"{{{NS_KAREO}}}SecurityResponse")
     if sec_el is not None:
         authenticated = sec_el.findtext(f"{{{NS_KAREO}}}Authenticated", "").strip().lower()
-        print(f"TEBRA_SYNC: SecurityResponse Authenticated = {authenticated!r}", flush=True)
         if authenticated != "true":
             logger.warning("Tebra API: authentication failed")
             return []
-    else:
-        print(f"TEBRA_SYNC: No SecurityResponse element in GetChargesResult", flush=True)
 
     charges_el = result.find(f"{{{NS_KAREO}}}Charges")
     if charges_el is None:
         logger.warning("Charges element not found in GetChargesResult")
-        print(f"TEBRA_SYNC: Charges element NOT FOUND in GetChargesResult", flush=True)
         return []
 
     charge_count = len(charges_el.findall(f"{{{NS_KAREO}}}ChargeData"))
-    print(f"TEBRA_SYNC: Number of ChargeData elements found = {charge_count}", flush=True)
+    logger.info("Tebra: %d ChargeData elements in response", charge_count)
 
     rows = []
     for charge in charges_el.findall(f"{{{NS_KAREO}}}ChargeData"):
@@ -355,9 +344,64 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
 # Main sync function
 # ---------------------------------------------------------------------------
 
+_CHUNK_DAYS = 55          # stay safely under the API's 60-day limit
+_RATE_LIMIT_DELAY = 1.1  # seconds between chunk requests
+
+
+def _fetch_chunk(
+    customer_key: str,
+    username: str,
+    password: str,
+    chunk_start: date,
+    chunk_end: date,
+    practice_name: str,
+) -> list[dict]:
+    """Make a single GetCharges API call for a ≤55-day window."""
+    start_str = chunk_start.strftime("%m/%d/%Y")
+    end_str = chunk_end.strftime("%m/%d/%Y")
+    logger.info("Tebra: fetching chunk %s to %s", start_str, end_str)
+
+    envelope = _build_soap_envelope(
+        customer_key=customer_key,
+        username=username,
+        password=password,
+        start_date=start_str,
+        end_date=end_str,
+        practice_name=practice_name,
+    )
+
+    try:
+        response = requests.post(
+            SOAP_ENDPOINT,
+            data=envelope.encode("utf-8"),
+            headers={
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
+            },
+            timeout=60,
+        )
+    except requests.RequestException as exc:
+        logger.warning("Tebra HTTP request failed for chunk %s-%s: %s", start_str, end_str, exc)
+        return []
+
+    if response.status_code != 200:
+        logger.warning(
+            "Tebra non-200 response (status %d) for chunk %s-%s",
+            response.status_code, start_str, end_str,
+        )
+        return []
+
+    rows = _parse_charges_response(response.text)
+    logger.info("Tebra: chunk %s to %s → %d records", start_str, end_str, len(rows))
+    return rows
+
+
 def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     """
     Fetch charge records from the Tebra API for the given date range.
+
+    Automatically splits the range into ≤55-day chunks to respect the API's
+    60-day limit, with a 1.1-second delay between requests.
 
     Args:
         start_date: First date of service to include (inclusive).
@@ -373,7 +417,6 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     customer_key = os.environ.get("TEBRAKEY", "")
     username = os.environ.get("TEBRA_USER", "")
     password = os.environ.get("TEBRA_PASSWORD", "")
-    practice_id = os.environ.get("TEBRA_PRACTICE_ID", "100713")
     practice_name = "Jenks Family Medicine, PLLC"
 
     if not customer_key:
@@ -381,75 +424,44 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     if not username or not password:
         raise RuntimeError("TEBRA_USER and TEBRA_PASSWORD env vars are required.")
 
-    start_str = start_date.strftime("%m/%d/%Y")
-    end_str = end_date.strftime("%m/%d/%Y")
-
-    print(f"TEBRA_SYNC: Starting fetch_charges", flush=True)
-    print(f"TEBRA_SYNC: Date range = {start_str} to {end_str}", flush=True)
-    print(f"TEBRA_SYNC: SOAP URL = {SOAP_ENDPOINT}", flush=True)
-    print(f"TEBRA_SYNC: SOAPAction = {SOAP_ACTION_GET_CHARGES}", flush=True)
-    print(f"TEBRA_SYNC: Practice ID (ref) = {practice_id}", flush=True)
-    print(f"TEBRA_SYNC: Practice name in filter = {practice_name!r}", flush=True)
-    logger.warning("Starting Tebra charge sync: %s to %s", start_str, end_str)
-
-    # Bug 4 fix: single request — no pagination loop
-    envelope = _build_soap_envelope(
-        customer_key=customer_key,
-        username=username,
-        password=password,
-        start_date=start_str,
-        end_date=end_str,
-        practice_name=practice_name,
+    logger.info(
+        "Tebra charge sync: %s to %s",
+        start_date.strftime("%m/%d/%Y"), end_date.strftime("%m/%d/%Y"),
     )
 
-    # Print outgoing request structure (no credentials — strip text values)
-    print(f"TEBRA_SYNC: Outgoing request XML structure (first 500 chars, text stripped):", flush=True)
-    print(_xml_structure_only(envelope, 500), flush=True)
+    # Split the full range into ≤55-day chunks
+    all_rows: list[dict] = []
+    chunk_start = start_date
+    first_chunk = True
 
-    try:
-        response = requests.post(
-            SOAP_ENDPOINT,
-            data=envelope.encode("utf-8"),
-            headers={
-                "Content-Type": "text/xml; charset=utf-8",
-                "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
-            },
-            timeout=60,
-        )
-    except requests.RequestException as exc:
-        logger.warning("HTTP request to Tebra API failed: %s", exc)
-        print(f"TEBRA_SYNC: HTTP request EXCEPTION: {exc}", flush=True)
-        return pd.DataFrame(columns=OUTPUT_COLUMNS)
+    while chunk_start <= end_date:
+        chunk_end = min(chunk_start + timedelta(days=_CHUNK_DAYS - 1), end_date)
 
-    print(f"TEBRA_SYNC: HTTP status = {response.status_code}", flush=True)
-    print(f"TEBRA_SYNC: Response length = {len(response.text)}", flush=True)
-    print(f"TEBRA_SYNC: Response structure (first 1000 chars, text stripped):", flush=True)
-    print(_xml_structure_only(response.text, 1000), flush=True)
+        if not first_chunk:
+            time.sleep(_RATE_LIMIT_DELAY)
+        first_chunk = False
 
-    logger.warning(
-        "Tebra API response: status=%d content_length=%d",
-        response.status_code, len(response.content),
-    )
+        rows = _fetch_chunk(customer_key, username, password, chunk_start, chunk_end, practice_name)
+        all_rows.extend(rows)
+        chunk_start = chunk_end + timedelta(days=1)
 
-    if response.status_code != 200:
-        snippet = response.text[:2000] if response.text else "(empty)"
+    if not all_rows:
         logger.warning(
-            "Tebra API non-200 response (status %d). Body snippet: %s",
-            response.status_code, snippet,
+            "Tebra sync returned 0 records for %s to %s",
+            start_date.strftime("%m/%d/%Y"), end_date.strftime("%m/%d/%Y"),
         )
-        print(f"TEBRA_SYNC: Non-200 response. Structure: {_xml_structure_only(response.text, 500)}", flush=True)
-        return pd.DataFrame(columns=OUTPUT_COLUMNS)
-
-    rows = _parse_charges_response(response.text)
-
-    if not rows:
-        logger.warning("Tebra sync returned 0 records for %s to %s", start_str, end_str)
-        # Run practice discovery to help diagnose auth/config issues
         get_practice_ids(customer_key, username, password)
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 
-    df = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)
-    logger.warning("Tebra sync complete: %d records fetched", len(df))
+    df = pd.DataFrame(all_rows, columns=OUTPUT_COLUMNS)
+
+    # Deduplicate in case chunk boundaries overlap
+    before = len(df)
+    df = df.drop_duplicates()
+    if len(df) < before:
+        logger.info("Tebra: dropped %d duplicate rows after chunk merge", before - len(df))
+
+    logger.info("Tebra sync complete: %d records fetched", len(df))
     return df
 
 
@@ -457,7 +469,9 @@ def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFram
     """
     Convenience wrapper for incremental sync.
 
-    Pulls from last_sync_date (or 90 days ago if None) through yesterday.
+    Pulls from last_sync_date through yesterday. When last_sync_date is None
+    (initial sync), falls back to TEBRA_LOOKBACK_DAYS env var (default 365)
+    to capture a full year of historical data.
     """
     today = date.today()
     end_date = today - timedelta(days=1)  # don't pull today's partial data
@@ -465,7 +479,9 @@ def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFram
     if last_sync_date:
         start_date = last_sync_date
     else:
-        start_date = today - timedelta(days=90)
+        lookback_days = int(os.environ.get("TEBRA_LOOKBACK_DAYS", "365"))
+        start_date = today - timedelta(days=lookback_days)
+        logger.info("Tebra: initial sync, looking back %d days to %s", lookback_days, start_date)
 
     if start_date > end_date:
         logger.warning("Tebra: nothing to sync (start_date %s > end_date %s)", start_date, end_date)
