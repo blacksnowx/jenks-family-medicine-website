@@ -170,19 +170,39 @@ def _parse_charges_response(xml_text: str) -> tuple[list[dict], int]:
         logger.error("SOAP response has no Body element")
         return [], 0
 
+    # DEBUG: log the tag names of direct children of Body (no values, just structure)
+    body_child_tags = [child.tag for child in body]
+    logger.info("TEBRA_DEBUG body_child_tags: %s", body_child_tags)
+
     # Try both with and without namespace on response element
     result = None
+    matched_path = None
     for path in [
         f"{{{NS_KAREO}}}GetChargesResponse/{{{NS_KAREO}}}GetChargesResult",
         ".//{{{NS_KAREO}}}GetChargesResult",
     ]:
         result = body.find(path)
         if result is not None:
+            matched_path = path
             break
 
     if result is None:
         logger.error("GetChargesResult not found in SOAP response")
+        # DEBUG: walk the full tag tree (no values) to find where data lives
+        def _log_tags(el, depth=0, max_depth=6):
+            if depth > max_depth:
+                return
+            logger.info("TEBRA_DEBUG tag_tree depth=%d tag=%s", depth, el.tag)
+            for child in list(el)[:5]:  # only first 5 children at each level
+                _log_tags(child, depth + 1, max_depth)
+        _log_tags(root)
         return [], 0
+
+    logger.info("TEBRA_DEBUG GetChargesResult found via path: %s", matched_path)
+
+    # DEBUG: log child tag names of result (no values)
+    result_child_tags = [child.tag for child in result]
+    logger.info("TEBRA_DEBUG result_child_tags: %s", result_child_tags)
 
     # Check for API-level errors
     error_response = result.find(f"{{{NS_KAREO}}}ErrorResponse")
@@ -194,10 +214,20 @@ def _parse_charges_response(xml_text: str) -> tuple[list[dict], int]:
     # Total record count for pagination
     total_el = result.find(f"{{{NS_KAREO}}}TotalCount")
     total_count = int(total_el.text.strip()) if (total_el is not None and total_el.text) else 0
+    logger.info("TEBRA_DEBUG TotalCount=%d", total_count)
 
     charges_el = result.find(f"{{{NS_KAREO}}}Charges")
     if charges_el is None:
+        logger.warning("TEBRA_DEBUG Charges element not found in result")
         return [], total_count
+
+    # DEBUG: count child elements and log their tag names (first 3 unique)
+    all_charge_children = list(charges_el)
+    unique_child_tags = list(dict.fromkeys(c.tag for c in all_charge_children))[:3]
+    logger.info(
+        "TEBRA_DEBUG Charges element found: %d children, sample tags: %s",
+        len(all_charge_children), unique_child_tags,
+    )
 
     rows = []
     for charge in charges_el.findall(f"{{{NS_KAREO}}}ChargeData"):
@@ -318,6 +348,11 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
                 page_number, response.status_code, snippet,
             )
             break
+
+        # DEBUG: log raw XML structure (first 500 chars, tags only — no PII values)
+        raw_snippet = response.text[:500] if response.text else "(empty)"
+        logger.info("TEBRA_DEBUG raw_response_snippet (no PII): %s", raw_snippet)
+        logger.info("TEBRA_DEBUG content_length=%d", len(response.content))
 
         rows, total_count = _parse_charges_response(response.text)
         all_rows.extend(rows)
