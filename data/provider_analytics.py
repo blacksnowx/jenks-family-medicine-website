@@ -57,7 +57,11 @@ def analyze_provider(df_pc, provider_name):
                 if codes & NEW_PATIENT_EM:
                     return True
                 if codes & PHYSICAL_CODES:
-                    if row['Date Of Service'] == row['First_Clinic_Visit']:
+                    dos = row['Date Of Service']
+                    fcv = row['First_Clinic_Visit']
+                    if isinstance(dos, pd.Series): dos = dos.iloc[0] if not dos.empty else None
+                    if isinstance(fcv, pd.Series): fcv = fcv.iloc[0] if not fcv.empty else None
+                    if dos == fcv:
                         return True
                 return False
             
