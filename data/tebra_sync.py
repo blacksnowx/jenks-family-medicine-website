@@ -19,6 +19,7 @@ Required env vars:
 
 import logging
 import os
+import re
 import xml.etree.ElementTree as ET
 from datetime import date, timedelta
 
@@ -162,8 +163,15 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
 # SOAP request builder
 # ---------------------------------------------------------------------------
 
+def _xml_structure_only(xml_text: str, max_chars: int = 1000) -> str:
+    """Return XML with all text node content stripped — only tags and attributes remain."""
+    stripped = re.sub(r'>([^<]+)<', '><', xml_text)
+    return stripped[:max_chars]
+
+
 def _build_soap_envelope(customer_key: str, username: str, password: str,
-                          start_date: str, end_date: str) -> str:
+                          start_date: str, end_date: str,
+                          practice_name: str = "") -> str:
     """
     Build the SOAP XML envelope for the GetCharges request.
 
@@ -176,7 +184,9 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
       - Bug 4: no <Paging> element (API returns all records in one response)
       - Bug 5: field flags directly in <Fields>, no <ChargeFields> wrapper
       - Bug 6: no <PracticeID> in Filter (not valid in ChargeFilter schema)
+      - Added PracticeName to Filter (some implementations require it)
     """
+    practice_name_el = f"          <kar:PracticeName>{practice_name}</kar:PracticeName>\n" if practice_name else ""
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
@@ -193,7 +203,7 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
         <kar:Filter>
           <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
           <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
-        </kar:Filter>
+{practice_name_el}        </kar:Filter>
         <kar:Fields>
           <kar:ServiceDate>true</kar:ServiceDate>
           <kar:RenderingProvider>true</kar:RenderingProvider>
@@ -252,33 +262,59 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
 
     result = body.find(f".//{{{NS_KAREO}}}GetChargesResult")
     if result is None:
+        body_tags = [child.tag for child in body]
         logger.warning(
             "GetChargesResult not found in SOAP response. Body child tags: %s",
-            [child.tag for child in body],
+            body_tags,
         )
+        # Extract and print the SOAP Fault so we know WHY it failed
+        fault_el = body.find(f"{{{NS_ENVELOPE}}}Fault")
+        if fault_el is not None:
+            faultcode = fault_el.findtext("faultcode") or fault_el.findtext(f"{{{NS_ENVELOPE}}}Code") or ""
+            faultstring = fault_el.findtext("faultstring") or fault_el.findtext(f"{{{NS_ENVELOPE}}}Reason") or ""
+            # Try nested detail
+            detail_el = fault_el.find("detail")
+            detail = ET.tostring(detail_el, encoding="unicode") if detail_el is not None else ""
+            print(f"TEBRA_SYNC: SOAP FAULT DETECTED", flush=True)
+            print(f"TEBRA_SYNC: FAULT faultcode={faultcode!r}", flush=True)
+            print(f"TEBRA_SYNC: FAULT faultstring={faultstring!r}", flush=True)
+            print(f"TEBRA_SYNC: FAULT detail (structure only)={_xml_structure_only(detail, 500)!r}", flush=True)
+        else:
+            print(f"TEBRA_SYNC: No GetChargesResult and no Fault element. Body tags: {body_tags}", flush=True)
         return []
 
     # Bug 7 fix: check ErrorResponse.IsError (no TotalCount in this API)
     error_el = result.find(f"{{{NS_KAREO}}}ErrorResponse")
     if error_el is not None:
         is_error = error_el.findtext(f"{{{NS_KAREO}}}IsError", "").strip().lower()
+        print(f"TEBRA_SYNC: ErrorResponse IsError = {is_error!r}", flush=True)
         if is_error == "true":
             msg = error_el.findtext(f"{{{NS_KAREO}}}ErrorMessage", "").strip()
             logger.warning("Tebra API error: %s", msg)
+            print(f"TEBRA_SYNC: ErrorResponse ErrorMessage = {msg!r}", flush=True)
             return []
+    else:
+        print(f"TEBRA_SYNC: No ErrorResponse element in GetChargesResult", flush=True)
 
     # Check SecurityResponse.Authenticated
     sec_el = result.find(f"{{{NS_KAREO}}}SecurityResponse")
     if sec_el is not None:
         authenticated = sec_el.findtext(f"{{{NS_KAREO}}}Authenticated", "").strip().lower()
+        print(f"TEBRA_SYNC: SecurityResponse Authenticated = {authenticated!r}", flush=True)
         if authenticated != "true":
             logger.warning("Tebra API: authentication failed")
             return []
+    else:
+        print(f"TEBRA_SYNC: No SecurityResponse element in GetChargesResult", flush=True)
 
     charges_el = result.find(f"{{{NS_KAREO}}}Charges")
     if charges_el is None:
         logger.warning("Charges element not found in GetChargesResult")
+        print(f"TEBRA_SYNC: Charges element NOT FOUND in GetChargesResult", flush=True)
         return []
+
+    charge_count = len(charges_el.findall(f"{{{NS_KAREO}}}ChargeData"))
+    print(f"TEBRA_SYNC: Number of ChargeData elements found = {charge_count}", flush=True)
 
     rows = []
     for charge in charges_el.findall(f"{{{NS_KAREO}}}ChargeData"):
@@ -337,6 +373,8 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     customer_key = os.environ.get("TEBRAKEY", "")
     username = os.environ.get("TEBRA_USER", "")
     password = os.environ.get("TEBRA_PASSWORD", "")
+    practice_id = os.environ.get("TEBRA_PRACTICE_ID", "100713")
+    practice_name = "Jenks Family Medicine, PLLC"
 
     if not customer_key:
         raise RuntimeError("TEBRAKEY env var is not set.")
@@ -346,6 +384,12 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     start_str = start_date.strftime("%m/%d/%Y")
     end_str = end_date.strftime("%m/%d/%Y")
 
+    print(f"TEBRA_SYNC: Starting fetch_charges", flush=True)
+    print(f"TEBRA_SYNC: Date range = {start_str} to {end_str}", flush=True)
+    print(f"TEBRA_SYNC: SOAP URL = {SOAP_ENDPOINT}", flush=True)
+    print(f"TEBRA_SYNC: SOAPAction = {SOAP_ACTION_GET_CHARGES}", flush=True)
+    print(f"TEBRA_SYNC: Practice ID (ref) = {practice_id}", flush=True)
+    print(f"TEBRA_SYNC: Practice name in filter = {practice_name!r}", flush=True)
     logger.warning("Starting Tebra charge sync: %s to %s", start_str, end_str)
 
     # Bug 4 fix: single request — no pagination loop
@@ -355,7 +399,12 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
         password=password,
         start_date=start_str,
         end_date=end_str,
+        practice_name=practice_name,
     )
+
+    # Print outgoing request structure (no credentials — strip text values)
+    print(f"TEBRA_SYNC: Outgoing request XML structure (first 500 chars, text stripped):", flush=True)
+    print(_xml_structure_only(envelope, 500), flush=True)
 
     try:
         response = requests.post(
@@ -369,7 +418,13 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
         )
     except requests.RequestException as exc:
         logger.warning("HTTP request to Tebra API failed: %s", exc)
+        print(f"TEBRA_SYNC: HTTP request EXCEPTION: {exc}", flush=True)
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
+
+    print(f"TEBRA_SYNC: HTTP status = {response.status_code}", flush=True)
+    print(f"TEBRA_SYNC: Response length = {len(response.text)}", flush=True)
+    print(f"TEBRA_SYNC: Response structure (first 1000 chars, text stripped):", flush=True)
+    print(_xml_structure_only(response.text, 1000), flush=True)
 
     logger.warning(
         "Tebra API response: status=%d content_length=%d",
@@ -382,6 +437,7 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
             "Tebra API non-200 response (status %d). Body snippet: %s",
             response.status_code, snippet,
         )
+        print(f"TEBRA_SYNC: Non-200 response. Structure: {_xml_structure_only(response.text, 500)}", flush=True)
         return pd.DataFrame(columns=OUTPUT_COLUMNS)
 
     rows = _parse_charges_response(response.text)
