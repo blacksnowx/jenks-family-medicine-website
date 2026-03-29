@@ -200,10 +200,6 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:User>{username}</kar:User>
           <kar:Password>{password}</kar:Password>
         </kar:RequestHeader>
-        <kar:Filter>
-          <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
-          <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
-{practice_name_el}        </kar:Filter>
         <kar:Fields>
           <kar:ServiceDate>true</kar:ServiceDate>
           <kar:RenderingProvider>true</kar:RenderingProvider>
@@ -221,6 +217,10 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:EncounterID>true</kar:EncounterID>
           <kar:PatientID>true</kar:PatientID>
         </kar:Fields>
+        <kar:Filter>
+          <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
+          <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
+{practice_name_el}        </kar:Filter>
       </kar:request>
     </kar:GetCharges>
   </soap:Body>
