@@ -11,10 +11,13 @@ PII RULES:
   - Only row counts and timestamps are logged — never data values.
 
 Required env vars:
-  TEBRAKEY       — CustomerKey for the Tebra/Kareo API
-  TEBRA_USER     — API username (practice admin account)
-  TEBRA_PASSWORD — API password
-  PII_HASH_SECRET — Secret for deterministic PII hashing (see pii_utils.py)
+  TEBRAKEY          — CustomerKey for the Tebra/Kareo API
+  TEBRA_USER        — API username (practice admin account)
+  TEBRA_PASSWORD    — API password
+  PII_HASH_SECRET   — Secret for deterministic PII hashing (see pii_utils.py)
+
+Optional env vars:
+  TEBRA_PRACTICE_ID — Practice ID (default: 100713); logged for diagnostics
 """
 
 import logging
@@ -48,6 +51,9 @@ SOAP_ACTION_GET_PRACTICES = "http://www.kareo.com/api/schemas/KareoServices/GetP
 NS_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/"
 NS_KAREO = "http://www.kareo.com/api/schemas/"
 
+# ClientVersion required by the Kareo WSDL RequestHeader schema
+CLIENT_VERSION = "4.0"
+
 # Columns in the output DataFrame — must match Charges Export.csv column names
 # exactly as expected by data_loader.load_pc_data()
 OUTPUT_COLUMNS = [
@@ -80,6 +86,12 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
     Logs available practices so the admin can verify credentials are working.
     """
     # Bug 1 fix: correct namespace; Bug 8 fix: no PracticeFields wrapper
+    # RequestHeader element order must match WSDL xs:sequence exactly:
+    # ClientVersion → CustomerKey → Password → User
+    logger.info(
+        "Tebra GetPractices RequestHeader: ClientVersion=%s CustomerKey=%s User=%s Password=***",
+        CLIENT_VERSION, customer_key, username,
+    )
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
@@ -89,9 +101,10 @@ def get_practice_ids(customer_key: str, username: str, password: str) -> list[di
     <kar:GetPractices>
       <kar:request>
         <kar:RequestHeader>
+          <kar:ClientVersion>{CLIENT_VERSION}</kar:ClientVersion>
           <kar:CustomerKey>{customer_key}</kar:CustomerKey>
-          <kar:User>{username}</kar:User>
           <kar:Password>{password}</kar:Password>
+          <kar:User>{username}</kar:User>
         </kar:RequestHeader>
         <kar:Fields>
           <kar:ID>true</kar:ID>
@@ -185,8 +198,10 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
       - Bug 4: no <Paging> element (API returns all records in one response)
       - Bug 5: field flags directly in <Fields>, no <ChargeFields> wrapper
       - Bug 6: no <PracticeID> in Filter (not valid in ChargeFilter schema)
-      - Added PracticeName to Filter (some implementations require it)
+      - RequestHeader xs:sequence order: ClientVersion → CustomerKey → Password → User
+      - ChargeFilter xs:sequence order: FromServiceDate → PracticeName → ToServiceDate
     """
+    # ChargeFilter xs:sequence order per WSDL: FromServiceDate, then PracticeName, then ToServiceDate
     practice_name_el = f"          <kar:PracticeName>{practice_name}</kar:PracticeName>\n" if practice_name else ""
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
@@ -197,9 +212,10 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
     <kar:GetCharges>
       <kar:request>
         <kar:RequestHeader>
+          <kar:ClientVersion>{CLIENT_VERSION}</kar:ClientVersion>
           <kar:CustomerKey>{customer_key}</kar:CustomerKey>
-          <kar:User>{username}</kar:User>
           <kar:Password>{password}</kar:Password>
+          <kar:User>{username}</kar:User>
         </kar:RequestHeader>
         <kar:Fields>
           <kar:ServiceDate>true</kar:ServiceDate>
@@ -220,8 +236,8 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
         </kar:Fields>
         <kar:Filter>
           <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
-          <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
-{practice_name_el}        </kar:Filter>
+{practice_name_el}          <kar:ToServiceDate>{end_date}</kar:ToServiceDate>
+        </kar:Filter>
       </kar:request>
     </kar:GetCharges>
   </soap:Body>
@@ -370,6 +386,11 @@ def _fetch_chunk(
         practice_name=practice_name,
     )
 
+    logger.info(
+        "Tebra GetCharges RequestHeader: ClientVersion=%s CustomerKey=%s User=%s Password=*** PracticeName=%s",
+        CLIENT_VERSION, customer_key, username, practice_name,
+    )
+
     try:
         response = requests.post(
             SOAP_ENDPOINT,
@@ -413,10 +434,12 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
 
     Raises:
         RuntimeError: If required env vars (TEBRAKEY, TEBRA_USER, TEBRA_PASSWORD) are missing.
+        TEBRA_PRACTICE_ID is optional (defaults to 100713) and is logged for diagnostics.
     """
     customer_key = os.environ.get("TEBRAKEY", "")
     username = os.environ.get("TEBRA_USER", "")
     password = os.environ.get("TEBRA_PASSWORD", "")
+    practice_id = os.environ.get("TEBRA_PRACTICE_ID", "100713")
     practice_name = "Jenks Family Medicine, PLLC"
 
     if not customer_key:
@@ -425,8 +448,9 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
         raise RuntimeError("TEBRA_USER and TEBRA_PASSWORD env vars are required.")
 
     logger.info(
-        "Tebra charge sync: %s to %s",
+        "Tebra charge sync: %s to %s (PracticeID=%s PracticeName=%s)",
         start_date.strftime("%m/%d/%Y"), end_date.strftime("%m/%d/%Y"),
+        practice_id, practice_name,
     )
 
     # Split the full range into ≤55-day chunks
