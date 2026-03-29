@@ -9,3 +9,5 @@ numpy
 scipy
 matplotlib
 statsmodels
+gspread>=6.0
+google-auth>=2.0

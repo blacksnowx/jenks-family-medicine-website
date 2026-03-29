@@ -315,6 +315,7 @@
             {% if current_user.role == 'Owner' %}
             <button class="tab-button" onclick="openTab('section-owner-analytics', this); initOwnerAnalytics();">Owner Analytics</button>
             <button class="tab-button" onclick="openTab('section-upload', this)">Upload Data</button>
+            <button class="tab-button" onclick="openTab('section-sync', this); initSyncStatus();">Data Sync</button>
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
             <button class="tab-button" onclick="openTab('section-banner', this)">Site Banner</button>
@@ -567,6 +568,63 @@
                 <hr style="border: 0; border-top: 1px solid #f1f1f1; margin: 2rem 0;">
                 <h2>👑 Owner Only Features</h2>
                 <p style="color: var(--text-light); font-size: 0.95rem;">Owner Analytics are available in the <strong>Owner Analytics</strong> tab — including Provider Scorecards, Trend Analysis, Breakeven Analysis, Monthly Overview, and Recommendations. Coming soon: user management and system logs.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Data Sync Section (Owner only) -->
+        {% if current_user.role == 'Owner' %}
+        <div id="section-sync" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>🔄 Data Sync</h2>
+                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    Pull the latest data from Tebra (charges) and Google Sheets (201s) directly into the dashboard.
+                    New records are merged and deduplicated against existing data automatically.
+                </p>
+
+                <!-- Sync buttons -->
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                    <button class="button" onclick="triggerSync('tebra')" id="btn-sync-tebra">
+                        Sync Tebra Data
+                    </button>
+                    <button class="button" onclick="triggerSync('sheets')" id="btn-sync-sheets"
+                        style="background: #16a34a;">
+                        Sync Google Sheets
+                    </button>
+                    <button class="button" onclick="triggerSync('all')" id="btn-sync-all"
+                        style="background: #7c3aed;">
+                        Sync All
+                    </button>
+                </div>
+
+                <!-- In-progress indicator -->
+                <div id="sync-loading" style="display: none; padding: 0.75rem 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-md); color: #1e40af; font-size: 0.9rem; margin-bottom: 1.25rem;">
+                    ⏳ Sync in progress — this may take up to a minute...
+                </div>
+
+                <!-- Result banner -->
+                <div id="sync-result" style="display: none; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.9rem; margin-bottom: 1.25rem;"></div>
+
+                <!-- Status table -->
+                <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-color);">Recent Sync History</h3>
+                <div id="sync-status-loading" style="color: var(--text-light); font-size: 0.9rem; padding: 0.5rem 0;">Loading history...</div>
+                <div id="sync-status-error" style="display: none; color: #991b1b; font-size: 0.9rem; padding: 0.5rem 0;"></div>
+                <div style="overflow-x: auto;">
+                    <table id="sync-log-table" style="display: none; width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background: #f1f5f9; text-align: left;">
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0;">Type</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0;">Status</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Fetched</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0; text-align: right;">New</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0;">Started</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0;">Duration</th>
+                                <th style="padding: 0.6rem 0.9rem; border-bottom: 2px solid #e2e8f0;">Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sync-log-tbody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}
@@ -983,6 +1041,135 @@
                     <span style="flex-shrink:0;font-size:1rem;">${s.icon}</span><span>${r.text}</span>
                 </div>`;
             }).join('');
+        }
+
+        // -------------------------------------------------------
+        // Data Sync (Owner only)
+        // -------------------------------------------------------
+        let _syncStatusLoaded = false;
+
+        function initSyncStatus() {
+            if (!_syncStatusLoaded) {
+                _syncStatusLoaded = true;
+                loadSyncStatus();
+            }
+        }
+
+        async function loadSyncStatus() {
+            const loading = document.getElementById('sync-status-loading');
+            const errEl   = document.getElementById('sync-status-error');
+            const table   = document.getElementById('sync-log-table');
+            if (!loading) return;
+
+            try {
+                const resp = await fetch('/admin/sync/status');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+
+                loading.style.display = 'none';
+                renderSyncLog(data.logs);
+                table.style.display = 'table';
+            } catch (e) {
+                loading.style.display = 'none';
+                errEl.style.display = 'block';
+                errEl.textContent = 'Failed to load sync history: ' + e.message;
+            }
+        }
+
+        function renderSyncLog(logs) {
+            const tbody = document.getElementById('sync-log-tbody');
+            if (!tbody) return;
+
+            if (!logs || logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="padding:1rem;text-align:center;color:var(--text-light);">No sync history yet.</td></tr>';
+                return;
+            }
+
+            const fmtDate = iso => {
+                if (!iso) return '—';
+                const d = new Date(iso);
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            const fmtDuration = (start, end) => {
+                if (!start || !end) return '—';
+                const secs = Math.round((new Date(end) - new Date(start)) / 1000);
+                return secs < 60 ? secs + 's' : Math.round(secs / 60) + 'm ' + (secs % 60) + 's';
+            };
+
+            const statusBadge = s => {
+                const colors = { success: '#16a34a', error: '#dc2626', running: '#d97706' };
+                const bg     = { success: '#f0fdf4', error: '#fef2f2', running: '#fefce8' };
+                return `<span style="font-size:0.8rem;font-weight:600;padding:2px 8px;border-radius:999px;background:${bg[s]||'#f1f5f9'};color:${colors[s]||'#374151'};">${s}</span>`;
+            };
+
+            tbody.innerHTML = logs.map(log =>
+                '<tr style="border-bottom:1px solid #e5e7eb;">'
+                + `<td style="padding:0.6rem 0.9rem;font-weight:500;text-transform:capitalize;">${log.sync_type}</td>`
+                + `<td style="padding:0.6rem 0.9rem;">${statusBadge(log.status)}</td>`
+                + `<td style="padding:0.6rem 0.9rem;text-align:right;">${log.records_fetched ?? '—'}</td>`
+                + `<td style="padding:0.6rem 0.9rem;text-align:right;color:#16a34a;font-weight:600;">${log.records_new ?? '—'}</td>`
+                + `<td style="padding:0.6rem 0.9rem;font-size:0.85rem;color:var(--text-light);">${fmtDate(log.started_at)}</td>`
+                + `<td style="padding:0.6rem 0.9rem;font-size:0.85rem;color:var(--text-light);">${fmtDuration(log.started_at, log.completed_at)}</td>`
+                + `<td style="padding:0.6rem 0.9rem;font-size:0.8rem;color:#dc2626;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${log.error_message || ''}</td>`
+                + '</tr>'
+            ).join('');
+        }
+
+        async function triggerSync(syncType) {
+            const loading   = document.getElementById('sync-loading');
+            const resultEl  = document.getElementById('sync-result');
+            const btnTebra  = document.getElementById('btn-sync-tebra');
+            const btnSheets = document.getElementById('btn-sync-sheets');
+            const btnAll    = document.getElementById('btn-sync-all');
+
+            // Disable buttons and show loading
+            [btnTebra, btnSheets, btnAll].forEach(b => { if (b) b.disabled = true; });
+            loading.style.display = 'block';
+            resultEl.style.display = 'none';
+
+            try {
+                const resp = await fetch('/admin/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sync_type: syncType }),
+                });
+                const data = await resp.json();
+
+                loading.style.display = 'none';
+
+                let isSuccess, msg;
+                if (syncType === 'all') {
+                    isSuccess = data.overall_status === 'success';
+                    const t = data.tebra   || {};
+                    const s = data.sheets  || {};
+                    msg = `Tebra: ${t.status} (${t.records_new ?? 0} new) — Sheets: ${s.status} (${s.records_new ?? 0} new)`;
+                } else {
+                    isSuccess = data.status === 'success';
+                    msg = isSuccess
+                        ? `${data.records_fetched} fetched, ${data.records_new} new records added.`
+                        : (data.error || data.error_message || 'Unknown error');
+                }
+
+                resultEl.style.cssText = isSuccess
+                    ? 'display:block;padding:0.75rem 1rem;border-radius:var(--radius-md);font-size:0.9rem;margin-bottom:1.25rem;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;'
+                    : 'display:block;padding:0.75rem 1rem;border-radius:var(--radius-md);font-size:0.9rem;margin-bottom:1.25rem;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;';
+                resultEl.textContent = (isSuccess ? '✓ ' : '✗ ') + msg;
+
+                // Refresh status table
+                _syncStatusLoaded = false;
+                loadSyncStatus();
+                document.getElementById('sync-log-table').style.display = 'table';
+
+            } catch (e) {
+                loading.style.display = 'none';
+                resultEl.style.cssText = 'display:block;padding:0.75rem 1rem;border-radius:var(--radius-md);font-size:0.9rem;margin-bottom:1.25rem;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;';
+                resultEl.textContent = '✗ Request failed: ' + e.message;
+            } finally {
+                [btnTebra, btnSheets, btnAll].forEach(b => { if (b) b.disabled = false; });
+            }
         }
     </script>
 </body>

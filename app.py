@@ -8,11 +8,12 @@ import time
 
 import requests
 
-from models import db, User, BannerSettings, ReferenceData
+from models import db, User, BannerSettings, ReferenceData, SyncLog
 from datetime import timezone
 from data import rvu_analytics
 from data.data_loader import get_database_url
 from data import owner_analytics
+from data.pii_utils import hash_pii_columns
 
 def create_app():
     app = Flask(__name__)
@@ -305,7 +306,34 @@ def create_app():
                     elif not file_type:
                         flash('No file type selected.', 'error')
                     else:
-                        file_data = file.read()
+                        import io
+                        import pandas as pd
+
+                        # PII columns to hash per file type
+                        PII_COLUMN_MAPS = {
+                            'Charges Export.csv': {
+                                'Patient ID':   'pid_',
+                                'Encounter ID': 'eid_',
+                            },
+                            '201 Bills and Payments.csv': {
+                                'Patient_ID': 'pid_',
+                            },
+                        }
+
+                        raw_bytes = file.read()
+                        column_map = PII_COLUMN_MAPS.get(file_type)
+                        if column_map:
+                            try:
+                                df = pd.read_csv(io.BytesIO(raw_bytes))
+                                df = hash_pii_columns(df, column_map)
+                                buf = io.BytesIO()
+                                df.to_csv(buf, index=False)
+                                file_data = buf.getvalue()
+                            except Exception:
+                                file_data = raw_bytes
+                        else:
+                            file_data = raw_bytes
+
                         ref = ReferenceData.query.filter_by(filename=file_type).first()
                         if not ref:
                             ref = ReferenceData(filename=file_type, data=file_data)
@@ -390,6 +418,100 @@ def create_app():
         except Exception as e:
             app.logger.error(f"Error generating owner analytics: {e}")
             return jsonify({'error': 'Failed to generate analytics data'}), 500
+
+    # -------------------------------------------------------------------
+    #  Sync Routes
+    # -------------------------------------------------------------------
+
+    @app.route('/admin/sync', methods=['POST'])
+    @login_required
+    def admin_sync():
+        """Owner-only endpoint to trigger a manual data sync."""
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+
+        sync_type = request.json.get('sync_type', 'all') if request.is_json else request.form.get('sync_type', 'all')
+
+        if sync_type not in ('tebra', 'sheets', 'all'):
+            return jsonify({'error': f"Invalid sync_type '{sync_type}'. Must be 'tebra', 'sheets', or 'all'."}), 400
+
+        try:
+            from data import sync_manager
+            if sync_type == 'tebra':
+                result = sync_manager.run_tebra_sync()
+            elif sync_type == 'sheets':
+                result = sync_manager.run_sheets_sync()
+            else:
+                result = sync_manager.run_all_syncs()
+
+            return jsonify(result)
+
+        except Exception as exc:
+            app.logger.error("Sync endpoint error (%s): %s", sync_type, exc)
+            return jsonify({'error': 'Sync failed to start. Check server logs.'}), 500
+
+    @app.route('/admin/sync/status')
+    @login_required
+    def admin_sync_status():
+        """Return the latest sync log entries for both sync types."""
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+
+        logs = (
+            SyncLog.query
+            .order_by(SyncLog.started_at.desc())
+            .limit(20)
+            .all()
+        )
+
+        entries = []
+        for log in logs:
+            entries.append({
+                'id':              log.id,
+                'sync_type':       log.sync_type,
+                'status':          log.status,
+                'records_fetched': log.records_fetched,
+                'records_new':     log.records_new,
+                'started_at':      log.started_at.isoformat() + 'Z' if log.started_at else None,
+                'completed_at':    log.completed_at.isoformat() + 'Z' if log.completed_at else None,
+                'error_message':   log.error_message,
+                'last_sync_date':  log.last_sync_date.isoformat() + 'Z' if log.last_sync_date else None,
+            })
+
+        return jsonify({'logs': entries})
+
+    @app.route('/api/sync/trigger')
+    def api_sync_trigger():
+        """
+        Unauthenticated endpoint for Heroku Scheduler (or similar cron runners).
+        Requires the SYNC_SECRET env var to be passed as ?secret=<value>.
+        """
+        expected_secret = os.environ.get('SYNC_SECRET', '')
+        if not expected_secret:
+            return jsonify({'error': 'SYNC_SECRET is not configured on this server.'}), 503
+
+        provided_secret = request.args.get('secret', '')
+        if not provided_secret or provided_secret != expected_secret:
+            return jsonify({'error': 'Unauthorized'}), 401
+
+        sync_type = request.args.get('sync_type', 'all')
+        if sync_type not in ('tebra', 'sheets', 'all'):
+            sync_type = 'all'
+
+        try:
+            from data import sync_manager
+            if sync_type == 'tebra':
+                result = sync_manager.run_tebra_sync()
+            elif sync_type == 'sheets':
+                result = sync_manager.run_sheets_sync()
+            else:
+                result = sync_manager.run_all_syncs()
+
+            return jsonify(result)
+
+        except Exception as exc:
+            app.logger.error("Scheduled sync error (%s): %s", sync_type, exc)
+            return jsonify({'error': 'Sync failed. Check server logs.'}), 500
 
     @app.route('/admin/logout')
     @login_required

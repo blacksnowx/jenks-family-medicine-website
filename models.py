@@ -83,3 +83,21 @@ class ReferenceData(db.Model):
     def __repr__(self) -> str:
         return f"<ReferenceData {self.filename}>"
 
+
+class SyncLog(db.Model):
+    """Audit log for automated data sync runs (Tebra and Google Sheets)."""
+
+    __tablename__ = "sync_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    sync_type = db.Column(db.String(50), nullable=False)   # 'tebra' or 'sheets'
+    status = db.Column(db.String(20), nullable=False)      # 'running', 'success', 'error'
+    records_fetched = db.Column(db.Integer, default=0)
+    records_new = db.Column(db.Integer, default=0)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    last_sync_date = db.Column(db.DateTime, nullable=True)  # Upper bound of the synced date range
+
+    def __repr__(self) -> str:
+        return f"<SyncLog {self.sync_type} {self.status} @ {self.started_at}>"
