@@ -164,11 +164,25 @@ def load_va_data(csv_path=VA_CSV):
     # Remove duplicate column names — same fix as load_pc_data
     if df.columns.duplicated().any():
         df = df.loc[:, ~df.columns.duplicated()]
-    if 'Sarah Suggs ' in df.columns:
-        df = df.rename(columns={'Sarah Suggs ': 'Provider'})
-    elif 'Sarah Suggs' in df.columns:
-        df = df.rename(columns={'Sarah Suggs': 'Provider'})
-    # Dedup again — rename may create a second 'Provider' if one already existed
+
+    # Normalize provider column: the original CSV uses 'Sarah Suggs ' as header,
+    # while sheets_sync uses 'Provider'.  Handle both, plus the case where a
+    # bad merge left us with BOTH columns (one has NaN for some rows).
+    provider_col = None
+    for candidate in ['Sarah Suggs ', 'Sarah Suggs']:
+        if candidate in df.columns:
+            provider_col = candidate
+            break
+
+    if provider_col and 'Provider' in df.columns:
+        # Both exist — fill NaNs in one from the other, then drop the extra
+        df['Provider'] = df['Provider'].fillna(df[provider_col])
+        df = df.drop(columns=[provider_col])
+    elif provider_col:
+        df = df.rename(columns={provider_col: 'Provider'})
+    # else: 'Provider' already exists or neither exists — leave as-is
+
+    # Final dedup safety net
     if df.columns.duplicated().any():
         df = df.loc[:, ~df.columns.duplicated()]
 

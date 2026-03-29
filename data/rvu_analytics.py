@@ -92,8 +92,12 @@ def get_rvu_dataset():
     if va is None or va.empty:
         va_df = pd.DataFrame()
     else:
-        va = va.rename(columns={'Sarah Suggs ': 'Provider'})
+        # Provider column is already normalized to 'Provider' by load_va_data()
+        if 'Sarah Suggs ' in va.columns:
+            va = va.rename(columns={'Sarah Suggs ': 'Provider'})
         va['Date of Service'] = pd.to_datetime(va['Date of Service'], errors='coerce')
+        if 'Provider' not in va.columns:
+            va['Provider'] = 'UNKNOWN'
         va['Provider'] = va['Provider'].apply(data_loader.normalize_provider)
         
         # Apply RVU Logic

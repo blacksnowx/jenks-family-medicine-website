@@ -150,6 +150,26 @@ def _merge_201s(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.Data
     """
     dedup_col = "Case ID"
 
+    # Normalize column names: the original CSV uses 'Sarah Suggs ' as the
+    # provider column header, while sheets_sync outputs 'Provider'.  Align
+    # them so the merged CSV is consistent and load_va_data() doesn't create
+    # duplicate 'Provider' columns after its own rename step.
+    if not existing.empty:
+        # Figure out which provider column name the existing data uses
+        existing_provider_col = None
+        for candidate in ['Sarah Suggs ', 'Sarah Suggs', 'Provider']:
+            if candidate in existing.columns:
+                existing_provider_col = candidate
+                break
+
+        if existing_provider_col and existing_provider_col != 'Provider':
+            # Rename sheets data to match existing CSV format
+            if 'Provider' in new_data.columns and existing_provider_col not in new_data.columns:
+                new_data = new_data.rename(columns={'Provider': existing_provider_col})
+        elif existing_provider_col == 'Provider' or existing_provider_col is None:
+            # Existing already uses 'Provider' or has no provider col — keep as-is
+            pass
+
     if existing.empty:
         logger.info("No existing 201s — using fetched data as baseline.")
         return new_data.copy(), len(new_data)
