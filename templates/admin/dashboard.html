@@ -359,7 +359,7 @@
                 </form>
 
                 <!-- Data source toggle -->
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
                     <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 0.25rem;">Data Source:</span>
                     <div id="rvu-source-toggle" style="display: inline-flex; border: 1px solid #d1d5db; border-radius: var(--radius-md); overflow: hidden;">
                         <button onclick="setRvuSource('all', this)" class="rvu-src-btn rvu-src-active"
@@ -375,6 +375,15 @@
                             VA
                         </button>
                     </div>
+                </div>
+
+                <!-- Pipeline toggle -->
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;">
+                    <label for="pipeline-toggle" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem; color: var(--text-color); user-select: none;">
+                        <input type="checkbox" id="pipeline-toggle" onchange="setPipelineMode(this.checked)"
+                            style="width: 1rem; height: 1rem; cursor: pointer; accent-color: var(--primary-color);">
+                        <span>Show pipeline data <span style="color: var(--text-light); font-size: 0.8rem;">(draft charges — dashed overlay)</span></span>
+                    </label>
                 </div>
 
                 {% if rvu_view %}
@@ -407,6 +416,8 @@
                                 <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Bonus Earned</th>
                                 <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Projected RVUs</th>
                                 <th style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right;">Projected Bonus</th>
+                                <th id="bonus-col-pipeline" style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right; display: none; color: #7c3aed;">Pipeline RVUs</th>
+                                <th id="bonus-col-total" style="padding: 0.75rem 1rem; border-bottom: 2px solid #e2e8f0; text-align: right; display: none; color: #7c3aed;">Total w/ Pipeline</th>
                             </tr>
                         </thead>
                         <tbody id="bonus-tbody">
@@ -606,6 +617,10 @@
                     <button class="button" onclick="triggerSync('tebra')" id="btn-sync-tebra">
                         Sync Tebra Data
                     </button>
+                    <button class="button" onclick="triggerSync('draft')" id="btn-sync-draft"
+                        style="background: #7c3aed;">
+                        Sync Draft Charges
+                    </button>
                     <button class="button" onclick="triggerSync('sheets')" id="btn-sync-sheets"
                         style="background: #16a34a;">
                         Sync Google Sheets
@@ -758,6 +773,23 @@
 
         // --- Data source toggle for RVU chart + bonus report ---
         let _rvuSource = 'all';
+        let _rvuPipeline = false;
+
+        function setPipelineMode(enabled) {
+            _rvuPipeline = enabled;
+            // Reload chart if one is displayed
+            const img = document.getElementById('rvu-chart-img');
+            if (img) {
+                const url = new URL(img.src, window.location.href);
+                url.searchParams.set('pipeline', enabled ? 'true' : 'false');
+                img.src = url.toString();
+            }
+            // Show/hide pipeline columns in bonus table
+            document.getElementById('bonus-col-pipeline').style.display = enabled ? '' : 'none';
+            document.getElementById('bonus-col-total').style.display = enabled ? '' : 'none';
+            loadBonusReport(_rvuSource);
+        }
+
 
         function setRvuSource(src, btn) {
             _rvuSource = src;
@@ -775,6 +807,7 @@
             if (img) {
                 const url = new URL(img.src);
                 url.searchParams.set('source', src);
+                url.searchParams.set('pipeline', _rvuPipeline ? 'true' : 'false');
                 img.src = url.toString();
             }
 
@@ -789,12 +822,14 @@
             if (!tbody) return; // not Owner
 
             const src = source || _rvuSource || 'all';
-            tbody.innerHTML = '<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>';
+            const colSpan = _rvuPipeline ? 7 : 5;
+            tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>';
 
-            fetch("{{ url_for('bonus_report') }}?source=" + encodeURIComponent(src))
+            const url = "{{ url_for('bonus_report') }}?source=" + encodeURIComponent(src) + '&pipeline=' + (_rvuPipeline ? 'true' : 'false');
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.error) { tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Error loading report.</td></tr>'; return; }
+                    if (data.error) { tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:1rem;text-align:center;color:#ef4444;">Error loading report.</td></tr>'; return; }
 
                     const pct = Math.round(data.days_elapsed / data.days_in_quarter * 100);
                     info.textContent = data.quarter_label + ' — Day ' + data.days_elapsed + ' of ' + data.days_in_quarter + ' (' + pct + '% complete)';
@@ -810,13 +845,19 @@
                             + '<td style="padding:0.75rem 1rem;text-align:right;">' + p.rvus_earned.toFixed(1) + '</td>'
                             + '<td style="padding:0.75rem 1rem;text-align:right;color:' + earnedColor + ';font-weight:600;">' + fmt(p.bonus_earned) + '</td>'
                             + '<td style="padding:0.75rem 1rem;text-align:right;color:var(--text-light);font-style:italic;">' + p.projected_rvus.toFixed(1) + '</td>'
-                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + projColor + ';font-style:italic;">' + fmt(p.projected_bonus) + '</td>'
-                            + '</tr>';
+                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + projColor + ';font-style:italic;">' + fmt(p.projected_bonus) + '</td>';
+                        if (_rvuPipeline) {
+                            const pipeRvus = (p.pipeline_rvus != null) ? p.pipeline_rvus : 0;
+                            const totalPipe = (p.total_with_pipeline != null) ? p.total_with_pipeline : p.rvus_earned;
+                            rows += '<td style="padding:0.75rem 1rem;text-align:right;color:#7c3aed;font-style:italic;">+' + pipeRvus.toFixed(1) + '</td>'
+                                + '<td style="padding:0.75rem 1rem;text-align:right;color:#7c3aed;font-weight:600;">' + totalPipe.toFixed(1) + '</td>';
+                        }
+                        rows += '</tr>';
                     });
                     tbody.innerHTML = rows;
                 })
                 .catch(() => {
-                    tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
                 });
         }
 
@@ -1174,9 +1215,10 @@
             const btnTebra  = document.getElementById('btn-sync-tebra');
             const btnSheets = document.getElementById('btn-sync-sheets');
             const btnAll    = document.getElementById('btn-sync-all');
+            const btnDraft  = document.getElementById('btn-sync-draft');
 
             // Disable buttons and show loading
-            [btnTebra, btnSheets, btnAll].forEach(b => { if (b) b.disabled = true; });
+            [btnTebra, btnSheets, btnAll, btnDraft].forEach(b => { if (b) b.disabled = true; });
             loading.style.display = 'block';
             resultEl.style.display = 'none';
 
@@ -1228,7 +1270,7 @@
                 resultEl.style.cssText = 'display:block;padding:0.75rem 1rem;border-radius:var(--radius-md);font-size:0.9rem;margin-bottom:1.25rem;background:#fef2f2;color:#991b1b;border:1px solid #fecaca;';
                 resultEl.textContent = '✗ Request failed: ' + e.message;
             } finally {
-                [btnTebra, btnSheets, btnAll].forEach(b => { if (b) b.disabled = false; });
+                [btnTebra, btnSheets, btnAll, btnDraft].forEach(b => { if (b) b.disabled = false; });
             }
         }
     </script>

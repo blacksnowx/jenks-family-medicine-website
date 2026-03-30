@@ -61,13 +61,35 @@ def _get_va_rvu_cat(row):
     if imo_str in ['1-3', '1-5', '1', '2', '3'] or (imo_str and imo_str[0] in ['1', '2', '3'] and len(imo_str) == 1): return "VA Exam (1-3 IMOs)"
     return "VA Exam (4+ IMOs)"
 
-def get_rvu_dataset(data_source='all'):
+def _process_pc_charges(pc):
+    """Apply provider normalization and RVU mapping to a PC charges DataFrame."""
+    pc = pc.copy()
+    pc['Provider'] = pc['Rendering Provider'].apply(data_loader.normalize_provider)
+    pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
+    pc['Total Charge Amount'] = pc.get('Service Charge Amount', pc.get('Total Charge Amount', 0))
+    if pc['Total Charge Amount'].dtype == object:
+        pc['Total Charge Amount'] = pc['Total Charge Amount'].astype(str).str.replace(r'[$,]', '', regex=True).astype(float)
+    if 'Procedure Codes with Modifiers' not in pc.columns:
+        if 'Procedure Code' in pc.columns:
+            pc['Procedure Codes with Modifiers'] = pc['Procedure Code']
+        else:
+            pc['Procedure Codes with Modifiers'] = ''
+    pc['RVU'] = pc.apply(_get_clinical_rvu_val, axis=1)
+    pc['Category'] = pc.apply(_get_clinical_rvu_cat, axis=1)
+    return pc[['Date Of Service', 'Provider', 'RVU', 'Category']].copy()
+
+
+def get_rvu_dataset(data_source='all', include_pipeline=False):
     """Generates the master consolidated dataset with RVU mappings.
 
     Args:
         data_source: 'all' (default) — both PC and VA data;
                      'pc'            — Primary Care only (skip VA);
                      'va'            — VA only (skip PC).
+        include_pipeline: When True, also load draft charges from
+                          'Draft Charges.csv' and append them with
+                          Source='pipeline'.  Confirmed rows get
+                          Source='confirmed'.
     """
     # 1. Load PC Data
     if data_source == 'va':
@@ -77,24 +99,7 @@ def get_rvu_dataset(data_source='all'):
         if pc is None or pc.empty:
             pc_df = pd.DataFrame()
         else:
-            pc['Provider'] = pc['Rendering Provider'].apply(data_loader.normalize_provider)
-            pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
-            pc['Total Charge Amount'] = pc.get('Service Charge Amount', pc.get('Total Charge Amount', 0))
-            if pc['Total Charge Amount'].dtype == object:
-                pc['Total Charge Amount'] = pc['Total Charge Amount'].astype(str).str.replace(r'[$,]', '', regex=True).astype(float)
-
-            # Apply RVU Logic
-            # Fix missing Procedure Codes
-            if 'Procedure Codes with Modifiers' not in pc.columns:
-                if 'Procedure Code' in pc.columns:
-                    pc['Procedure Codes with Modifiers'] = pc['Procedure Code']
-                else:
-                    pc['Procedure Codes with Modifiers'] = ''
-
-            pc['RVU'] = pc.apply(_get_clinical_rvu_val, axis=1)
-            pc['Category'] = pc.apply(_get_clinical_rvu_cat, axis=1)
-
-            pc_df = pc[['Date Of Service', 'Provider', 'RVU', 'Category']].copy()
+            pc_df = _process_pc_charges(pc)
 
     # 2. Load VA Data
     if data_source == 'pc':
@@ -121,71 +126,136 @@ def get_rvu_dataset(data_source='all'):
 
     # 3. Combine and Filter (>= 2025-10-01)
     if pc_df.empty and va_df.empty:
+        confirmed_df = pd.DataFrame()
+    else:
+        confirmed_df = pd.concat([pc_df, va_df], ignore_index=True)
+        confirmed_df['RVU'] = pd.to_numeric(confirmed_df['RVU'], errors='coerce').fillna(0)
+        confirmed_df = confirmed_df.dropna(subset=['Date Of Service'])
+        confirmed_df = confirmed_df[confirmed_df['Date Of Service'] >= '2025-10-01']
+
+    if include_pipeline:
+        confirmed_df['Source'] = 'confirmed'
+
+    # 4. Load pipeline (draft) data when requested
+    pipeline_df = pd.DataFrame()
+    if include_pipeline:
+        try:
+            draft_blob = data_loader.get_csv_from_db("Draft Charges.csv")
+            if draft_blob is not None:
+                import io as _io
+                draft_raw = pd.read_csv(draft_blob)
+                if not draft_raw.empty and 'Rendering Provider' in draft_raw.columns:
+                    draft_processed = _process_pc_charges(draft_raw)
+                    draft_processed = draft_processed.dropna(subset=['Date Of Service'])
+                    draft_processed = draft_processed[draft_processed['Date Of Service'] >= '2025-10-01']
+                    draft_processed['Source'] = 'pipeline'
+                    pipeline_df = draft_processed
+        except Exception:
+            pass  # Missing draft data is non-fatal; pipeline is supplementary
+
+    # 5. Combine confirmed + pipeline
+    parts = [df for df in [confirmed_df, pipeline_df] if not df.empty]
+    if not parts:
         return pd.DataFrame()
 
-    master_df = pd.concat([pc_df, va_df], ignore_index=True)
+    master_df = pd.concat(parts, ignore_index=True)
     master_df['RVU'] = pd.to_numeric(master_df['RVU'], errors='coerce').fillna(0)
-    master_df = master_df.dropna(subset=['Date Of Service'])
-    master_df = master_df[master_df['Date Of Service'] >= '2025-10-01']
-    # Removed hardcoded upper bound to automatically include latest data
 
-    # 4. Add Week Grouping
+    # 6. Add Week Grouping
     master_df['Week'] = data_loader.get_week_ending_friday(master_df['Date Of Service'])
     master_df['Week'] = pd.to_datetime(master_df['Week'])
     return master_df
 
-def generate_rvu_chart(view_type, data_source='all'):
+def generate_rvu_chart(view_type, data_source='all', include_pipeline=False):
     """Generates the required RVU chart (Company Wide, Individual, or Comparison) and returns the PNG bytes."""
-    df = get_rvu_dataset(data_source=data_source)
+    df = get_rvu_dataset(data_source=data_source, include_pipeline=include_pipeline)
     if df.empty:
         return _generate_error_chart("No RVU data available.")
+
+    has_pipeline = include_pipeline and 'Source' in df.columns and (df['Source'] == 'pipeline').any()
 
     # Sort data by Week explicitly
     df = df.sort_values('Week')
 
+    # Split into confirmed and pipeline before adding manual adjustment
+    if has_pipeline:
+        confirmed_only = df[df['Source'] == 'confirmed'].copy()
+        pipeline_only = df[df['Source'] == 'pipeline'].copy()
+    else:
+        confirmed_only = df.copy()
+        pipeline_only = pd.DataFrame()
+
     # Add 216 extra RVUs divided evenly across all available weeks for Anne Jenks
-    unique_weeks = df['Week'].unique()
+    # (applied to confirmed data only)
+    unique_weeks = confirmed_only['Week'].unique() if not confirmed_only.empty else df['Week'].unique()
     if len(unique_weeks) > 0:
         extra_per_week = 216.0 / len(unique_weeks)
         dummy_rows = pd.DataFrame({
             'Week': unique_weeks,
             'Provider': 'ANNE JENKS',
             'RVU': extra_per_week,
-            'Category': 'Manual Adjustment'
+            'Category': 'Manual Adjustment',
+            **({'Source': 'confirmed'} if has_pipeline else {}),
         })
-        df = pd.concat([df, dummy_rows], ignore_index=True)
-        # Re-sort after adding dummy rows
-        df = df.sort_values('Week')
+        confirmed_only = pd.concat([confirmed_only, dummy_rows], ignore_index=True)
+        confirmed_only = confirmed_only.sort_values('Week')
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
     valid_providers = data_loader.VALID_PROVIDERS
-    df = df[df['Provider'].isin(valid_providers)]
+    confirmed_only = confirmed_only[confirmed_only['Provider'].isin(valid_providers)]
+    if not pipeline_only.empty:
+        pipeline_only = pipeline_only[pipeline_only['Provider'].isin(valid_providers)]
 
     x_labels = []
 
     if view_type == 'Company Wide':
-        # Sum all RVUs per week
-        weekly = df.groupby('Week')['RVU'].sum().reset_index()
-        weekly = weekly.sort_values('Week')
+        # Sum confirmed RVUs per week
+        weekly = confirmed_only.groupby('Week')['RVU'].sum().reset_index().sort_values('Week')
         x_labels = weekly['Week'].dt.strftime('%Y-%m-%d').tolist()
 
         ax.plot(x_labels, weekly['RVU'].astype(float).tolist(), marker='o', color='#37a4db', linewidth=2.5, markersize=8, label='Total Earned RVUs')
+
+        if has_pipeline and not pipeline_only.empty:
+            pipe_weekly = pipeline_only.groupby('Week')['RVU'].sum().reset_index()
+            # Build confirmed+pipeline combined series aligned to confirmed weeks
+            weekly_combined = weekly.set_index('Week')['RVU'].copy()
+            for _, row in pipe_weekly.iterrows():
+                if row['Week'] in weekly_combined.index:
+                    weekly_combined[row['Week']] += row['RVU']
+                else:
+                    weekly_combined[row['Week']] = row['RVU']
+            weekly_combined = weekly_combined.sort_index()
+            pipe_x = weekly_combined.index.strftime('%Y-%m-%d').tolist()
+            ax.plot(pipe_x, weekly_combined.astype(float).tolist(), marker='o', color='#37a4db',
+                    linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
+
         ax.axhline(y=196, color='red', linestyle='--', linewidth=2, label='Company Breakeven (196)')
         ax.axhline(y=328, color='orange', linestyle='--', linewidth=2, label='Industry Standard (328)')
-
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
 
     elif view_type == 'Provider Comparison':
-        pivot_df = pd.pivot_table(df, values='RVU', index='Week', columns='Provider', aggfunc='sum', fill_value=0)
+        pivot_df = pd.pivot_table(confirmed_only, values='RVU', index='Week', columns='Provider', aggfunc='sum', fill_value=0)
         pivot_df = pivot_df.sort_index()
         x_labels = pivot_df.index.strftime('%Y-%m-%d').tolist()
 
         colors = ['#37a4db', '#2ecc71', '#f39c12', '#9b59b6']
+        pipeline_legend_added = False
         for i, provider in enumerate(valid_providers):
+            color = colors[i % len(colors)]
             if provider in pivot_df.columns:
                 y_vals = pivot_df[provider].astype(float).tolist()
-                ax.plot(x_labels, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
+                ax.plot(x_labels, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=color)
+
+            if has_pipeline and not pipeline_only.empty and provider in pipeline_only['Provider'].values:
+                pipe_prov = pipeline_only[pipeline_only['Provider'] == provider].groupby('Week')['RVU'].sum()
+                confirmed_prov = pivot_df[provider] if provider in pivot_df.columns else pd.Series(dtype=float)
+                combined = confirmed_prov.add(pipe_prov, fill_value=0).sort_index()
+                pipe_x = combined.index.strftime('%Y-%m-%d').tolist()
+                pipe_label = 'Pipeline (draft charges)' if not pipeline_legend_added else '_nolegend_'
+                pipeline_legend_added = True
+                ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', linewidth=1.5, markersize=5,
+                        linestyle='--', alpha=0.55, color=color, label=pipe_label)
 
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
         ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
@@ -194,15 +264,24 @@ def generate_rvu_chart(view_type, data_source='all'):
     elif view_type in [p.title() for p in valid_providers] or view_type.upper() in valid_providers:
         # Individual Provider
         provider_upper = view_type.upper()
-        # Find raw display name
         display_name = next((p.title() for p in valid_providers if p == provider_upper), view_type)
 
-        prov_data = df[df['Provider'] == provider_upper].groupby('Week')['RVU'].sum().reset_index().sort_values('Week')
+        prov_data = confirmed_only[confirmed_only['Provider'] == provider_upper].groupby('Week')['RVU'].sum().reset_index().sort_values('Week')
         if prov_data.empty:
             return _generate_error_chart(f"No RVU data found for {display_name}.")
 
         x_labels = prov_data['Week'].dt.strftime('%Y-%m-%d').tolist()
         ax.plot(x_labels, prov_data['RVU'].astype(float).tolist(), marker='o', color='#2ecc71', linewidth=2.5, markersize=8, label=f'{display_name} Earned RVUs')
+
+        if has_pipeline and not pipeline_only.empty:
+            pipe_prov = pipeline_only[pipeline_only['Provider'] == provider_upper].groupby('Week')['RVU'].sum()
+            if not pipe_prov.empty:
+                confirmed_prov = prov_data.set_index('Week')['RVU']
+                combined = confirmed_prov.add(pipe_prov, fill_value=0).sort_index()
+                pipe_x = combined.index.strftime('%Y-%m-%d').tolist()
+                ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', color='#2ecc71',
+                        linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
+
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
         ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
         ax.set_title(f'{display_name} - Weekly RVUs', fontsize=14, fontweight='bold')
@@ -265,14 +344,17 @@ def calculate_bonus(rvus):
     return bonus
 
 
-def get_quarterly_bonus_report(today=None, data_source='all'):
+def get_quarterly_bonus_report(today=None, data_source='all', include_pipeline=False):
     """Return per-provider bonus data for the current calendar quarter.
 
     Returns a dict with 'quarter_label', 'days_elapsed', 'days_in_quarter',
     and 'providers' (list of per-provider dicts).
 
     Args:
-        data_source: 'all' (default), 'pc', or 'va' — passed to get_rvu_dataset().
+        data_source:      'all' (default), 'pc', or 'va' — passed to get_rvu_dataset().
+        include_pipeline: When True, each provider dict gains 'pipeline_rvus'
+                          and 'total_with_pipeline' columns showing draft charges
+                          not yet approved.
     """
     if today is None:
         today = date.today()
@@ -290,7 +372,7 @@ def get_quarterly_bonus_report(today=None, data_source='all'):
     quarter_label = f"Q{q + 1} {today.year}"
 
     # Load RVU dataset and filter to current quarter
-    df = get_rvu_dataset(data_source=data_source)
+    df = get_rvu_dataset(data_source=data_source, include_pipeline=include_pipeline)
     if df.empty:
         return {
             'quarter_label': quarter_label,
@@ -305,18 +387,37 @@ def get_quarterly_bonus_report(today=None, data_source='all'):
     )
     qdf = df[mask]
 
+    has_source_col = 'Source' in qdf.columns
+
+    # Split confirmed vs pipeline quarters
+    if has_source_col:
+        qdf_confirmed = qdf[qdf['Source'] == 'confirmed']
+        qdf_pipeline = qdf[qdf['Source'] == 'pipeline']
+    else:
+        qdf_confirmed = qdf
+        qdf_pipeline = pd.DataFrame()
+
     # Include the Anne Jenks manual 216-RVU adjustment, prorated to this quarter
-    # (get_rvu_dataset spreads it across ALL weeks since 2025-10-01, so we
-    #  compute the per-quarter share based on weeks in this quarter vs total)
-    all_weeks = df['Week'].unique()
-    quarter_weeks = qdf['Week'].unique()
+    # (applied to confirmed data only)
+    if has_source_col:
+        all_weeks = df[df['Source'] == 'confirmed']['Week'].unique()
+        quarter_weeks = qdf_confirmed['Week'].unique()
+    else:
+        all_weeks = df['Week'].unique()
+        quarter_weeks = qdf['Week'].unique()
     if len(all_weeks) > 0 and len(quarter_weeks) > 0:
         adjustment_this_quarter = 216.0 * len(quarter_weeks) / len(all_weeks)
     else:
         adjustment_this_quarter = 0.0
 
-    # Sum RVUs per provider (from raw data, without the chart adjustment)
-    provider_rvus = qdf.groupby('Provider')['RVU'].sum()
+    # Sum confirmed RVUs per provider
+    provider_rvus = qdf_confirmed.groupby('Provider')['RVU'].sum()
+
+    # Sum pipeline RVUs per provider (empty if not requested)
+    provider_pipeline_rvus = (
+        qdf_pipeline.groupby('Provider')['RVU'].sum()
+        if not qdf_pipeline.empty else pd.Series(dtype=float)
+    )
 
     providers = []
     for prov in data_loader.VALID_PROVIDERS:
@@ -335,13 +436,20 @@ def get_quarterly_bonus_report(today=None, data_source='all'):
             projected_rvus = 0.0
         projected_bonus = calculate_bonus(projected_rvus)
 
-        providers.append({
+        entry = {
             'provider': prov.title(),
             'rvus_earned': round(rvus_earned, 1),
             'bonus_earned': round(bonus_earned, 2),
             'projected_rvus': round(projected_rvus, 1),
             'projected_bonus': round(projected_bonus, 2),
-        })
+        }
+
+        if include_pipeline:
+            pipeline_rvus = float(provider_pipeline_rvus.get(prov, 0.0))
+            entry['pipeline_rvus'] = round(pipeline_rvus, 1)
+            entry['total_with_pipeline'] = round(rvus_earned + pipeline_rvus, 1)
+
+        providers.append(entry)
 
     return {
         'quarter_label': quarter_label,

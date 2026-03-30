@@ -551,6 +551,161 @@ def fetch_charges(start_date: date, end_date: date) -> pd.DataFrame:
     return df
 
 
+def fetch_draft_charges() -> pd.DataFrame:
+    """
+    Fetch draft/pending charges from the Tebra API for the last 60 days.
+
+    Uses EncounterStatus=Draft and IncludeUnapprovedCharges=true in the
+    ChargeFilter.  The 60-day window fits in a single API call (under the
+    55-day chunk limit, so one chunk is used).
+
+    PII RULES: same as fetch_charges — Patient ID and Encounter ID are hashed
+    immediately; patient names/DOBs/addresses are never requested.
+
+    Returns:
+        DataFrame with OUTPUT_COLUMNS plus a '_charge_status' column = 'draft'.
+        Returns an empty DataFrame on failure (logs the error).
+
+    Raises:
+        RuntimeError: If required env vars are missing.
+    """
+    customer_key = os.environ.get("TEBRAKEY", "")
+    username = os.environ.get("TEBRA_USER", "")
+    password = os.environ.get("TEBRA_PASSWORD", "")
+    practice_name = "Jenks Family Medicine, PLLC"
+
+    if not customer_key:
+        raise RuntimeError("TEBRAKEY env var is not set.")
+    if not username or not password:
+        raise RuntimeError("TEBRA_USER and TEBRA_PASSWORD env vars are required.")
+
+    today = date.today()
+    start_date = today - timedelta(days=60)
+    end_date = today - timedelta(days=1)
+
+    start_str = start_date.strftime("%m/%d/%Y")
+    end_str = end_date.strftime("%m/%d/%Y")
+    logger.info("Tebra draft charge sync: %s to %s", start_str, end_str)
+
+    # ChargeFilter xs:sequence order per XSD (alphabetical):
+    #   EncounterStatus → FromServiceDate → IncludeUnapprovedCharges → PracticeName → ToServiceDate
+    envelope = f"""<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope
+    xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:kar="http://www.kareo.com/api/schemas/">
+  <soap:Header/>
+  <soap:Body>
+    <kar:GetCharges>
+      <kar:request>
+        <kar:RequestHeader>
+          <kar:ClientVersion>{CLIENT_VERSION}</kar:ClientVersion>
+          <kar:CustomerKey>{customer_key}</kar:CustomerKey>
+          <kar:Password>{password}</kar:Password>
+          <kar:User>{username}</kar:User>
+        </kar:RequestHeader>
+        <kar:Fields>
+          <kar:AdjustedCharges>true</kar:AdjustedCharges>
+          <kar:AllowedAmount>true</kar:AllowedAmount>
+          <kar:AppointmentID>true</kar:AppointmentID>
+          <kar:BatchNumber>true</kar:BatchNumber>
+          <kar:BilledTo>true</kar:BilledTo>
+          <kar:CaseName>true</kar:CaseName>
+          <kar:CasePayerScenario>true</kar:CasePayerScenario>
+          <kar:CopayAmount>true</kar:CopayAmount>
+          <kar:CopayCategory>true</kar:CopayCategory>
+          <kar:CopayMethod>true</kar:CopayMethod>
+          <kar:CopayReference>true</kar:CopayReference>
+          <kar:CreatedDate>true</kar:CreatedDate>
+          <kar:DoNotSendClaimElectronically>true</kar:DoNotSendClaimElectronically>
+          <kar:DoNotSendElectronicallyToSecondary>true</kar:DoNotSendElectronicallyToSecondary>
+          <kar:EClaimNote>true</kar:EClaimNote>
+          <kar:EClaimNoteType>true</kar:EClaimNoteType>
+          <kar:EncounterDiagnosisID1>true</kar:EncounterDiagnosisID1>
+          <kar:EncounterDiagnosisID2>true</kar:EncounterDiagnosisID2>
+          <kar:EncounterDiagnosisID3>true</kar:EncounterDiagnosisID3>
+          <kar:EncounterDiagnosisID4>true</kar:EncounterDiagnosisID4>
+          <kar:EncounterID>true</kar:EncounterID>
+          <kar:EncounterProcedureID>true</kar:EncounterProcedureID>
+          <kar:EncounterStatus>true</kar:EncounterStatus>
+          <kar:ExpectedAmount>true</kar:ExpectedAmount>
+          <kar:HospitalizationEndDate>true</kar:HospitalizationEndDate>
+          <kar:HospitalizationStartDate>true</kar:HospitalizationStartDate>
+          <kar:ID>true</kar:ID>
+          <kar:InsuranceBalance>true</kar:InsuranceBalance>
+          <kar:LastModifiedDate>true</kar:LastModifiedDate>
+          <kar:LineNote>true</kar:LineNote>
+          <kar:OtherAdjustment>true</kar:OtherAdjustment>
+          <kar:PatientID>true</kar:PatientID>
+          <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
+          <kar:PostingDate>true</kar:PostingDate>
+          <kar:PracticeID>true</kar:PracticeID>
+          <kar:PracticeName>true</kar:PracticeName>
+          <kar:PrimaryInsuranceInsuranceContractAdjustment>true</kar:PrimaryInsuranceInsuranceContractAdjustment>
+          <kar:PrimaryInsuranceInsurancePayment>true</kar:PrimaryInsuranceInsurancePayment>
+          <kar:ProcedureCode>true</kar:ProcedureCode>
+          <kar:ProcedureModifier1>true</kar:ProcedureModifier1>
+          <kar:ProcedureModifier2>true</kar:ProcedureModifier2>
+          <kar:ProcedureModifier3>true</kar:ProcedureModifier3>
+          <kar:ProcedureModifier4>true</kar:ProcedureModifier4>
+          <kar:RenderingProviderID>true</kar:RenderingProviderID>
+          <kar:RenderingProviderName>true</kar:RenderingProviderName>
+          <kar:SecondaryInsuranceInsuranceContractAdjustment>true</kar:SecondaryInsuranceInsuranceContractAdjustment>
+          <kar:SecondaryInsuranceInsurancePayment>true</kar:SecondaryInsuranceInsurancePayment>
+          <kar:ServiceStartDate>true</kar:ServiceStartDate>
+          <kar:TertiaryInsuranceInsuranceContractAdjustment>true</kar:TertiaryInsuranceInsuranceContractAdjustment>
+          <kar:TertiaryInsuranceInsurancePayment>true</kar:TertiaryInsuranceInsurancePayment>
+          <kar:TotalCharges>true</kar:TotalCharges>
+          <kar:UnitCharge>true</kar:UnitCharge>
+        </kar:Fields>
+        <kar:Filter>
+          <kar:EncounterStatus>Draft</kar:EncounterStatus>
+          <kar:FromServiceDate>{start_str}</kar:FromServiceDate>
+          <kar:IncludeUnapprovedCharges>true</kar:IncludeUnapprovedCharges>
+          <kar:PracticeName>{practice_name}</kar:PracticeName>
+          <kar:ToServiceDate>{end_str}</kar:ToServiceDate>
+        </kar:Filter>
+      </kar:request>
+    </kar:GetCharges>
+  </soap:Body>
+</soap:Envelope>"""
+
+    logger.info(
+        "Tebra draft GetCharges RequestHeader: ClientVersion=%s CustomerKey=%s User=%s Password=***",
+        CLIENT_VERSION, customer_key, username,
+    )
+
+    try:
+        response = requests.post(
+            SOAP_ENDPOINT,
+            data=envelope.encode("utf-8"),
+            headers={
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": f'"{SOAP_ACTION_GET_CHARGES}"',
+            },
+            timeout=60,
+        )
+    except requests.RequestException as exc:
+        logger.warning("Tebra draft charge HTTP request failed: %s", exc)
+        return pd.DataFrame(columns=OUTPUT_COLUMNS + ["_charge_status"])
+
+    if response.status_code != 200:
+        logger.warning("Tebra draft charge non-200 response (status %d)", response.status_code)
+        return pd.DataFrame(columns=OUTPUT_COLUMNS + ["_charge_status"])
+
+    rows = _parse_charges_response(response.text)
+
+    if not rows:
+        logger.info("Tebra draft sync: 0 draft charges found for %s to %s", start_str, end_str)
+        return pd.DataFrame(columns=OUTPUT_COLUMNS + ["_charge_status"])
+
+    df = pd.DataFrame(rows, columns=OUTPUT_COLUMNS)
+    df["_charge_status"] = "draft"
+    df = df.drop_duplicates()
+
+    logger.info("Tebra draft sync complete: %d draft records fetched", len(df))
+    return df
+
+
 def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFrame:
     """
     Convenience wrapper for incremental sync.

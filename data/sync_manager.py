@@ -351,6 +351,61 @@ def run_sheets_sync() -> dict:
     return result
 
 
+def run_draft_sync() -> dict:
+    """
+    Fetch draft/pending charges and store them in 'Draft Charges.csv'.
+
+    Draft charges are transient (they get promoted to approved charges
+    eventually), so this always overwrites the existing file rather than
+    merging.  The data is kept separate from 'Charges Export.csv' so it
+    never contaminates the primary confirmed-charge dataset.
+
+    Returns:
+        dict with keys: status, records_fetched, error_message
+    """
+    from models import db, SyncLog
+    from data.tebra_sync import fetch_draft_charges
+
+    log = SyncLog(
+        sync_type="draft",
+        status="running",
+        started_at=datetime.now(timezone.utc),
+    )
+    db.session.add(log)
+    db.session.commit()
+
+    result = {"status": "error", "records_fetched": 0, "error_message": None}
+
+    try:
+        draft_df = fetch_draft_charges()
+        result["records_fetched"] = len(draft_df)
+
+        # Always overwrite — drafts are transient, no merge needed
+        _save_csv_to_db("Draft Charges.csv", draft_df)
+
+        log.status = "success"
+        log.records_fetched = result["records_fetched"]
+        log.records_new = result["records_fetched"]
+        log.completed_at = datetime.now(timezone.utc)
+        log.last_sync_date = datetime.now(timezone.utc)
+        db.session.commit()
+
+        result["status"] = "success"
+
+    except Exception as exc:
+        error_msg = str(exc)
+        logger.error("Draft charge sync failed: %s", error_msg)
+
+        log.status = "error"
+        log.error_message = error_msg[:2000]
+        log.completed_at = datetime.now(timezone.utc)
+        db.session.commit()
+
+        result["error_message"] = error_msg
+
+    return result
+
+
 def run_all_syncs() -> dict:
     """
     Run both Tebra and Sheets syncs sequentially.
@@ -369,14 +424,18 @@ def run_all_syncs() -> dict:
     last_sync_date = last_tebra.last_sync_date if last_tebra else None
 
     tebra_result = run_tebra_sync(last_sync_date=last_sync_date)
+    draft_result = run_draft_sync()
     sheets_result = run_sheets_sync()
 
     return {
         "tebra": tebra_result,
+        "draft": draft_result,
         "sheets": sheets_result,
         "overall_status": (
             "success"
-            if tebra_result["status"] == "success" and sheets_result["status"] == "success"
+            if tebra_result["status"] == "success"
+            and draft_result["status"] == "success"
+            and sheets_result["status"] == "success"
             else "partial_error"
         ),
     }

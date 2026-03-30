@@ -390,8 +390,9 @@ def create_app():
         source = request.args.get('source', 'all')
         if source not in ('all', 'pc', 'va'):
             source = 'all'
+        pipeline = request.args.get('pipeline', 'false').lower() == 'true'
         try:
-            image_bytes = rvu_analytics.generate_rvu_chart(view_type, data_source=source)
+            image_bytes = rvu_analytics.generate_rvu_chart(view_type, data_source=source, include_pipeline=pipeline)
             response = make_response(image_bytes)
             response.headers.set('Content-Type', 'image/png')
             return response
@@ -407,8 +408,9 @@ def create_app():
         source = request.args.get('source', 'all')
         if source not in ('all', 'pc', 'va'):
             source = 'all'
+        pipeline = request.args.get('pipeline', 'false').lower() == 'true'
         try:
-            data = rvu_analytics.get_quarterly_bonus_report(data_source=source)
+            data = rvu_analytics.get_quarterly_bonus_report(data_source=source, include_pipeline=pipeline)
             return jsonify(data)
         except Exception as e:
             app.logger.error("Error generating bonus report: %s", e, exc_info=True)
@@ -439,8 +441,8 @@ def create_app():
 
         sync_type = request.json.get('sync_type', 'all') if request.is_json else request.form.get('sync_type', 'all')
 
-        if sync_type not in ('tebra', 'sheets', 'all'):
-            return jsonify({'error': f"Invalid sync_type '{sync_type}'. Must be 'tebra', 'sheets', or 'all'."}), 400
+        if sync_type not in ('tebra', 'sheets', 'all', 'draft'):
+            return jsonify({'error': f"Invalid sync_type '{sync_type}'. Must be 'tebra', 'sheets', 'draft', or 'all'."}), 400
 
         try:
             from data import sync_manager
@@ -452,6 +454,8 @@ def create_app():
                             sync_manager.run_tebra_sync()
                         elif sync_type == 'sheets':
                             sync_manager.run_sheets_sync()
+                        elif sync_type == 'draft':
+                            sync_manager.run_draft_sync()
                         else:
                             sync_manager.run_all_syncs()
                     except Exception as exc:
@@ -510,7 +514,7 @@ def create_app():
             return jsonify({'error': 'Unauthorized'}), 401
 
         sync_type = request.args.get('sync_type', 'all')
-        if sync_type not in ('tebra', 'sheets', 'all'):
+        if sync_type not in ('tebra', 'sheets', 'all', 'draft'):
             sync_type = 'all'
 
         try:
@@ -519,6 +523,8 @@ def create_app():
                 result = sync_manager.run_tebra_sync()
             elif sync_type == 'sheets':
                 result = sync_manager.run_sheets_sync()
+            elif sync_type == 'draft':
+                result = sync_manager.run_draft_sync()
             else:
                 result = sync_manager.run_all_syncs()
 
