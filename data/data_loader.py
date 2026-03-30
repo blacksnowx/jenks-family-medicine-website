@@ -224,8 +224,22 @@ def load_pc_data(csv_path=CHARGES_CSV):
     if df.columns.duplicated().any():
         df = df.loc[:, ~df.columns.duplicated()]
 
+    # Deduplicate by Encounter Procedure ID (primary) or all columns (fallback).
+    # Defensive guard against double-synced data in the DB.
+    epid_col = 'Encounter Procedure ID'
+    if epid_col in df.columns and df[epid_col].astype(str).str.strip().ne('').any():
+        before = len(df)
+        df = df.drop_duplicates(subset=[epid_col], keep='first')
+        if len(df) < before:
+            import logging
+            logging.getLogger(__name__).warning(
+                "load_pc_data: dropped %d duplicate rows by Encounter Procedure ID", before - len(df)
+            )
+    else:
+        df = df.drop_duplicates()
+
     df['Date Of Service'] = pd.to_datetime(df['Date Of Service'], errors='coerce')
-    
+
     # Clean currency columns
     currency_cols = [
         'Service Charge Amount', 'Pri Ins Insurance Contract Adjustment', 

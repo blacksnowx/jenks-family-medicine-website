@@ -108,6 +108,24 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
     if new_data.empty:
         return existing.copy(), 0
 
+    # Dedup the existing blob in place — guards against historical duplicates
+    # that may have accumulated before this logic was in place.
+    epid_col_check = "Encounter Procedure ID"
+    has_epid_existing_pre = (
+        epid_col_check in existing.columns
+        and existing[epid_col_check].astype(str).str.strip().ne("").any()
+    )
+    before_existing = len(existing)
+    if has_epid_existing_pre:
+        existing = existing.drop_duplicates(subset=[epid_col_check], keep="first")
+    else:
+        existing = existing.drop_duplicates()
+    if len(existing) < before_existing:
+        logger.warning(
+            "Charges merge: removed %d duplicate rows from existing blob",
+            before_existing - len(existing),
+        )
+
     # ---- Primary dedup: by Encounter Procedure ID (when present) ----
     epid_col = "Encounter Procedure ID"
     has_epid_new = epid_col in new_data.columns and new_data[epid_col].astype(str).str.strip().ne("").any()
@@ -164,6 +182,13 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
         [existing.reindex(columns=all_cols), truly_new.reindex(columns=all_cols)],
         ignore_index=True,
     )
+
+    # Final safety dedup on the merged result
+    epid_col_final = "Encounter Procedure ID"
+    if epid_col_final in merged.columns and merged[epid_col_final].astype(str).str.strip().ne("").any():
+        merged = merged.drop_duplicates(subset=[epid_col_final], keep="first")
+    else:
+        merged = merged.drop_duplicates()
 
     logger.info("Charges merge: %d new records added (total: %d)", new_count, len(merged))
     return merged, new_count
