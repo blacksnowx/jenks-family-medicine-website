@@ -146,11 +146,30 @@ def get_rvu_dataset(data_source='all', include_pipeline=False):
             if draft_blob is not None:
                 draft_raw = pd.read_csv(draft_blob)
                 if not draft_raw.empty and 'Rendering Provider' in draft_raw.columns:
-                    draft_processed = _process_pc_charges(draft_raw)
-                    draft_processed = draft_processed.dropna(subset=['Date Of Service'])
-                    draft_processed = draft_processed[draft_processed['Date Of Service'] >= '2025-10-01']
-                    draft_processed['Source'] = 'pipeline'
-                    pipeline_df = draft_processed
+                    # Dedup: remove draft charges that already exist in confirmed
+                    # data (charge was drafted, then approved between syncs).
+                    if 'Encounter Procedure ID' in draft_raw.columns:
+                        confirmed_blob = data_loader.get_csv_from_db("Charges Export.csv")
+                        if confirmed_blob is not None:
+                            confirmed_raw = pd.read_csv(confirmed_blob)
+                            if 'Encounter Procedure ID' in confirmed_raw.columns:
+                                confirmed_epids = set(confirmed_raw['Encounter Procedure ID'].dropna().astype(str))
+                                before = len(draft_raw)
+                                draft_raw = draft_raw[~draft_raw['Encounter Procedure ID'].astype(str).isin(confirmed_epids)]
+                                removed = before - len(draft_raw)
+                                if removed > 0:
+                                    import logging
+                                    logging.getLogger(__name__).warning(
+                                        "Pipeline dedup: removed %d draft charges already in confirmed data "
+                                        "(Encounter Procedure ID overlap — prevented double-counting)",
+                                        removed,
+                                    )
+                    if not draft_raw.empty:
+                        draft_processed = _process_pc_charges(draft_raw)
+                        draft_processed = draft_processed.dropna(subset=['Date Of Service'])
+                        draft_processed = draft_processed[draft_processed['Date Of Service'] >= '2025-10-01']
+                        draft_processed['Source'] = 'pipeline'
+                        pipeline_df = draft_processed
         except Exception:
             pass  # Missing draft data is non-fatal; pipeline is supplementary
 
