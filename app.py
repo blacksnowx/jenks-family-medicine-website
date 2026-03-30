@@ -387,8 +387,11 @@ def create_app():
     @login_required
     def rvu_image():
         view_type = request.args.get('view_type', 'Company Wide')
+        source = request.args.get('source', 'all')
+        if source not in ('all', 'pc', 'va'):
+            source = 'all'
         try:
-            image_bytes = rvu_analytics.generate_rvu_chart(view_type)
+            image_bytes = rvu_analytics.generate_rvu_chart(view_type, data_source=source)
             response = make_response(image_bytes)
             response.headers.set('Content-Type', 'image/png')
             return response
@@ -401,8 +404,11 @@ def create_app():
     def bonus_report():
         if current_user.role != 'Owner':
             return jsonify({'error': 'Forbidden'}), 403
+        source = request.args.get('source', 'all')
+        if source not in ('all', 'pc', 'va'):
+            source = 'all'
         try:
-            data = rvu_analytics.get_quarterly_bonus_report()
+            data = rvu_analytics.get_quarterly_bonus_report(data_source=source)
             return jsonify(data)
         except Exception as e:
             app.logger.error("Error generating bonus report: %s", e, exc_info=True)
