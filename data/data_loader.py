@@ -17,26 +17,29 @@ VALID_PROVIDERS = ['ANNE JENKS', 'EHRIN IRVIN', 'HEATHER MAYO', 'SARAH SUGGS']
 
 # Maps raw CSV values → canonical uppercase names
 PROVIDER_ALIASES = {
-    'Jenks, Anne ':      'ANNE JENKS',
-    'REDD, DAVID ':      'ANNE JENKS',
-    'Anne Jenks, APRN':  'ANNE JENKS',
-    'DAVID REDD, MD':    'ANNE JENKS',
-    'IRVIN, EHRIN ':     'EHRIN IRVIN',
-    'Irvin, Ehrin':      'EHRIN IRVIN',
-    'EHRIN IRVIN, FNP':  'EHRIN IRVIN',
-    'Ehrin Irvin, FNP-C': 'EHRIN IRVIN',
-    'Ehrin Irvin, APRN': 'EHRIN IRVIN',
-    'Ehrin Irvin, NP':   'EHRIN IRVIN',
-    'Ehrin Irvin, ARNP': 'EHRIN IRVIN',
-    'Ehrin Irvin':       'EHRIN IRVIN',
-    'SUGGS, SARAH ':     'SARAH SUGGS',
-    'SARAH SUGGS, NP':   'SARAH SUGGS',
-    'Sarah Suggs':       'SARAH SUGGS',
-    'Sarah Suggs ':      'SARAH SUGGS',
-    'sArah Suggs':       'SARAH SUGGS',
-    'SArah Suggs':       'SARAH SUGGS',
-    'Heather Mayo':      'HEATHER MAYO',
-    '0':                 'ANNE JENKS',  # legacy VA data quirk
+    'Jenks, Anne ':          'ANNE JENKS',
+    'REDD, DAVID ':          'ANNE JENKS',
+    'Anne Jenks, APRN':      'ANNE JENKS',
+    'DAVID REDD, MD':        'ANNE JENKS',
+    'Anne Renee Jenks, APRN': 'ANNE JENKS',  # Tebra RenderingProviderName format
+    'IRVIN, EHRIN ':         'EHRIN IRVIN',
+    'Irvin, Ehrin':          'EHRIN IRVIN',
+    'EHRIN IRVIN, FNP':      'EHRIN IRVIN',
+    'EHRIN M. IRVIN, FNP':   'EHRIN IRVIN',  # Tebra RenderingProviderName format
+    'Ehrin Irvin, FNP-C':    'EHRIN IRVIN',
+    'Ehrin Irvin, APRN':     'EHRIN IRVIN',
+    'Ehrin Irvin, NP':       'EHRIN IRVIN',
+    'Ehrin Irvin, ARNP':     'EHRIN IRVIN',
+    'Ehrin Irvin':           'EHRIN IRVIN',
+    'SUGGS, SARAH ':         'SARAH SUGGS',
+    'SARAH SUGGS, NP':       'SARAH SUGGS',
+    'SARAH F SUGGS, NP':     'SARAH SUGGS',  # Tebra RenderingProviderName format
+    'Sarah Suggs':           'SARAH SUGGS',
+    'Sarah Suggs ':          'SARAH SUGGS',
+    'sArah Suggs':           'SARAH SUGGS',
+    'SArah Suggs':           'SARAH SUGGS',
+    'Heather Mayo':          'HEATHER MAYO',
+    '0':                     'ANNE JENKS',  # legacy VA data quirk
 }
 
 # VA fee schedule

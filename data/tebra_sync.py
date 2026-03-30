@@ -70,8 +70,9 @@ OUTPUT_COLUMNS = [
     "Other Adjustment",
     "Procedure Code",
     "Procedure Codes with Modifiers",
-    "Encounter ID",   # hashed with eid_ prefix
-    "Patient ID",     # hashed with pid_ prefix
+    "Encounter ID",            # hashed with eid_ prefix
+    "Patient ID",              # hashed with pid_ prefix
+    "Encounter Procedure ID",  # unique charge line ID (not PHI)
 ]
 
 # ---------------------------------------------------------------------------
@@ -235,6 +236,7 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:ProcedureModifier3>true</kar:ProcedureModifier3>
           <kar:ProcedureModifier4>true</kar:ProcedureModifier4>
           <kar:EncounterID>true</kar:EncounterID>
+          <kar:EncounterProcedureID>true</kar:EncounterProcedureID>
           <kar:PatientID>true</kar:PatientID>
         </kar:Fields>
         <kar:Filter>
@@ -376,6 +378,7 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
             "Procedure Codes with Modifiers":            proc_with_mods,
             "Encounter ID":                              hashed_encounter_id,
             "Patient ID":                                hashed_patient_id,
+            "Encounter Procedure ID":                    _parse_text(charge, "EncounterProcedureID"),
         }
         rows.append(row)
 

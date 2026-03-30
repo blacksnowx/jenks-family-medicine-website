@@ -93,13 +93,14 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
     """
     Merge new Tebra charge rows into the existing Charges Export DataFrame.
 
-    Dedup key: (Date Of Service, Encounter ID, Procedure Code)
+    Dedup strategy:
+      - Primary: "Encounter Procedure ID" (unique charge line ID from Tebra) when present.
+      - Fallback: composite (Date Of Service, Encounter ID, Procedure Code, Service Charge Amount)
+        for rows where Encounter Procedure ID is absent (e.g. manually-uploaded CSVs).
 
     Returns:
         (merged_df, new_record_count)
     """
-    dedup_cols = ["Date Of Service", "Encounter ID", "Procedure Code"]
-
     if existing.empty:
         logger.info("No existing charges — using fetched data as baseline.")
         return new_data.copy(), len(new_data)
@@ -107,33 +108,45 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
     if new_data.empty:
         return existing.copy(), 0
 
-    # Ensure dedup columns exist in both DataFrames
-    for col in dedup_cols:
-        if col not in existing.columns:
-            existing[col] = ""
-        if col not in new_data.columns:
-            new_data[col] = ""
+    # ---- Primary dedup: by Encounter Procedure ID (when present) ----
+    epid_col = "Encounter Procedure ID"
+    has_epid_new = epid_col in new_data.columns and new_data[epid_col].astype(str).str.strip().ne("").any()
+    has_epid_existing = epid_col in existing.columns and existing[epid_col].astype(str).str.strip().ne("").any()
 
-    # Build a set of existing composite keys for fast lookup.
-    # Normalize dates to M/D/YYYY so CSV dates (1/15/2023) and API ISO dates
-    # (2023-01-15T00:00:00) compare as equal.
-    existing_keys = set(
-        zip(
-            existing["Date Of Service"].apply(_normalize_date_str),
-            existing["Encounter ID"].astype(str),
-            existing["Procedure Code"].astype(str),
+    if has_epid_new and has_epid_existing:
+        existing_epids = set(
+            existing[epid_col].astype(str).str.strip()
+        ) - {"", "nan"}
+        new_mask = ~new_data[epid_col].astype(str).str.strip().isin(existing_epids)
+    else:
+        # ---- Fallback: composite key ----
+        dedup_cols = ["Date Of Service", "Encounter ID", "Procedure Code", "Service Charge Amount"]
+        for col in dedup_cols:
+            if col not in existing.columns:
+                existing[col] = ""
+            if col not in new_data.columns:
+                new_data[col] = ""
+
+        # Normalize dates to M/D/YYYY so CSV dates (1/15/2023) and API ISO dates
+        # (2023-01-15T00:00:00) compare as equal.
+        existing_keys = set(
+            zip(
+                existing["Date Of Service"].apply(_normalize_date_str),
+                existing["Encounter ID"].astype(str),
+                existing["Procedure Code"].astype(str),
+                existing["Service Charge Amount"].astype(str),
+            )
         )
-    )
+        new_mask = ~new_data.apply(
+            lambda r: (
+                _normalize_date_str(r["Date Of Service"]),
+                str(r["Encounter ID"]),
+                str(r["Procedure Code"]),
+                str(r["Service Charge Amount"]),
+            ) in existing_keys,
+            axis=1,
+        )
 
-    # Find rows in new_data that don't exist in existing
-    new_mask = ~new_data.apply(
-        lambda r: (
-            _normalize_date_str(r["Date Of Service"]),
-            str(r["Encounter ID"]),
-            str(r["Procedure Code"]),
-        ) in existing_keys,
-        axis=1,
-    )
     truly_new = new_data[new_mask]
     new_count = len(truly_new)
 
