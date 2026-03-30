@@ -12,6 +12,8 @@ import requests
 from models import db, User, BannerSettings, ReferenceData, SyncLog
 from datetime import timezone
 from data import rvu_analytics
+from data import revenue_per_rvu
+from data import new_patients_analytics
 from data.data_loader import get_database_url
 from data import owner_analytics
 from data.pii_utils import hash_pii_columns
@@ -415,6 +417,58 @@ def create_app():
         except Exception as e:
             app.logger.error("Error generating bonus report: %s", e, exc_info=True)
             return jsonify({'error': 'Failed to generate report'}), 500
+
+    @app.route('/admin/reports/revenue_per_rvu')
+    @login_required
+    def revenue_per_rvu_report():
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        try:
+            data = revenue_per_rvu.get_revenue_per_rvu_report()
+            return jsonify(data)
+        except Exception as e:
+            app.logger.error("Error generating revenue/RVU report: %s", e, exc_info=True)
+            return jsonify({'error': 'Failed to generate report'}), 500
+
+    @app.route('/admin/reports/revenue_per_rvu_chart')
+    @login_required
+    def revenue_per_rvu_chart():
+        if current_user.role != 'Owner':
+            return 'Forbidden', 403
+        try:
+            image_bytes = revenue_per_rvu.generate_revenue_per_rvu_chart()
+            response = make_response(image_bytes)
+            response.headers.set('Content-Type', 'image/png')
+            return response
+        except Exception as e:
+            app.logger.error("Error generating revenue/RVU chart: %s", e, exc_info=True)
+            return 'Error generating chart', 500
+
+    @app.route('/admin/reports/new_patients')
+    @login_required
+    def new_patients_report():
+        if current_user.role not in ('Owner', 'Admin'):
+            return jsonify({'error': 'Access denied'}), 403
+        try:
+            data = new_patients_analytics.get_new_patients_report()
+            return jsonify(data)
+        except Exception as e:
+            app.logger.error("Error generating new patients report: %s", e, exc_info=True)
+            return jsonify({'error': 'Failed to generate report'}), 500
+
+    @app.route('/admin/reports/new_patients_chart')
+    @login_required
+    def new_patients_chart():
+        if current_user.role not in ('Owner', 'Admin'):
+            return 'Forbidden', 403
+        try:
+            image_bytes = new_patients_analytics.generate_new_patients_chart()
+            response = make_response(image_bytes)
+            response.headers.set('Content-Type', 'image/png')
+            return response
+        except Exception as e:
+            app.logger.error("Error generating new patients chart: %s", e, exc_info=True)
+            return 'Error generating chart', 500
 
     @app.route('/admin/reports/owner_analytics')
     @login_required

@@ -427,6 +427,137 @@
                 </div>
             </div>
             {% endif %}
+
+            {% if current_user.role == 'Owner' %}
+            <!-- Revenue per RVU Report (Owner only) -->
+            <div class="admin-panel" style="margin-top: 2rem;">
+                <h2>📐 Revenue per RVU</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Actual $/RVU ratio based on real allowed amounts (PC) and VA fee schedule — compared to the $80 estimate.
+                </p>
+
+                <!-- Summary cards -->
+                <div id="rpr-summary" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Actual $/RVU</div>
+                        <div id="rpr-actual-rate" style="font-size:1.6rem;font-weight:700;color:#111827;">—</div>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Estimate $/RVU</div>
+                        <div style="font-size:1.6rem;font-weight:700;color:#6b7280;">$80</div>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Delta vs Estimate</div>
+                        <div id="rpr-delta" style="font-size:1.6rem;font-weight:700;">—</div>
+                    </div>
+                </div>
+
+                <!-- Trend chart -->
+                <div style="border:1px solid #e5e7eb;border-radius:var(--radius-md);padding:1rem;background:#fafafa;text-align:center;margin-bottom:1.5rem;">
+                    <img id="rpr-chart-img" src="{{ url_for('revenue_per_rvu_chart') }}" alt="Revenue per RVU trend"
+                        style="max-width:100%;height:auto;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1);">
+                </div>
+
+                <!-- By provider table -->
+                <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;">By Provider (all-time since Oct 1, 2025)</h3>
+                <div style="overflow-x:auto;margin-bottom:1.5rem;">
+                    <table id="rpr-provider-table" style="width:100%;border-collapse:collapse;font-size:.95rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;text-align:left;">
+                                <th style="padding:.75rem 1rem;border-bottom:2px solid #e2e8f0;">Provider</th>
+                                <th style="padding:.75rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Total RVUs</th>
+                                <th style="padding:.75rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Total Revenue</th>
+                                <th style="padding:.75rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">$/RVU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpr-provider-tbody">
+                            <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Weekly breakdown table -->
+                <h3 style="font-size:1rem;font-weight:600;margin-bottom:.75rem;">Weekly Breakdown</h3>
+                <div style="overflow-x:auto;max-height:320px;overflow-y:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:.9rem;">
+                        <thead style="position:sticky;top:0;">
+                            <tr style="background:#f1f5f9;text-align:left;">
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;">Week Ending</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">RVUs</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Revenue</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">$/RVU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpr-weekly-tbody">
+                            <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Quarterly summary -->
+                <h3 id="rpr-quarterly-heading" style="font-size:1rem;font-weight:600;margin:1.5rem 0 .75rem;">Quarterly Summary</h3>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:.9rem;">
+                        <thead>
+                            <tr style="background:#f1f5f9;text-align:left;">
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;">Provider</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Q RVUs</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Q Revenue</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">$/RVU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rpr-quarterly-tbody">
+                            <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if current_user.role in ['Owner', 'Admin'] %}
+            <!-- New Patients Report (Owner + Admin) -->
+            <div class="admin-panel" style="margin-top: 2rem;">
+                <h2>🆕 New Patients</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Weekly count of new patients whose first charge (completed or draft) falls in that week. Based on hashed Patient IDs — counts only, no individual data.
+                </p>
+
+                <!-- Summary cards -->
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
+                    <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Total New Patients</div>
+                        <div id="np-total" style="font-size:1.6rem;font-weight:700;color:#111827;">—</div>
+                    </div>
+                    <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
+                        <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Avg / Week</div>
+                        <div id="np-avg" style="font-size:1.6rem;font-weight:700;color:#111827;">—</div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div style="border:1px solid #e5e7eb;border-radius:var(--radius-md);padding:1rem;background:#fafafa;text-align:center;margin-bottom:1.5rem;">
+                    <img id="np-chart-img" src="{{ url_for('new_patients_chart') }}" alt="New patients per week"
+                        style="max-width:100%;height:auto;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.1);">
+                </div>
+
+                <!-- Weekly table -->
+                <div style="overflow-x:auto;max-height:320px;overflow-y:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:.9rem;">
+                        <thead style="position:sticky;top:0;">
+                            <tr style="background:#f1f5f9;text-align:left;">
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;">Week Ending</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">New Patients</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">4-Week Avg</th>
+                                <th style="padding:.65rem 1rem;border-bottom:2px solid #e2e8f0;text-align:right;">Cumulative</th>
+                            </tr>
+                        </thead>
+                        <tbody id="np-weekly-tbody">
+                            <tr><td colspan="4" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Owner Analytics Section -->
@@ -862,6 +993,113 @@
         }
 
         loadBonusReport();
+
+        // -------------------------------------------------------
+        // Revenue per RVU Report (Owner only)
+        // -------------------------------------------------------
+        (function loadRevenuePerRvu() {
+            const provTbody = document.getElementById('rpr-provider-tbody');
+            if (!provTbody) return; // not Owner
+
+            const fmtDollar = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const fmtRate = n => '$' + n.toFixed(2);
+
+            fetch("{{ url_for('revenue_per_rvu_report') }}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        provTbody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;color:#ef4444;">' + data.error + '</td></tr>';
+                        return;
+                    }
+
+                    // Summary cards
+                    const actualRate = data.summary.actual_rate;
+                    const delta = data.summary.rate_delta;
+                    document.getElementById('rpr-actual-rate').textContent = fmtRate(actualRate);
+                    const deltaEl = document.getElementById('rpr-delta');
+                    deltaEl.textContent = (delta >= 0 ? '+' : '') + fmtRate(delta);
+                    deltaEl.style.color = delta >= 0 ? '#16a34a' : '#dc2626';
+
+                    // Quarterly heading
+                    if (data.quarterly && data.quarterly.label) {
+                        document.getElementById('rpr-quarterly-heading').textContent = 'Quarterly Summary — ' + data.quarterly.label;
+                    }
+
+                    // By provider table
+                    provTbody.innerHTML = data.by_provider.map(p =>
+                        '<tr style="border-bottom:1px solid #e5e7eb;">'
+                        + '<td style="padding:.75rem 1rem;font-weight:500;">' + p.provider + '</td>'
+                        + '<td style="padding:.75rem 1rem;text-align:right;">' + p.total_rvus.toFixed(1) + '</td>'
+                        + '<td style="padding:.75rem 1rem;text-align:right;">' + fmtDollar(p.total_revenue) + '</td>'
+                        + '<td style="padding:.75rem 1rem;text-align:right;font-weight:600;">' + fmtRate(p.dollars_per_rvu) + '</td>'
+                        + '</tr>'
+                    ).join('');
+
+                    // Weekly table (newest first)
+                    const weekly = [...data.weekly].reverse();
+                    document.getElementById('rpr-weekly-tbody').innerHTML = weekly.map(w =>
+                        '<tr style="border-bottom:1px solid #e5e7eb;">'
+                        + '<td style="padding:.65rem 1rem;">' + w.week + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;">' + w.total_rvus.toFixed(1) + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;">' + fmtDollar(w.total_revenue) + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;font-weight:600;">' + fmtRate(w.dollars_per_rvu) + '</td>'
+                        + '</tr>'
+                    ).join('');
+
+                    // Quarterly table
+                    const qBody = document.getElementById('rpr-quarterly-tbody');
+                    if (data.quarterly && data.quarterly.providers) {
+                        qBody.innerHTML = data.quarterly.providers.map(p =>
+                            '<tr style="border-bottom:1px solid #e5e7eb;">'
+                            + '<td style="padding:.65rem 1rem;font-weight:500;">' + p.provider + '</td>'
+                            + '<td style="padding:.65rem 1rem;text-align:right;">' + p.q_rvus.toFixed(1) + '</td>'
+                            + '<td style="padding:.65rem 1rem;text-align:right;">' + fmtDollar(p.q_revenue) + '</td>'
+                            + '<td style="padding:.65rem 1rem;text-align:right;font-weight:600;">' + fmtRate(p.q_dollars_per_rvu) + '</td>'
+                            + '</tr>'
+                        ).join('');
+                    }
+                })
+                .catch(() => {
+                    provTbody.innerHTML = '<tr><td colspan="4" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load report.</td></tr>';
+                });
+        })();
+
+        // -------------------------------------------------------
+        // New Patients Report (Owner + Admin)
+        // -------------------------------------------------------
+        (function loadNewPatients() {
+            const npTbody = document.getElementById('np-weekly-tbody');
+            if (!npTbody) return; // not Owner/Admin
+
+            fetch("{{ url_for('new_patients_report') }}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        npTbody.innerHTML = '<tr><td colspan="4" style="padding:2rem;text-align:center;color:#ef4444;">' + data.error + '</td></tr>';
+                        return;
+                    }
+
+                    // Summary cards
+                    const totalEl = document.getElementById('np-total');
+                    const avgEl = document.getElementById('np-avg');
+                    if (totalEl) totalEl.textContent = data.total_new_patients.toLocaleString();
+                    if (avgEl) avgEl.textContent = data.avg_per_week.toFixed(1);
+
+                    // Weekly table (newest first)
+                    const weekly = [...data.weekly].reverse();
+                    npTbody.innerHTML = weekly.map(w =>
+                        '<tr style="border-bottom:1px solid #e5e7eb;">'
+                        + '<td style="padding:.65rem 1rem;">' + w.week + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;font-weight:600;">' + w.new_patients + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;color:var(--text-light);">' + w.ma4.toFixed(1) + '</td>'
+                        + '<td style="padding:.65rem 1rem;text-align:right;">' + w.cumulative.toLocaleString() + '</td>'
+                        + '</tr>'
+                    ).join('');
+                })
+                .catch(() => {
+                    npTbody.innerHTML = '<tr><td colspan="4" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load report.</td></tr>';
+                });
+        })();
 
         // -------------------------------------------------------
         // Owner Analytics
