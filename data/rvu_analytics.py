@@ -142,7 +142,6 @@ def get_rvu_dataset(data_source='all', include_pipeline=False):
         try:
             draft_blob = data_loader.get_csv_from_db("Draft Charges.csv")
             if draft_blob is not None:
-                import io as _io
                 draft_raw = pd.read_csv(draft_blob)
                 if not draft_raw.empty and 'Rendering Provider' in draft_raw.columns:
                     draft_processed = _process_pc_charges(draft_raw)
