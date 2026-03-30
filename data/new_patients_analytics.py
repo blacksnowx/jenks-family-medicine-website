@@ -19,6 +19,7 @@ except ImportError:
     import data_loader
 
 DATA_START = '2025-10-01'
+GOOGLE_ADS_START = '2025-12-29'
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +114,19 @@ def get_new_patients_report():
     total = int(weekly['new_patients'].sum())
     avg = round(float(weekly['new_patients'].mean()), 1)
 
+    # Google Ads comparison (started 12/29/2025)
+    ads_date = pd.Timestamp(GOOGLE_ADS_START)
+    pre_ads = weekly[weekly['Week'] < ads_date]
+    post_ads = weekly[weekly['Week'] >= ads_date]
+
+    pre_total = int(pre_ads['new_patients'].sum()) if not pre_ads.empty else 0
+    post_total = int(post_ads['new_patients'].sum()) if not post_ads.empty else 0
+    pre_weeks = len(pre_ads) if not pre_ads.empty else 0
+    post_weeks = len(post_ads) if not post_ads.empty else 0
+    pre_avg = round(pre_total / pre_weeks, 1) if pre_weeks > 0 else 0
+    post_avg = round(post_total / post_weeks, 1) if post_weeks > 0 else 0
+    pct_change = round((post_avg - pre_avg) / pre_avg * 100, 1) if pre_avg > 0 else 0
+
     return {
         'weekly': [
             {
@@ -125,6 +139,16 @@ def get_new_patients_report():
         ],
         'total_new_patients': total,
         'avg_per_week': avg,
+        'google_ads_comparison': {
+            'ads_start_date': GOOGLE_ADS_START,
+            'pre_ads_weeks': pre_weeks,
+            'post_ads_weeks': post_weeks,
+            'pre_ads_total': pre_total,
+            'post_ads_total': post_total,
+            'pre_ads_avg_per_week': pre_avg,
+            'post_ads_avg_per_week': post_avg,
+            'percent_change': pct_change,
+        },
     }
 
 
@@ -158,6 +182,29 @@ def generate_new_patients_chart():
            label='New Patients', width=0.6)
     ax.plot(x, weekly['ma4'].tolist(), color='#f39c12', linewidth=2.5,
             marker='o', markersize=6, label='4-Week Moving Avg')
+
+    # Google Ads vertical marker
+    ads_date = pd.Timestamp(GOOGLE_ADS_START)
+    ads_x = None
+    for i, w in enumerate(weekly['Week']):
+        if w >= ads_date:
+            ads_x = i
+            break
+    if ads_x is not None:
+        ax.axvline(x=ads_x - 0.5, color='#e74c3c', linestyle='--', linewidth=2, alpha=0.8)
+        ax.text(ads_x - 0.5, ax.get_ylim()[1] * 0.95, '  Google Ads\n  Started',
+                fontsize=9, color='#e74c3c', fontweight='bold', va='top')
+        # Pre/post averages
+        pre_vals = weekly.iloc[:ads_x]['new_patients']
+        post_vals = weekly.iloc[ads_x:]['new_patients']
+        if not pre_vals.empty:
+            ax.text(ads_x * 0.35, ax.get_ylim()[1] * 0.82,
+                    f'Avg: {pre_vals.mean():.1f}/wk', fontsize=10, color='#555',
+                    ha='center', style='italic')
+        if not post_vals.empty:
+            ax.text(ads_x + (len(weekly) - ads_x) * 0.5, ax.get_ylim()[1] * 0.82,
+                    f'Avg: {post_vals.mean():.1f}/wk', fontsize=10, color='#27ae60',
+                    ha='center', fontweight='bold')
 
     ax.set_xticks(x)
     ax.set_xticklabels(x_labels, rotation=45, ha='right', fontsize=9)

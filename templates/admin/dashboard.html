@@ -525,7 +525,7 @@
                 </p>
 
                 <!-- Summary cards -->
-                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1.5rem;">
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;margin-bottom:1rem;">
                     <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
                         <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Total New Patients</div>
                         <div id="np-total" style="font-size:1.6rem;font-weight:700;color:#111827;">—</div>
@@ -533,6 +533,27 @@
                     <div style="background:#f1f5f9;border-radius:8px;padding:1rem;text-align:center;">
                         <div style="font-size:0.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;">Avg / Week</div>
                         <div id="np-avg" style="font-size:1.6rem;font-weight:700;color:#111827;">—</div>
+                    </div>
+                </div>
+
+                <!-- Google Ads Impact -->
+                <div id="np-ads-comparison" style="display:none;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:8px;padding:1rem;margin-bottom:1.5rem;">
+                    <div style="font-size:0.8rem;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem;">📊 Google Ads Impact (started 12/29/25)</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;text-align:center;">
+                        <div>
+                            <div style="font-size:0.7rem;color:#666;margin-bottom:.25rem;">Before Ads</div>
+                            <div id="np-pre-ads" style="font-size:1.3rem;font-weight:700;color:#6b7280;">—</div>
+                            <div style="font-size:0.7rem;color:#999;">per week</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.7rem;color:#666;margin-bottom:.25rem;">After Ads</div>
+                            <div id="np-post-ads" style="font-size:1.3rem;font-weight:700;color:#15803d;">—</div>
+                            <div style="font-size:0.7rem;color:#999;">per week</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.7rem;color:#666;margin-bottom:.25rem;">Change</div>
+                            <div id="np-ads-change" style="font-size:1.3rem;font-weight:700;color:#15803d;">—</div>
+                        </div>
                     </div>
                 </div>
 
@@ -1086,6 +1107,25 @@
                     const avgEl = document.getElementById('np-avg');
                     if (totalEl) totalEl.textContent = data.total_new_patients.toLocaleString();
                     if (avgEl) avgEl.textContent = data.avg_per_week.toFixed(1);
+
+                    // Google Ads comparison
+                    if (data.google_ads_comparison) {
+                        const gac = data.google_ads_comparison;
+                        const adsDiv = document.getElementById('np-ads-comparison');
+                        if (adsDiv) {
+                            adsDiv.style.display = 'block';
+                            const preEl = document.getElementById('np-pre-ads');
+                            const postEl = document.getElementById('np-post-ads');
+                            const changeEl = document.getElementById('np-ads-change');
+                            if (preEl) preEl.textContent = gac.pre_ads_avg_per_week.toFixed(1);
+                            if (postEl) postEl.textContent = gac.post_ads_avg_per_week.toFixed(1);
+                            if (changeEl) {
+                                const pct = gac.percent_change;
+                                changeEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+                                changeEl.style.color = pct >= 0 ? '#15803d' : '#dc2626';
+                            }
+                        }
+                    }
 
                     // Weekly table (newest first)
                     const weekly = [...data.weekly].reverse();
