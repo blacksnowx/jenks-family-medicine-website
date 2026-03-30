@@ -186,6 +186,13 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
     # Final safety dedup on the merged result
     epid_col_final = "Encounter Procedure ID"
     if epid_col_final in merged.columns and merged[epid_col_final].astype(str).str.strip().ne("").any():
+        dup_count = merged.duplicated(subset=[epid_col_final], keep="first").sum()
+        if dup_count > 0:
+            logger.warning(
+                "Charges merge: final safety dedup found %d duplicate Encounter Procedure ID(s) "
+                "after concat — keeping first occurrence only",
+                dup_count,
+            )
         merged = merged.drop_duplicates(subset=[epid_col_final], keep="first")
     else:
         merged = merged.drop_duplicates()
