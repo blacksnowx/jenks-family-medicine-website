@@ -257,6 +257,24 @@ def _parse_text(element, tag: str, ns: str = NS_KAREO) -> str:
     return ""
 
 
+def _normalize_service_date(raw: str) -> str:
+    """
+    Convert a date string from the Tebra API to M/D/YYYY format (no leading
+    zeros), matching the Charges Export CSV convention.
+
+    Handles ISO timestamps (2023-01-15T00:00:00), zero-padded (01/15/2023),
+    and already-normalized (1/15/2023) inputs.  Returns the raw string
+    unchanged if parsing fails.
+    """
+    if not raw:
+        return raw
+    try:
+        dt = pd.to_datetime(raw, errors="raise")
+        return f"{dt.month}/{dt.day}/{dt.year}"
+    except Exception:
+        return raw
+
+
 def _parse_charges_response(xml_text: str) -> list[dict]:
     """
     Parse the GetCharges SOAP response XML.
@@ -335,7 +353,7 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
             hashed_encounter_id = ""
 
         row = {
-            "Date Of Service":                           _parse_text(charge, "ServiceDate"),
+            "Date Of Service":                           _normalize_service_date(_parse_text(charge, "ServiceDate")),
             "Rendering Provider":                        _parse_text(charge, "RenderingProvider"),
             "Service Charge Amount":                     _parse_text(charge, "ServiceAmount"),
             "Pri Ins Insurance Contract Adjustment":     _parse_text(charge, "PrimaryInsuranceContractAdjustment"),
@@ -503,7 +521,7 @@ def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFram
     if last_sync_date:
         start_date = last_sync_date
     else:
-        lookback_days = int(os.environ.get("TEBRA_LOOKBACK_DAYS", "365"))
+        lookback_days = int(os.environ.get("TEBRA_LOOKBACK_DAYS", "1280"))
         start_date = today - timedelta(days=lookback_days)
         logger.info("Tebra: initial sync, looking back %d days to %s", lookback_days, start_date)
 

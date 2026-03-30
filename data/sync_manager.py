@@ -77,6 +77,18 @@ def _save_csv_to_db(filename: str, df: pd.DataFrame) -> None:
     logger.info("Saved '%s' to database: %d bytes", filename, len(csv_bytes))
 
 
+def _normalize_date_str(val) -> str:
+    """Normalize any date representation to M/D/YYYY (no leading zeros) for dedup key comparison."""
+    s = str(val).strip()
+    if not s or s in ("nan", "NaT", "None", ""):
+        return s
+    try:
+        dt = pd.to_datetime(s, errors="raise")
+        return f"{dt.month}/{dt.day}/{dt.year}"
+    except Exception:
+        return s
+
+
 def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.DataFrame, int]:
     """
     Merge new Tebra charge rows into the existing Charges Export DataFrame.
@@ -102,10 +114,12 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
         if col not in new_data.columns:
             new_data[col] = ""
 
-    # Build a set of existing composite keys for fast lookup
+    # Build a set of existing composite keys for fast lookup.
+    # Normalize dates to M/D/YYYY so CSV dates (1/15/2023) and API ISO dates
+    # (2023-01-15T00:00:00) compare as equal.
     existing_keys = set(
         zip(
-            existing["Date Of Service"].astype(str),
+            existing["Date Of Service"].apply(_normalize_date_str),
             existing["Encounter ID"].astype(str),
             existing["Procedure Code"].astype(str),
         )
@@ -113,8 +127,11 @@ def _merge_charges(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.D
 
     # Find rows in new_data that don't exist in existing
     new_mask = ~new_data.apply(
-        lambda r: (str(r["Date Of Service"]), str(r["Encounter ID"]), str(r["Procedure Code"]))
-                  in existing_keys,
+        lambda r: (
+            _normalize_date_str(r["Date Of Service"]),
+            str(r["Encounter ID"]),
+            str(r["Procedure Code"]),
+        ) in existing_keys,
         axis=1,
     )
     truly_new = new_data[new_mask]
