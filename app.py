@@ -393,8 +393,15 @@ def create_app():
         if source not in ('all', 'pc', 'va'):
             source = 'all'
         pipeline = request.args.get('pipeline', 'false').lower() == 'true'
+
+        # Providers must not see Anne Jenks' individual data
+        is_provider = current_user.role == 'Provider'
+        if is_provider and view_type.lower() in ('anne jenks',):
+            return "Access denied", 403
+        exclude_providers = ['ANNE JENKS'] if is_provider else None
+
         try:
-            image_bytes = rvu_analytics.generate_rvu_chart(view_type, data_source=source, include_pipeline=pipeline)
+            image_bytes = rvu_analytics.generate_rvu_chart(view_type, data_source=source, include_pipeline=pipeline, exclude_providers=exclude_providers)
             response = make_response(image_bytes)
             response.headers.set('Content-Type', 'image/png')
             return response

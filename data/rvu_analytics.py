@@ -167,7 +167,7 @@ def get_rvu_dataset(data_source='all', include_pipeline=False):
     master_df['Week'] = pd.to_datetime(master_df['Week'])
     return master_df
 
-def generate_rvu_chart(view_type, data_source='all', include_pipeline=False):
+def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exclude_providers=None):
     """Generates the required RVU chart (Company Wide, Individual, or Comparison) and returns the PNG bytes."""
     df = get_rvu_dataset(data_source=data_source, include_pipeline=include_pipeline)
     if df.empty:
@@ -236,13 +236,14 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False):
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
 
     elif view_type == 'Provider Comparison':
+        comparison_providers = [p for p in valid_providers if not (exclude_providers and p in exclude_providers)]
         pivot_df = pd.pivot_table(confirmed_only, values='RVU', index='Week', columns='Provider', aggfunc='sum', fill_value=0)
         pivot_df = pivot_df.sort_index()
         x_labels = pivot_df.index.strftime('%Y-%m-%d').tolist()
 
         colors = ['#37a4db', '#2ecc71', '#f39c12', '#9b59b6']
         pipeline_legend_added = False
-        for i, provider in enumerate(valid_providers):
+        for i, provider in enumerate(comparison_providers):
             color = colors[i % len(colors)]
             if provider in pivot_df.columns:
                 y_vals = pivot_df[provider].astype(float).tolist()

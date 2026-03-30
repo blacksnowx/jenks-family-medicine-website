@@ -341,10 +341,12 @@
                                 style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font);">
                                 <option value="Company Wide" {% if rvu_view=='Company Wide' %}selected{% endif %}>
                                     Company Wide (Total)</option>
+                                {% if current_user.role != 'Provider' %}
                                 <option value="Provider Comparison" {% if rvu_view=='Provider Comparison' %}selected{%
                                     endif %}>Provider Comparison</option>
                                 <option value="Anne Jenks" {% if rvu_view=='Anne Jenks' %}selected{% endif %}>Anne Jenks
                                 </option>
+                                {% endif %}
                                 <option value="Ehrin Irvin" {% if rvu_view=='Ehrin Irvin' %}selected{% endif %}>Ehrin
                                     Irvin</option>
                                 <option value="Heather Mayo" {% if rvu_view=='Heather Mayo' %}selected{% endif %}>
