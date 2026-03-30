@@ -21,6 +21,7 @@ PROVIDER_ALIASES = {
     'REDD, DAVID ':          'ANNE JENKS',
     'Anne Jenks, APRN':      'ANNE JENKS',
     'DAVID REDD, MD':        'ANNE JENKS',
+    'DAVID C REDD, MD':      'ANNE JENKS',  # Tebra RenderingProviderName format
     'Anne Renee Jenks, APRN': 'ANNE JENKS',  # Tebra RenderingProviderName format
     'IRVIN, EHRIN ':         'EHRIN IRVIN',
     'Irvin, Ehrin':          'EHRIN IRVIN',
