@@ -61,70 +61,82 @@ def _get_va_rvu_cat(row):
     if imo_str in ['1-3', '1-5', '1', '2', '3'] or (imo_str and imo_str[0] in ['1', '2', '3'] and len(imo_str) == 1): return "VA Exam (1-3 IMOs)"
     return "VA Exam (4+ IMOs)"
 
-def get_rvu_dataset():
-    """Generates the master consolidated dataset with RVU mappings."""
+def get_rvu_dataset(data_source='all'):
+    """Generates the master consolidated dataset with RVU mappings.
+
+    Args:
+        data_source: 'all' (default) — both PC and VA data;
+                     'pc'            — Primary Care only (skip VA);
+                     'va'            — VA only (skip PC).
+    """
     # 1. Load PC Data
-    pc = data_loader.load_pc_data()
-    if pc is None or pc.empty:
+    if data_source == 'va':
         pc_df = pd.DataFrame()
     else:
-        pc['Provider'] = pc['Rendering Provider'].apply(data_loader.normalize_provider)
-        pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
-        pc['Total Charge Amount'] = pc.get('Service Charge Amount', pc.get('Total Charge Amount', 0))
-        if pc['Total Charge Amount'].dtype == object:
-            pc['Total Charge Amount'] = pc['Total Charge Amount'].astype(str).str.replace(r'[$,]', '', regex=True).astype(float)
-        
-        # Apply RVU Logic
-        # Fix missing Procedure Codes
-        if 'Procedure Codes with Modifiers' not in pc.columns:
-             if 'Procedure Code' in pc.columns:
-                 pc['Procedure Codes with Modifiers'] = pc['Procedure Code']
-             else:
-                 pc['Procedure Codes with Modifiers'] = ''
-             
-        pc['RVU'] = pc.apply(_get_clinical_rvu_val, axis=1)
-        pc['Category'] = pc.apply(_get_clinical_rvu_cat, axis=1)
-            
-        pc_df = pc[['Date Of Service', 'Provider', 'RVU', 'Category']].copy()
+        pc = data_loader.load_pc_data()
+        if pc is None or pc.empty:
+            pc_df = pd.DataFrame()
+        else:
+            pc['Provider'] = pc['Rendering Provider'].apply(data_loader.normalize_provider)
+            pc['Date Of Service'] = pd.to_datetime(pc['Date Of Service'], errors='coerce')
+            pc['Total Charge Amount'] = pc.get('Service Charge Amount', pc.get('Total Charge Amount', 0))
+            if pc['Total Charge Amount'].dtype == object:
+                pc['Total Charge Amount'] = pc['Total Charge Amount'].astype(str).str.replace(r'[$,]', '', regex=True).astype(float)
+
+            # Apply RVU Logic
+            # Fix missing Procedure Codes
+            if 'Procedure Codes with Modifiers' not in pc.columns:
+                if 'Procedure Code' in pc.columns:
+                    pc['Procedure Codes with Modifiers'] = pc['Procedure Code']
+                else:
+                    pc['Procedure Codes with Modifiers'] = ''
+
+            pc['RVU'] = pc.apply(_get_clinical_rvu_val, axis=1)
+            pc['Category'] = pc.apply(_get_clinical_rvu_cat, axis=1)
+
+            pc_df = pc[['Date Of Service', 'Provider', 'RVU', 'Category']].copy()
 
     # 2. Load VA Data
-    va = data_loader.load_va_data()
-    if va is None or va.empty:
+    if data_source == 'pc':
         va_df = pd.DataFrame()
     else:
-        # Provider column is already normalized to 'Provider' by load_va_data()
-        if 'Sarah Suggs ' in va.columns:
-            va = va.rename(columns={'Sarah Suggs ': 'Provider'})
-        va['Date of Service'] = pd.to_datetime(va['Date of Service'], errors='coerce')
-        if 'Provider' not in va.columns:
-            va['Provider'] = 'UNKNOWN'
-        va['Provider'] = va['Provider'].apply(data_loader.normalize_provider)
-        
-        # Apply RVU Logic
-        va['RVU'] = va.apply(_get_va_rvu_val, axis=1)
-        va['Category'] = va.apply(_get_va_rvu_cat, axis=1)
-            
-        va_df = va[['Date of Service', 'Provider', 'RVU', 'Category']].copy()
-        va_df = va_df.rename(columns={'Date of Service': 'Date Of Service'})
+        va = data_loader.load_va_data()
+        if va is None or va.empty:
+            va_df = pd.DataFrame()
+        else:
+            # Provider column is already normalized to 'Provider' by load_va_data()
+            if 'Sarah Suggs ' in va.columns:
+                va = va.rename(columns={'Sarah Suggs ': 'Provider'})
+            va['Date of Service'] = pd.to_datetime(va['Date of Service'], errors='coerce')
+            if 'Provider' not in va.columns:
+                va['Provider'] = 'UNKNOWN'
+            va['Provider'] = va['Provider'].apply(data_loader.normalize_provider)
+
+            # Apply RVU Logic
+            va['RVU'] = va.apply(_get_va_rvu_val, axis=1)
+            va['Category'] = va.apply(_get_va_rvu_cat, axis=1)
+
+            va_df = va[['Date of Service', 'Provider', 'RVU', 'Category']].copy()
+            va_df = va_df.rename(columns={'Date of Service': 'Date Of Service'})
 
     # 3. Combine and Filter (>= 2025-10-01)
     if pc_df.empty and va_df.empty:
         return pd.DataFrame()
-        
+
     master_df = pd.concat([pc_df, va_df], ignore_index=True)
     master_df['RVU'] = pd.to_numeric(master_df['RVU'], errors='coerce').fillna(0)
     master_df = master_df.dropna(subset=['Date Of Service'])
     master_df = master_df[master_df['Date Of Service'] >= '2025-10-01']
     # Removed hardcoded upper bound to automatically include latest data
-    
+
     # 4. Add Week Grouping
     master_df['Week'] = data_loader.get_week_ending_friday(master_df['Date Of Service'])
     master_df['Week'] = pd.to_datetime(master_df['Week'])
     return master_df
 
-def generate_rvu_chart(view_type):
+def generate_rvu_chart(view_type, data_source='all'):
     """Generates the required RVU chart (Company Wide, Individual, or Comparison) and returns the PNG bytes."""
-    df = get_rvu_dataset()
+    df = get_rvu_dataset(data_source=data_source)
     if df.empty:
         return _generate_error_chart("No RVU data available.")
 
@@ -150,28 +162,31 @@ def generate_rvu_chart(view_type):
     valid_providers = data_loader.VALID_PROVIDERS
     df = df[df['Provider'].isin(valid_providers)]
 
+    x_labels = []
+
     if view_type == 'Company Wide':
         # Sum all RVUs per week
         weekly = df.groupby('Week')['RVU'].sum().reset_index()
         weekly = weekly.sort_values('Week')
-        
-        ax.plot(weekly['Week'].dt.strftime('%Y-%m-%d').tolist(), weekly['RVU'].astype(float).tolist(), marker='o', color='#37a4db', linewidth=2.5, markersize=8, label='Total Earned RVUs')
+        x_labels = weekly['Week'].dt.strftime('%Y-%m-%d').tolist()
+
+        ax.plot(x_labels, weekly['RVU'].astype(float).tolist(), marker='o', color='#37a4db', linewidth=2.5, markersize=8, label='Total Earned RVUs')
         ax.axhline(y=196, color='red', linestyle='--', linewidth=2, label='Company Breakeven (196)')
         ax.axhline(y=328, color='orange', linestyle='--', linewidth=2, label='Industry Standard (328)')
-        
+
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
-        
+
     elif view_type == 'Provider Comparison':
         pivot_df = pd.pivot_table(df, values='RVU', index='Week', columns='Provider', aggfunc='sum', fill_value=0)
         pivot_df = pivot_df.sort_index()
-        x_vals = pivot_df.index.strftime('%Y-%m-%d').tolist()
-        
+        x_labels = pivot_df.index.strftime('%Y-%m-%d').tolist()
+
         colors = ['#37a4db', '#2ecc71', '#f39c12', '#9b59b6']
         for i, provider in enumerate(valid_providers):
             if provider in pivot_df.columns:
                 y_vals = pivot_df[provider].astype(float).tolist()
-                ax.plot(x_vals, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
-                
+                ax.plot(x_labels, y_vals, marker='o', linewidth=2, markersize=6, label=provider, color=colors[i % len(colors)])
+
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
         ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
         ax.set_title('Provider Weekly RVU Comparison', fontsize=14, fontweight='bold')
@@ -181,18 +196,34 @@ def generate_rvu_chart(view_type):
         provider_upper = view_type.upper()
         # Find raw display name
         display_name = next((p.title() for p in valid_providers if p == provider_upper), view_type)
-        
+
         prov_data = df[df['Provider'] == provider_upper].groupby('Week')['RVU'].sum().reset_index().sort_values('Week')
         if prov_data.empty:
             return _generate_error_chart(f"No RVU data found for {display_name}.")
-            
-        ax.plot(prov_data['Week'].dt.strftime('%Y-%m-%d').tolist(), prov_data['RVU'].astype(float).tolist(), marker='o', color='#2ecc71', linewidth=2.5, markersize=8, label=f'{display_name} Earned RVUs')
+
+        x_labels = prov_data['Week'].dt.strftime('%Y-%m-%d').tolist()
+        ax.plot(x_labels, prov_data['RVU'].astype(float).tolist(), marker='o', color='#2ecc71', linewidth=2.5, markersize=8, label=f'{display_name} Earned RVUs')
         ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
         ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
         ax.set_title(f'{display_name} - Weekly RVUs', fontsize=14, fontweight='bold')
-        
+
     else:
         return _generate_error_chart("Invalid chart view type requested.")
+
+    # Shade last 3 weeks with "recent data may be incomplete" annotation
+    n = len(x_labels)
+    if n >= 3:
+        shade_start = max(n - 3 - 0.5, -0.5)
+        shade_end = n - 1 + 0.5
+        ax.axvspan(shade_start, shade_end, alpha=0.07, color='#f97316', zorder=0)
+        ymin, ymax = ax.get_ylim()
+        ax.text(
+            n - 2, ymax * 0.98,
+            'Recent weeks may be incomplete\n— claims still processing',
+            ha='center', va='top', fontsize=7.5, color='#92400e',
+            bbox=dict(boxstyle='round,pad=0.3', facecolor='#fff7ed', edgecolor='#f97316', alpha=0.85),
+            zorder=5,
+        )
 
     # Formatting touches
     ax.set_xlabel('Week Ending', fontsize=11, fontweight='bold')
@@ -234,11 +265,14 @@ def calculate_bonus(rvus):
     return bonus
 
 
-def get_quarterly_bonus_report(today=None):
+def get_quarterly_bonus_report(today=None, data_source='all'):
     """Return per-provider bonus data for the current calendar quarter.
 
     Returns a dict with 'quarter_label', 'days_elapsed', 'days_in_quarter',
     and 'providers' (list of per-provider dicts).
+
+    Args:
+        data_source: 'all' (default), 'pc', or 'va' — passed to get_rvu_dataset().
     """
     if today is None:
         today = date.today()
@@ -256,7 +290,7 @@ def get_quarterly_bonus_report(today=None):
     quarter_label = f"Q{q + 1} {today.year}"
 
     # Load RVU dataset and filter to current quarter
-    df = get_rvu_dataset()
+    df = get_rvu_dataset(data_source=data_source)
     if df.empty:
         return {
             'quarter_label': quarter_label,

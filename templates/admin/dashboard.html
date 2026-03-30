@@ -332,7 +332,7 @@
                     Select a view below to generate the latest RVU data (starting 10/1/25).
                 </p>
 
-                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 1.25rem;">
                     <input type="hidden" name="action" value="generate_rvu_report">
                     <div class="admin-form-group" style="display: flex; gap: 1rem; align-items: flex-end;">
                         <div style="flex-grow: 1;">
@@ -358,10 +358,29 @@
                     </div>
                 </form>
 
+                <!-- Data source toggle -->
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 0.25rem;">Data Source:</span>
+                    <div id="rvu-source-toggle" style="display: inline-flex; border: 1px solid #d1d5db; border-radius: var(--radius-md); overflow: hidden;">
+                        <button onclick="setRvuSource('all', this)" class="rvu-src-btn rvu-src-active"
+                            style="padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; background: var(--primary-color); color: #fff; transition: background 0.15s, color 0.15s;">
+                            All
+                        </button>
+                        <button onclick="setRvuSource('pc', this)" class="rvu-src-btn"
+                            style="padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 600; border: none; border-left: 1px solid #d1d5db; cursor: pointer; background: #fff; color: var(--text-color); transition: background 0.15s, color 0.15s;">
+                            Primary Care
+                        </button>
+                        <button onclick="setRvuSource('va', this)" class="rvu-src-btn"
+                            style="padding: 0.4rem 0.9rem; font-size: 0.85rem; font-weight: 600; border: none; border-left: 1px solid #d1d5db; cursor: pointer; background: #fff; color: var(--text-color); transition: background 0.15s, color 0.15s;">
+                            VA
+                        </button>
+                    </div>
+                </div>
+
                 {% if rvu_view %}
                 <div
                     style="border: 1px solid #e5e7eb; border-radius: var(--radius-md); padding: 1rem; background: #fafafa; text-align: center;">
-                    <img src="{{ url_for('rvu_image', view_type=rvu_view) }}" alt="RVU Chart"
+                    <img id="rvu-chart-img" src="{{ url_for('rvu_image', view_type=rvu_view) }}" alt="RVU Chart"
                         style="max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 </div>
                 {% else %}
@@ -737,13 +756,42 @@
 
         resetTimers();
 
+        // --- Data source toggle for RVU chart + bonus report ---
+        let _rvuSource = 'all';
+
+        function setRvuSource(src, btn) {
+            _rvuSource = src;
+
+            // Update toggle button styles
+            document.querySelectorAll('.rvu-src-btn').forEach(b => {
+                b.style.background = '#fff';
+                b.style.color = 'var(--text-color)';
+            });
+            btn.style.background = 'var(--primary-color)';
+            btn.style.color = '#fff';
+
+            // Update chart image src if it exists
+            const img = document.getElementById('rvu-chart-img');
+            if (img) {
+                const url = new URL(img.src);
+                url.searchParams.set('source', src);
+                img.src = url.toString();
+            }
+
+            // Reload bonus report with new source
+            loadBonusReport(src);
+        }
+
         // --- Bonus Report (Owner only) ---
-        (function loadBonusReport() {
+        function loadBonusReport(source) {
             const tbody = document.getElementById('bonus-tbody');
             const info = document.getElementById('bonus-quarter-info');
             if (!tbody) return; // not Owner
 
-            fetch("{{ url_for('bonus_report') }}")
+            const src = source || _rvuSource || 'all';
+            tbody.innerHTML = '<tr><td colspan="5" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>';
+
+            fetch("{{ url_for('bonus_report') }}?source=" + encodeURIComponent(src))
                 .then(r => r.json())
                 .then(data => {
                     if (data.error) { tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Error loading report.</td></tr>'; return; }
@@ -770,7 +818,9 @@
                 .catch(() => {
                     tbody.innerHTML = '<tr><td colspan="5" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
                 });
-        })();
+        }
+
+        loadBonusReport();
 
         // -------------------------------------------------------
         // Owner Analytics
