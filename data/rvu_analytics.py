@@ -266,6 +266,8 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
     elif view_type in [p.title() for p in valid_providers] or view_type.upper() in valid_providers:
         # Individual Provider
         provider_upper = view_type.upper()
+        if exclude_providers and provider_upper in exclude_providers:
+            return _generate_error_chart("Access denied.")
         display_name = next((p.title() for p in valid_providers if p == provider_upper), view_type)
 
         prov_data = confirmed_only[confirmed_only['Provider'] == provider_upper].groupby('Week')['RVU'].sum().reset_index().sort_values('Week')
