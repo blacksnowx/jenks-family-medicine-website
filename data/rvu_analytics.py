@@ -137,8 +137,10 @@ def get_rvu_dataset(data_source='all', include_pipeline=False):
         confirmed_df['Source'] = 'confirmed'
 
     # 4. Load pipeline (draft) data when requested
+    #    Draft charges come exclusively from Tebra (Primary Care).
+    #    They are irrelevant when viewing VA-only data.
     pipeline_df = pd.DataFrame()
-    if include_pipeline:
+    if include_pipeline and data_source != 'va':
         try:
             draft_blob = data_loader.get_csv_from_db("Draft Charges.csv")
             if draft_blob is not None:
