@@ -218,19 +218,22 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:User>{username}</kar:User>
         </kar:RequestHeader>
         <kar:Fields>
-          <kar:ServiceDate>true</kar:ServiceDate>
-          <kar:RenderingProvider>true</kar:RenderingProvider>
-          <kar:ServiceAmount>true</kar:ServiceAmount>
-          <kar:PrimaryInsuranceContractAdjustment>true</kar:PrimaryInsuranceContractAdjustment>
-          <kar:SecondaryInsuranceContractAdjustment>true</kar:SecondaryInsuranceContractAdjustment>
-          <kar:OtherInsuranceContractAdjustment>true</kar:OtherInsuranceContractAdjustment>
-          <kar:PrimaryInsurancePayment>true</kar:PrimaryInsurancePayment>
-          <kar:SecondaryInsurancePayment>true</kar:SecondaryInsurancePayment>
-          <kar:OtherInsurancePayment>true</kar:OtherInsurancePayment>
+          <kar:ServiceStartDate>true</kar:ServiceStartDate>
+          <kar:RenderingProviderName>true</kar:RenderingProviderName>
+          <kar:TotalCharges>true</kar:TotalCharges>
+          <kar:PrimaryInsuranceInsuranceContractAdjustment>true</kar:PrimaryInsuranceInsuranceContractAdjustment>
+          <kar:SecondaryInsuranceInsuranceContractAdjustment>true</kar:SecondaryInsuranceInsuranceContractAdjustment>
+          <kar:TertiaryInsuranceInsuranceContractAdjustment>true</kar:TertiaryInsuranceInsuranceContractAdjustment>
+          <kar:PrimaryInsuranceInsurancePayment>true</kar:PrimaryInsuranceInsurancePayment>
+          <kar:SecondaryInsuranceInsurancePayment>true</kar:SecondaryInsuranceInsurancePayment>
+          <kar:TertiaryInsuranceInsurancePayment>true</kar:TertiaryInsuranceInsurancePayment>
           <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
           <kar:OtherAdjustment>true</kar:OtherAdjustment>
           <kar:ProcedureCode>true</kar:ProcedureCode>
-          <kar:ProcedureCodeWithModifiers>true</kar:ProcedureCodeWithModifiers>
+          <kar:ProcedureModifier1>true</kar:ProcedureModifier1>
+          <kar:ProcedureModifier2>true</kar:ProcedureModifier2>
+          <kar:ProcedureModifier3>true</kar:ProcedureModifier3>
+          <kar:ProcedureModifier4>true</kar:ProcedureModifier4>
           <kar:EncounterID>true</kar:EncounterID>
           <kar:PatientID>true</kar:PatientID>
         </kar:Fields>
@@ -352,20 +355,25 @@ def _parse_charges_response(xml_text: str) -> list[dict]:
             hashed_patient_id = ""
             hashed_encounter_id = ""
 
+        proc_code = _parse_text(charge, "ProcedureCode")
+        modifiers = [_parse_text(charge, f"ProcedureModifier{i}") for i in range(1, 5)]
+        modifiers = [m for m in modifiers if m]
+        proc_with_mods = (proc_code + " " + " ".join(modifiers)).strip() if modifiers else proc_code
+
         row = {
-            "Date Of Service":                           _normalize_service_date(_parse_text(charge, "ServiceDate")),
-            "Rendering Provider":                        _parse_text(charge, "RenderingProvider"),
-            "Service Charge Amount":                     _parse_text(charge, "ServiceAmount"),
-            "Pri Ins Insurance Contract Adjustment":     _parse_text(charge, "PrimaryInsuranceContractAdjustment"),
-            "Sec Ins Insurance Contract Adjustment":     _parse_text(charge, "SecondaryInsuranceContractAdjustment"),
-            "Other Ins Insurance Contract Adjustment":   _parse_text(charge, "OtherInsuranceContractAdjustment"),
-            "Pri Ins Insurance Payment":                 _parse_text(charge, "PrimaryInsurancePayment"),
-            "Sec Ins Insurance Payment":                 _parse_text(charge, "SecondaryInsurancePayment"),
-            "Other Ins Insurance Payment":               _parse_text(charge, "OtherInsurancePayment"),
+            "Date Of Service":                           _normalize_service_date(_parse_text(charge, "ServiceStartDate")),
+            "Rendering Provider":                        _parse_text(charge, "RenderingProviderName"),
+            "Service Charge Amount":                     _parse_text(charge, "TotalCharges"),
+            "Pri Ins Insurance Contract Adjustment":     _parse_text(charge, "PrimaryInsuranceInsuranceContractAdjustment"),
+            "Sec Ins Insurance Contract Adjustment":     _parse_text(charge, "SecondaryInsuranceInsuranceContractAdjustment"),
+            "Other Ins Insurance Contract Adjustment":   _parse_text(charge, "TertiaryInsuranceInsuranceContractAdjustment"),
+            "Pri Ins Insurance Payment":                 _parse_text(charge, "PrimaryInsuranceInsurancePayment"),
+            "Sec Ins Insurance Payment":                 _parse_text(charge, "SecondaryInsuranceInsurancePayment"),
+            "Other Ins Insurance Payment":               _parse_text(charge, "TertiaryInsuranceInsurancePayment"),
             "Pat Payment Amount":                        _parse_text(charge, "PatientPaymentAmount"),
             "Other Adjustment":                          _parse_text(charge, "OtherAdjustment"),
-            "Procedure Code":                            _parse_text(charge, "ProcedureCode"),
-            "Procedure Codes with Modifiers":            _parse_text(charge, "ProcedureCodeWithModifiers"),
+            "Procedure Code":                            proc_code,
+            "Procedure Codes with Modifiers":            proc_with_mods,
             "Encounter ID":                              hashed_encounter_id,
             "Patient ID":                                hashed_patient_id,
         }
