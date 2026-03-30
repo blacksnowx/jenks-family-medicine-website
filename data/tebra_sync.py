@@ -219,25 +219,58 @@ def _build_soap_envelope(customer_key: str, username: str, password: str,
           <kar:User>{username}</kar:User>
         </kar:RequestHeader>
         <kar:Fields>
-          <kar:ServiceStartDate>true</kar:ServiceStartDate>
-          <kar:RenderingProviderName>true</kar:RenderingProviderName>
-          <kar:TotalCharges>true</kar:TotalCharges>
-          <kar:PrimaryInsuranceInsuranceContractAdjustment>true</kar:PrimaryInsuranceInsuranceContractAdjustment>
-          <kar:SecondaryInsuranceInsuranceContractAdjustment>true</kar:SecondaryInsuranceInsuranceContractAdjustment>
-          <kar:TertiaryInsuranceInsuranceContractAdjustment>true</kar:TertiaryInsuranceInsuranceContractAdjustment>
-          <kar:PrimaryInsuranceInsurancePayment>true</kar:PrimaryInsuranceInsurancePayment>
-          <kar:SecondaryInsuranceInsurancePayment>true</kar:SecondaryInsuranceInsurancePayment>
-          <kar:TertiaryInsuranceInsurancePayment>true</kar:TertiaryInsuranceInsurancePayment>
-          <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
+          <kar:AdjustedCharges>true</kar:AdjustedCharges>
+          <kar:AllowedAmount>true</kar:AllowedAmount>
+          <kar:AppointmentID>true</kar:AppointmentID>
+          <kar:BatchNumber>true</kar:BatchNumber>
+          <kar:BilledTo>true</kar:BilledTo>
+          <kar:CaseName>true</kar:CaseName>
+          <kar:CasePayerScenario>true</kar:CasePayerScenario>
+          <kar:CopayAmount>true</kar:CopayAmount>
+          <kar:CopayCategory>true</kar:CopayCategory>
+          <kar:CopayMethod>true</kar:CopayMethod>
+          <kar:CopayReference>true</kar:CopayReference>
+          <kar:CreatedDate>true</kar:CreatedDate>
+          <kar:DoNotSendClaimElectronically>true</kar:DoNotSendClaimElectronically>
+          <kar:DoNotSendElectronicallyToSecondary>true</kar:DoNotSendElectronicallyToSecondary>
+          <kar:EClaimNote>true</kar:EClaimNote>
+          <kar:EClaimNoteType>true</kar:EClaimNoteType>
+          <kar:EncounterDiagnosisID1>true</kar:EncounterDiagnosisID1>
+          <kar:EncounterDiagnosisID2>true</kar:EncounterDiagnosisID2>
+          <kar:EncounterDiagnosisID3>true</kar:EncounterDiagnosisID3>
+          <kar:EncounterDiagnosisID4>true</kar:EncounterDiagnosisID4>
+          <kar:EncounterID>true</kar:EncounterID>
+          <kar:EncounterProcedureID>true</kar:EncounterProcedureID>
+          <kar:EncounterStatus>true</kar:EncounterStatus>
+          <kar:ExpectedAmount>true</kar:ExpectedAmount>
+          <kar:HospitalizationEndDate>true</kar:HospitalizationEndDate>
+          <kar:HospitalizationStartDate>true</kar:HospitalizationStartDate>
+          <kar:ID>true</kar:ID>
+          <kar:InsuranceBalance>true</kar:InsuranceBalance>
+          <kar:LastModifiedDate>true</kar:LastModifiedDate>
+          <kar:LineNote>true</kar:LineNote>
           <kar:OtherAdjustment>true</kar:OtherAdjustment>
+          <kar:PatientID>true</kar:PatientID>
+          <kar:PatientPaymentAmount>true</kar:PatientPaymentAmount>
+          <kar:PostingDate>true</kar:PostingDate>
+          <kar:PracticeID>true</kar:PracticeID>
+          <kar:PracticeName>true</kar:PracticeName>
+          <kar:PrimaryInsuranceInsuranceContractAdjustment>true</kar:PrimaryInsuranceInsuranceContractAdjustment>
+          <kar:PrimaryInsuranceInsurancePayment>true</kar:PrimaryInsuranceInsurancePayment>
           <kar:ProcedureCode>true</kar:ProcedureCode>
           <kar:ProcedureModifier1>true</kar:ProcedureModifier1>
           <kar:ProcedureModifier2>true</kar:ProcedureModifier2>
           <kar:ProcedureModifier3>true</kar:ProcedureModifier3>
           <kar:ProcedureModifier4>true</kar:ProcedureModifier4>
-          <kar:EncounterID>true</kar:EncounterID>
-          <kar:EncounterProcedureID>true</kar:EncounterProcedureID>
-          <kar:PatientID>true</kar:PatientID>
+          <kar:RenderingProviderID>true</kar:RenderingProviderID>
+          <kar:RenderingProviderName>true</kar:RenderingProviderName>
+          <kar:SecondaryInsuranceInsuranceContractAdjustment>true</kar:SecondaryInsuranceInsuranceContractAdjustment>
+          <kar:SecondaryInsuranceInsurancePayment>true</kar:SecondaryInsuranceInsurancePayment>
+          <kar:ServiceStartDate>true</kar:ServiceStartDate>
+          <kar:TertiaryInsuranceInsuranceContractAdjustment>true</kar:TertiaryInsuranceInsuranceContractAdjustment>
+          <kar:TertiaryInsuranceInsurancePayment>true</kar:TertiaryInsuranceInsurancePayment>
+          <kar:TotalCharges>true</kar:TotalCharges>
+          <kar:UnitCharge>true</kar:UnitCharge>
         </kar:Fields>
         <kar:Filter>
           <kar:FromServiceDate>{start_date}</kar:FromServiceDate>
