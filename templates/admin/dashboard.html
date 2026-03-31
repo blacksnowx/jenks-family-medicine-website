@@ -319,6 +319,7 @@
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
             <button class="tab-button" onclick="openTab('section-banner', this)">Site Banner</button>
+            <button class="tab-button" onclick="openTab('section-appt-requests', this); loadApptRequests();">Appointment Requests</button>
             {% endif %}
             <button class="tab-button" onclick="openTab('section-password', this)">Change Password</button>
         </div>
@@ -819,6 +820,38 @@
 
         {% endif %} <!-- End not needs_password_change -->
 
+        <!-- Appointment Requests -->
+        {% if current_user.role in ['Owner', 'Admin'] %}
+        <div id="section-appt-requests" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>📅 Appointment Requests</h2>
+                <p style="color:var(--text-light);font-size:0.95rem;margin-bottom:1.5rem;">
+                    Requests submitted via the marketing landing pages. Update status as you follow up.
+                </p>
+                <div id="appt-requests-loading" style="color:var(--text-light);font-size:0.95rem;padding:1rem 0;">Loading…</div>
+                <div id="appt-requests-empty" style="display:none;color:var(--text-light);font-size:0.95rem;padding:1rem 0;">No appointment requests yet.</div>
+                <div id="appt-requests-error" style="display:none;color:#991b1b;font-size:0.9rem;padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);margin-bottom:1rem;"></div>
+                <div style="overflow-x:auto;">
+                    <table id="appt-requests-table" style="width:100%;border-collapse:collapse;display:none;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #e5e7eb;text-align:left;">
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Date</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Name</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Phone</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Email</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Source</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Preferred Time</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Reason</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="appt-requests-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Change Password -->
         <div id="section-password" class="tab-content" {% if not needs_password_change %}style="display: none;" {% else
             %}style="display: block;" {% endif %}>
@@ -877,6 +910,100 @@
             }
             if (element) {
                 element.classList.add('active');
+            }
+        }
+
+        // --- Appointment Requests ---
+        let _apptRequestsLoaded = false;
+
+        async function loadApptRequests() {
+            if (_apptRequestsLoaded) return;
+            _apptRequestsLoaded = true;
+
+            const loadingEl = document.getElementById('appt-requests-loading');
+            const emptyEl   = document.getElementById('appt-requests-empty');
+            const errorEl   = document.getElementById('appt-requests-error');
+            const tableEl   = document.getElementById('appt-requests-table');
+            const tbody     = document.getElementById('appt-requests-tbody');
+
+            try {
+                const resp = await fetch('/api/appointment-requests');
+                const data = await resp.json();
+
+                loadingEl.style.display = 'none';
+
+                if (!data.requests || data.requests.length === 0) {
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                const statusColors = {
+                    new:       { bg: '#eff6ff', color: '#1e40af' },
+                    contacted: { bg: '#fefce8', color: '#854d0e' },
+                    scheduled: { bg: '#f0fdf4', color: '#166534' },
+                };
+
+                const fmtDate = iso => {
+                    if (!iso) return '—';
+                    const d = new Date(iso);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                        + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                };
+
+                tbody.innerHTML = data.requests.map(r => {
+                    const sc = statusColors[r.status] || { bg: '#f1f5f9', color: '#374151' };
+                    const badge = `<span style="font-size:0.8rem;font-weight:600;padding:2px 10px;border-radius:999px;background:${sc.bg};color:${sc.color};">${r.status}</span>`;
+                    const statusSelect = `<select onchange="updateApptStatus(${r.id}, this.value, this)"
+                        style="font-size:0.8rem;padding:0.25rem 0.4rem;border:1px solid #d1d5db;border-radius:var(--radius-sm);margin-top:0.35rem;cursor:pointer;">
+                        <option value="new"${r.status==='new'?' selected':''}>new</option>
+                        <option value="contacted"${r.status==='contacted'?' selected':''}>contacted</option>
+                        <option value="scheduled"${r.status==='scheduled'?' selected':''}>scheduled</option>
+                    </select>`;
+                    const reason = r.reason ? r.reason.substring(0, 60) + (r.reason.length > 60 ? '…' : '') : '—';
+                    return '<tr style="border-bottom:1px solid #e5e7eb;">'
+                        + `<td style="padding:0.6rem 0.9rem;font-size:0.85rem;color:var(--text-light);white-space:nowrap;">${fmtDate(r.created_at)}</td>`
+                        + `<td style="padding:0.6rem 0.9rem;font-weight:600;">${r.name}</td>`
+                        + `<td style="padding:0.6rem 0.9rem;"><a href="tel:${r.phone.replace(/\D/g,'')}" style="color:var(--primary-color);">${r.phone}</a></td>`
+                        + `<td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${r.email || '—'}</td>`
+                        + `<td style="padding:0.6rem 0.9rem;"><span style="font-size:0.8rem;font-weight:600;padding:2px 8px;border-radius:999px;background:${r.source==='functional-medicine'?'#f3e8ff':'#e0f2fe'};color:${r.source==='functional-medicine'?'#6b21a8':'#0369a1'};">${r.source==='functional-medicine'?'Functional Med':'Primary Care'}</span></td>`
+                        + `<td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${r.preferred_time || '—'}</td>`
+                        + `<td style="padding:0.6rem 0.9rem;font-size:0.9rem;max-width:180px;" title="${(r.reason||'').replace(/"/g,'&quot;')}">${reason}</td>`
+                        + `<td style="padding:0.6rem 0.9rem;">${badge}<br>${statusSelect}</td>`
+                        + '</tr>';
+                }).join('');
+
+                tableEl.style.display = 'table';
+
+            } catch (e) {
+                loadingEl.style.display = 'none';
+                errorEl.textContent = 'Failed to load appointment requests: ' + e.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        async function updateApptStatus(id, newStatus, selectEl) {
+            selectEl.disabled = true;
+            try {
+                const resp = await fetch(`/api/appointment-request/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus }),
+                });
+                const data = await resp.json();
+                if (!data.success) {
+                    alert('Failed to update status.');
+                    selectEl.disabled = false;
+                } else {
+                    // Refresh the whole list so badge updates too
+                    _apptRequestsLoaded = false;
+                    document.getElementById('appt-requests-table').style.display = 'none';
+                    document.getElementById('appt-requests-loading').style.display = 'block';
+                    document.getElementById('appt-requests-tbody').innerHTML = '';
+                    loadApptRequests();
+                }
+            } catch (e) {
+                alert('Error: ' + e.message);
+                selectEl.disabled = false;
             }
         }
 

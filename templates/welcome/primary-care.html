@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% if meta_pixel_id %}
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '{{ meta_pixel_id }}');
+fbq('track', 'PageView');
+fbq('track', 'ViewContent', {content_name: 'Primary Care Landing Page'});
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+{% endif %}
+<meta name="description" content="Accepting new patients in Chattanooga, TN. Same-day sick visits, same-week new patient appointments, board-certified providers. Request your appointment today.">
+<style>
+  /* ── Landing page overrides ── */
+  .lp-hero {
+    background: radial-gradient(ellipse at 60% 50%, rgba(55,164,219,0.12) 0%, transparent 70%),
+                linear-gradient(160deg, #f0f8ff 0%, #ffffff 60%);
+    padding: 5rem 0 4rem;
+    text-align: center;
+  }
+  .lp-hero h1 {
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    color: var(--accent-color);
+    max-width: 720px;
+    margin: 0 auto 1rem;
+    line-height: 1.2;
+  }
+  .lp-hero p.subhead {
+    font-size: 1.15rem;
+    color: var(--text-light);
+    max-width: 580px;
+    margin: 0 auto 2rem;
+  }
+  .lp-hero .cta-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .lp-hero .badge-row {
+    display: flex;
+    gap: 1.25rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2.5rem;
+  }
+  .trust-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .trust-badge .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    flex-shrink: 0;
+  }
+
+  /* ── Why Choose section ── */
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+  .benefit-card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 2rem 1.75rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.04);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .benefit-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+  .benefit-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+  .benefit-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+  }
+  .benefit-card p {
+    font-size: 0.95rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ── Services list ── */
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .service-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    padding: 0.6rem 0;
+  }
+  .service-item::before {
+    content: "✓";
+    color: var(--primary-color);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Form section ── */
+  .lp-form-section {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    padding: 5rem 0;
+    color: #fff;
+  }
+  .lp-form-section h2 {
+    color: #fff;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  .lp-form-section .form-intro {
+    text-align: center;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 2.5rem;
+    font-size: 1.05rem;
+  }
+  .appt-form {
+    background: #fff;
+    border-radius: var(--radius-xl);
+    padding: 2.5rem 2.75rem;
+    max-width: 620px;
+    margin: 0 auto;
+    box-shadow: var(--shadow-xl);
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.35rem;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-family: var(--body-font);
+    color: var(--text-color);
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(55,164,219,0.18);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+  .form-submit-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: var(--heading-font);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .form-submit-btn:hover { background: var(--primary-dark); transform: translateY(-1px); }
+  .form-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    color: #166534;
+  }
+  .form-success .success-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+  .form-error-msg {
+    display: none;
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ── Location/hours ── */
+  .location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+    align-items: start;
+  }
+  .location-info h3 {
+    font-size: 1.15rem;
+    margin-bottom: 0.75rem;
+    color: var(--accent-color);
+  }
+  .location-info p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin: 0 0 1.25rem;
+  }
+  .hours-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  .hours-table td { padding: 0.4rem 0; color: var(--text-color); }
+  .hours-table td:first-child { font-weight: 600; width: 45%; }
+  .phone-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.1rem;
+    text-decoration: none;
+  }
+  .phone-cta:hover { text-decoration: underline; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .form-row { grid-template-columns: 1fr; }
+    .appt-form { padding: 1.75rem 1.25rem; }
+    .location-grid { grid-template-columns: 1fr; }
+    .lp-hero h1 { font-size: 2rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ── -->
+<section class="lp-hero">
+  <div class="container">
+    <h1>Your New Doctor is<br>Ready to See You</h1>
+    <p class="subhead">
+      Compassionate, board-certified primary care for your whole family —
+      right here in Chattanooga. Same-day sick visits available.
+    </p>
+    <div class="cta-group">
+      <a href="#request-appointment" class="button">Request Appointment</a>
+      <a href="tel:4233735457" class="button button-secondary">Call Us: (423) 373-5457</a>
+    </div>
+    <div class="badge-row">
+      <span class="trust-badge"><span class="dot"></span>Same-Day Sick Visits</span>
+      <span class="trust-badge"><span class="dot"></span>New Patients This Week</span>
+      <span class="trust-badge"><span class="dot"></span>Most Insurance Accepted</span>
+      <span class="trust-badge"><span class="dot"></span>Board-Certified Providers</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Why Choose JFM ── -->
+<section class="section">
+  <div class="container">
+    <h2 style="text-align:center;">Why Families Choose Jenks</h2>
+    <p style="text-align:center;color:var(--text-light);max-width:560px;margin:0 auto;">
+      We built this practice on the belief that great healthcare is personal —
+      not a revolving door of different doctors every visit.
+    </p>
+    <div class="benefits-grid">
+      <div class="benefit-card reveal">
+        <div class="benefit-icon">⚡</div>
+        <h3>Same-Day Sick Visits</h3>
+        <p>When you're sick, you shouldn't have to wait days for an appointment. We keep same-day slots available Monday through Friday.</p>
+      </div>
+      <div class="benefit-card reveal">
+        <div class="benefit-icon">🤝</div>
+        <h3>Continuity of Care</h3>
+        <p>You'll see the same provider each visit — someone who knows your history, your family, and your goals. Not a stranger every time.</p>
+      </div>
+      <div class="benefit-card reveal">
+        <div class="benefit-icon">🏡</div>
+        <h3>Community-Rooted Practice</h3>
+        <p>We're a local independent practice — not a hospital system. Decisions are made with your health in mind, not corporate metrics.</p>
+      </div>
+      <div class="benefit-card reveal">
+        <div class="benefit-icon">🩺</div>
+        <h3>Comprehensive Services</h3>
+        <p>From annual physicals to chronic disease management to same-week new patient appointments — we handle it all in one place.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Services ── -->
+<section class="section section-bg">
+  <div class="container">
+    <h2 style="text-align:center;">What We Treat</h2>
+    <p style="text-align:center;color:var(--text-light);max-width:540px;margin:0 auto 0.5rem;">
+      We accept patients ages 2+ for sick visits and 5+ for physicals.
+    </p>
+    <div class="services-list">
+      <div class="service-item">Annual physicals & wellness exams</div>
+      <div class="service-item">Sick visits (cold, flu, infections)</div>
+      <div class="service-item">Chronic disease management</div>
+      <div class="service-item">Diabetes & hypertension care</div>
+      <div class="service-item">Preventive care & screenings</div>
+      <div class="service-item">Rashes, skin conditions</div>
+      <div class="service-item">Minor lacerations & wound care</div>
+      <div class="service-item">Urinary tract infections</div>
+      <div class="service-item">Respiratory illnesses</div>
+      <div class="service-item">Birth control management</div>
+      <div class="service-item">B-12 injections</div>
+      <div class="service-item">Smoking cessation support</div>
+      <div class="service-item">Cholesterol management</div>
+      <div class="service-item">Bloodwork & lab orders</div>
+      <div class="service-item">DOT & pre-employment physicals</div>
+      <div class="service-item">Sports & camp physicals</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Appointment Request Form ── -->
+<section class="lp-form-section" id="request-appointment">
+  <div class="container">
+    <h2>Request an Appointment</h2>
+    <p class="form-intro">Fill out the form below and our team will call you to confirm your appointment — usually within one business day.</p>
+    <div class="appt-form">
+      <div class="form-error-msg" id="pc-form-error"></div>
+      <div class="form-success" id="pc-form-success">
+        <div class="success-icon">✅</div>
+        <h3 style="color:#166534;margin-bottom:0.5rem;">Request Received!</h3>
+        <p style="color:#374151;">We'll give you a call to confirm your appointment shortly. If you need immediate help, call us at <strong>(423) 373-5457</strong>.</p>
+      </div>
+      <form id="pc-appt-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pc-name">Full Name *</label>
+            <input type="text" id="pc-name" name="name" required placeholder="Jane Smith">
+          </div>
+          <div class="form-group">
+            <label for="pc-phone">Phone Number *</label>
+            <input type="tel" id="pc-phone" name="phone" required placeholder="(423) 555-0100">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pc-email">Email Address</label>
+          <input type="email" id="pc-email" name="email" placeholder="jane@example.com">
+        </div>
+        <div class="form-group">
+          <label for="pc-time">Preferred Time</label>
+          <select id="pc-time" name="preferred_time">
+            <option value="">No preference</option>
+            <option value="Morning (8am–12pm)">Morning (8am–12pm)</option>
+            <option value="Afternoon (12pm–4pm)">Afternoon (12pm–4pm)</option>
+            <option value="As soon as possible">As soon as possible</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pc-reason">Reason for Visit</label>
+          <textarea id="pc-reason" name="reason" placeholder="e.g., new patient physical, sick visit, follow-up..."></textarea>
+        </div>
+        <input type="hidden" name="source" value="primary-care">
+        <button type="submit" class="form-submit-btn" id="pc-submit-btn">Request My Appointment</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── Location & Hours ── -->
+<section class="section">
+  <div class="container">
+    <h2 style="text-align:center;">Find Us</h2>
+    <div class="location-grid">
+      <div class="location-info">
+        <h3>Location</h3>
+        <p>
+          3908 Tennessee Avenue, Suite 110<br>
+          Chattanooga, TN 37409<br><br>
+          Conveniently located in the Alton Park area with on-site parking.
+        </p>
+        <a href="tel:4233735457" class="phone-cta">
+          📞 (423) 373-5457
+        </a>
+        <p style="margin-top:0.75rem;">
+          Fax: (423) 380-7154<br>
+          Email: office@jenksfamilymedicine.com
+        </p>
+      </div>
+      <div class="location-info">
+        <h3>Office Hours</h3>
+        <table class="hours-table">
+          <tr><td>Monday</td><td>8:00 AM – 4:00 PM</td></tr>
+          <tr><td>Tuesday</td><td>8:00 AM – 4:00 PM</td></tr>
+          <tr><td>Wednesday</td><td>8:00 AM – 4:00 PM</td></tr>
+          <tr><td>Thursday</td><td>8:00 AM – 4:00 PM</td></tr>
+          <tr><td>Friday</td><td>8:00 AM – 4:00 PM</td></tr>
+          <tr><td>Saturday</td><td>Closed</td></tr>
+          <tr><td>Sunday</td><td>Closed</td></tr>
+        </table>
+        <p style="margin-top:1rem;">
+          <strong>Accepting most major insurance plans</strong> including Aetna, Cigna, BlueCare,
+          BCBS, Medicare, Tricare, and VA Community Care.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('pc-appt-form');
+  const submitBtn = document.getElementById('pc-submit-btn');
+  const errorEl = document.getElementById('pc-form-error');
+  const successEl = document.getElementById('pc-form-success');
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    errorEl.style.display = 'none';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+
+    const body = {
+      name: form.elements['name'].value,
+      phone: form.elements['phone'].value,
+      email: form.elements['email'].value,
+      preferred_time: form.elements['preferred_time'].value,
+      reason: form.elements['reason'].value,
+      source: 'primary-care',
+    };
+
+    try {
+      const resp = await fetch('/api/appointment-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await resp.json();
+
+      if (data.success) {
+        form.style.display = 'none';
+        successEl.style.display = 'block';
+        {% if meta_pixel_id %}
+        if (typeof fbq !== 'undefined') {
+          fbq('track', 'Lead', { content_name: 'Primary Care Appointment Request' });
+        }
+        {% endif %}
+      } else {
+        errorEl.textContent = data.error || 'Something went wrong. Please call us at (423) 373-5457.';
+        errorEl.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Request My Appointment';
+      }
+    } catch (err) {
+      errorEl.textContent = 'Unable to submit. Please call us at (423) 373-5457.';
+      errorEl.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Request My Appointment';
+    }
+  });
+})();
+</script>
+{% endblock %}

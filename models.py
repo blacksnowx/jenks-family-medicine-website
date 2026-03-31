@@ -84,6 +84,26 @@ class ReferenceData(db.Model):
         return f"<ReferenceData {self.filename}>"
 
 
+class AppointmentRequest(db.Model):
+    """Appointment requests submitted via the marketing landing pages."""
+
+    __tablename__ = "appointment_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    preferred_time = db.Column(db.String(50))
+    reason = db.Column(db.Text)
+    source = db.Column(db.String(50))  # 'primary-care' or 'functional-medicine'
+    status = db.Column(db.String(20), default="new")  # new / contacted / scheduled
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    notes = db.Column(db.Text)
+
+    def __repr__(self) -> str:
+        return f"<AppointmentRequest {self.name} ({self.source}) [{self.status}]>"
+
+
 class SyncLog(db.Model):
     """Audit log for automated data sync runs (Tebra and Google Sheets)."""
 

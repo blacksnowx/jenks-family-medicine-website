@@ -9,7 +9,7 @@ import threading
 
 import requests
 
-from models import db, User, BannerSettings, ReferenceData, SyncLog
+from models import db, User, BannerSettings, ReferenceData, SyncLog, AppointmentRequest
 from datetime import timezone
 from data import rvu_analytics
 from data import revenue_per_rvu
@@ -205,6 +205,20 @@ def create_app():
     def summer_flyer_promo():
         return render_template('summer_flyer.html', page_title='Summer Flyer')
 
+    @app.route('/welcome/primary-care')
+    def welcome_primary_care():
+        meta_pixel_id = os.environ.get('META_PIXEL_ID', '')
+        return render_template('welcome/primary-care.html',
+                               page_title='Your New Doctor is Ready to See You',
+                               meta_pixel_id=meta_pixel_id)
+
+    @app.route('/welcome/functional-medicine')
+    def welcome_functional_medicine():
+        meta_pixel_id = os.environ.get('META_PIXEL_ID', '')
+        return render_template('welcome/functional-medicine.html',
+                               page_title='Get to the Root Cause — Functional Medicine',
+                               meta_pixel_id=meta_pixel_id)
+
     # -------------------------------------------------------------------
     #  API Routes
     # -------------------------------------------------------------------
@@ -235,6 +249,89 @@ def create_app():
                 "fetched_at": payload.get("fetched_at"),
             }
         )
+
+    @app.route('/api/appointment-request', methods=['POST'])
+    def appointment_request():
+        """Accept appointment requests from the marketing landing pages."""
+        data = request.get_json(silent=True) or request.form
+
+        name = (data.get('name') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        email = (data.get('email') or '').strip()
+        preferred_time = (data.get('preferred_time') or '').strip()
+        reason = (data.get('reason') or '').strip()
+        source = (data.get('source') or '').strip()
+
+        if not name or not phone:
+            return jsonify({'success': False, 'error': 'Name and phone are required.'}), 400
+
+        req = AppointmentRequest(
+            name=name,
+            phone=phone,
+            email=email,
+            preferred_time=preferred_time,
+            reason=reason,
+            source=source,
+            status='new',
+        )
+        db.session.add(req)
+        db.session.commit()
+
+        app.logger.info(
+            "New appointment request from %s (%s) via %s — phone: %s",
+            name, email, source, phone
+        )
+
+        return jsonify({'success': True, 'message': 'Request received! We will contact you shortly.'})
+
+    @app.route('/api/appointment-requests')
+    @login_required
+    def get_appointment_requests():
+        """Return recent appointment requests for the admin dashboard."""
+        if current_user.role not in ('Owner', 'Admin'):
+            return jsonify({'error': 'Access denied'}), 403
+
+        requests_list = (
+            AppointmentRequest.query
+            .order_by(AppointmentRequest.created_at.desc())
+            .limit(20)
+            .all()
+        )
+
+        return jsonify({'requests': [
+            {
+                'id': r.id,
+                'name': r.name,
+                'phone': r.phone,
+                'email': r.email,
+                'preferred_time': r.preferred_time,
+                'reason': r.reason,
+                'source': r.source,
+                'status': r.status,
+                'created_at': r.created_at.isoformat() + 'Z' if r.created_at else None,
+            }
+            for r in requests_list
+        ]})
+
+    @app.route('/api/appointment-request/<int:req_id>/status', methods=['POST'])
+    @login_required
+    def update_appointment_status(req_id):
+        """Owner/Admin can update the status of an appointment request."""
+        if current_user.role not in ('Owner', 'Admin'):
+            return jsonify({'error': 'Access denied'}), 403
+
+        req = db.session.get(AppointmentRequest, req_id)
+        if not req:
+            return jsonify({'error': 'Not found'}), 404
+
+        data = request.get_json(silent=True) or request.form
+        new_status = (data.get('status') or '').strip()
+        if new_status not in ('new', 'contacted', 'scheduled'):
+            return jsonify({'error': 'Invalid status'}), 400
+
+        req.status = new_status
+        db.session.commit()
+        return jsonify({'success': True})
 
     # -------------------------------------------------------------------
     #  Admin Routes
@@ -374,16 +471,35 @@ def create_app():
                     
                     # Store selected view in session or pass directly to template
                     # For simplicity, we just render the template with the selection
-                    return render_template('admin/dashboard.html', 
-                                           page_title='Admin Dashboard', 
-                                           banner=banner, 
+                    appt_requests_early = []
+                    if current_user.role in ('Owner', 'Admin'):
+                        appt_requests_early = (
+                            AppointmentRequest.query
+                            .order_by(AppointmentRequest.created_at.desc())
+                            .limit(20)
+                            .all()
+                        )
+                    return render_template('admin/dashboard.html',
+                                           page_title='Admin Dashboard',
+                                           banner=banner,
                                            needs_password_change=needs_password_change,
                                            active_tab='section-reports',
-                                           rvu_view=selected_view)
+                                           rvu_view=selected_view,
+                                           appt_requests=appt_requests_early)
 
             return redirect(url_for('admin_dashboard'))
 
-        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change)
+        appt_requests = []
+        if current_user.role in ('Owner', 'Admin'):
+            appt_requests = (
+                AppointmentRequest.query
+                .order_by(AppointmentRequest.created_at.desc())
+                .limit(20)
+                .all()
+            )
+
+        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
+                               needs_password_change=needs_password_change, appt_requests=appt_requests)
 
     @app.route('/admin/reports/rvu_image')
     @login_required
