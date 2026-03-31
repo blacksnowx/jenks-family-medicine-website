@@ -321,7 +321,12 @@ def calculate_available_slots(
 
     Returns a list of dicts: {start: datetime, end: datetime, label: str}
     """
-    existing = get_appointments(provider_name, target_date, target_date)
+    # Fetch existing appointments from Tebra; fall back to empty list if unavailable.
+    try:
+        existing = get_appointments(provider_name, target_date, target_date)
+    except Exception as exc:
+        logger.warning("calculate_available_slots: Tebra unavailable, proceeding without booked-slot data: %s", exc)
+        existing = []
 
     # Build a set of occupied (start, end) intervals
     occupied: list[tuple[datetime, datetime]] = [
