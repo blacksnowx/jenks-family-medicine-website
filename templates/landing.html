@@ -2,61 +2,6 @@
 
 {% block title %}Schedule Appointment - Jenks Family Medicine{% endblock %}
 
-{% block head %}
-<style>
-    .scheduler-section { background: #f8fafc; padding: 4rem 0; }
-    .scheduler-card { background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.08); max-width:640px; margin:0 auto; overflow:hidden; }
-    .scheduler-header { background:var(--primary-color); color:#fff; padding:1.5rem 2rem; }
-    .scheduler-header h2 { margin:0; font-size:1.4rem; color:#fff; }
-    .scheduler-header p  { margin:.35rem 0 0; opacity:.85; font-size:.95rem; }
-    .step-bar { display:flex; padding:1.25rem 2rem; border-bottom:1px solid #f1f5f9; }
-    .step-dot { flex:1; display:flex; flex-direction:column; align-items:center; gap:.3rem; font-size:.75rem; color:#94a3b8; position:relative; }
-    .step-dot::after { content:''; position:absolute; top:12px; left:50%; width:100%; height:2px; background:#e2e8f0; z-index:0; }
-    .step-dot:last-child::after { display:none; }
-    .step-dot .dot { width:26px; height:26px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; position:relative; z-index:1; }
-    .step-dot.active .dot { background:var(--primary-color); color:#fff; }
-    .step-dot.done   .dot { background:#22c55e; color:#fff; }
-    .step-dot.active      { color:var(--primary-color); font-weight:600; }
-    .step-dot.done        { color:#22c55e; }
-    .step-dot.done::after   { background:#22c55e; }
-    .step-dot.active::after { background:var(--primary-color); }
-    .step-panel { padding:1.75rem 2rem; display:none; }
-    .step-panel.active { display:block; }
-    .step-panel h3 { font-size:1.1rem; margin:0 0 1.25rem; color:#1e293b; }
-    .provider-option { display:flex; align-items:center; gap:1rem; border:2px solid #e2e8f0; border-radius:10px; padding:.9rem 1.1rem; cursor:pointer; margin-bottom:.75rem; transition:border-color .2s,background .2s; }
-    .provider-option:hover, .provider-option.selected { border-color:var(--primary-color); background:#f0f9ff; }
-    .provider-option img { width:52px; height:52px; border-radius:50%; object-fit:cover; object-position:top; }
-    .provider-option .pname  { font-weight:600; font-size:.95rem; }
-    .provider-option .ptitle { font-size:.82rem; color:#64748b; }
-    input[type="date"].sched-input, input[type="text"].sched-input, input[type="tel"].sched-input, input[type="email"].sched-input, select.sched-input {
-        width:100%; padding:.65rem .9rem; border:1px solid #d1d5db; border-radius:8px; font-size:.95rem; margin-top:.35rem; font-family:inherit; box-sizing:border-box;
-    }
-    .sched-label { display:block; font-size:.88rem; font-weight:600; color:#374151; margin-bottom:1rem; }
-    .time-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-top:.5rem; }
-    .time-slot { border:1.5px solid #d1d5db; border-radius:8px; padding:.5rem .3rem; text-align:center; font-size:.82rem; cursor:pointer; background:#fff; transition:all .15s; font-weight:500; line-height:1.2; }
-    .time-slot:hover:not(.unavailable) { border-color:var(--primary-color); background:#f0f9ff; }
-    .time-slot.selected    { border-color:var(--primary-color); background:var(--primary-color); color:#fff; }
-    .time-slot.unavailable { background:#f1f5f9; color:#94a3b8; cursor:default; text-decoration:line-through; }
-    .time-loading { text-align:center; color:#64748b; padding:1.5rem 0; font-size:.9rem; }
-    .confirm-row { display:flex; justify-content:space-between; padding:.55rem 0; border-bottom:1px solid #f1f5f9; font-size:.92rem; }
-    .confirm-row:last-child { border-bottom:none; }
-    .confirm-row .label { color:#64748b; }
-    .confirm-row .value { font-weight:600; }
-    .step-nav { display:flex; gap:.75rem; margin-top:1.5rem; justify-content:flex-end; }
-    .btn-back { background:none; border:1.5px solid #d1d5db; border-radius:8px; padding:.6rem 1.25rem; cursor:pointer; font-size:.9rem; font-family:inherit; color:#374151; }
-    .btn-next { background:var(--primary-color); color:#fff; border:none; border-radius:8px; padding:.6rem 1.5rem; cursor:pointer; font-size:.9rem; font-weight:600; font-family:inherit; }
-    .btn-next:disabled { opacity:.5; cursor:not-allowed; }
-    .or-divider { text-align:center; color:#94a3b8; font-size:.85rem; margin:1.25rem 0; }
-    .call-cta { display:flex; align-items:center; justify-content:center; gap:.75rem; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:.9rem 1.25rem; text-decoration:none; color:var(--text-color,#1e293b); font-weight:600; font-size:.95rem; transition:background .2s; }
-    .call-cta:hover { background:#f1f5f9; }
-    .booking-success { text-align:center; padding:2.5rem 1rem; }
-    .booking-success .check-icon { font-size:3rem; margin-bottom:.75rem; }
-    .booking-success h3 { font-size:1.3rem; margin-bottom:.5rem; }
-    .booking-success p  { color:#64748b; font-size:.95rem; }
-    @media (max-width:520px) { .step-panel { padding:1.25rem 1rem; } .scheduler-header { padding:1.25rem 1rem; } .step-bar { padding:1rem; } .time-grid { grid-template-columns:repeat(2,1fr); } .step-dot .label { display:none; } }
-</style>
-{% endblock %}
-
 {% block header %}
 <header class="main-header" style="position: absolute; background: transparent; border: none; backdrop-filter: none;">
     <div class="container landing-header">
@@ -69,9 +14,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero" style="padding-top: 180px; padding-bottom: 3rem;">
+<section class="hero" style="padding-top: 180px; padding-bottom: 5rem;">
     <div class="container reveal">
-        <span style="font-family:var(--body-font);font-weight:500;color:var(--primary-color);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:1rem;">
+        <span
+            style="font-family: var(--body-font); font-weight: 500; color: var(--primary-color); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 1rem;">
             A Better Kind of Primary Care
         </span>
         <h1>We Truly Listen to You.</h1>
@@ -79,125 +25,26 @@
             Experience compassionate, unhurried healthcare in Chattanooga. From sick visits to chronic care and veteran
             exams, our nurse practitioners are here to support your whole family.
         </p>
-        <div class="trust-signals">
-            <div class="trust-item"><span style="color:#fbbf24;font-size:1.2rem;">&#9733;&#9733;&#9733;&#9733;&#9733;</span><span>5.0 on Google</span></div>
-            <div class="trust-item"><span>&#10003; Accepting New Patients</span></div>
-            <div class="trust-item"><span>&#10003; Most Insurance Accepted</span></div>
+
+        <div class="hero-actions">
+            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">
+                Schedule Appointment
+            </a>
+            <a href="tel:4233735457" class="button button-secondary">
+                Call (423) 373-5457
+            </a>
         </div>
-    </div>
-</section>
 
-<!-- Scheduling Widget -->
-<section class="scheduler-section reveal" id="schedule">
-    <div class="container">
-        <div class="scheduler-card">
-            <div class="scheduler-header">
-                <h2>Request an Appointment</h2>
-                <p>Pick a time that works for you — we'll confirm within 1 business day.</p>
+        <div class="trust-signals">
+            <div class="trust-item">
+                <span style="color: #fbbf24; font-size: 1.2rem;">★★★★★</span>
+                <span>5.0 on Google</span>
             </div>
-            <div class="step-bar">
-                <div class="step-dot active" id="dot-1"><div class="dot">1</div><span class="label">Provider</span></div>
-                <div class="step-dot"        id="dot-2"><div class="dot">2</div><span class="label">Date</span></div>
-                <div class="step-dot"        id="dot-3"><div class="dot">3</div><span class="label">Time</span></div>
-                <div class="step-dot"        id="dot-4"><div class="dot">4</div><span class="label">Info</span></div>
-                <div class="step-dot"        id="dot-5"><div class="dot">5</div><span class="label">Confirm</span></div>
+            <div class="trust-item">
+                <span>✓ Accepting New Patients</span>
             </div>
-
-            <!-- Step 1: Provider -->
-            <div class="step-panel active" id="step-1">
-                <h3>Who would you like to see?</h3>
-                <div class="provider-option selected" data-provider="SARAH SUGGS" onclick="selectProvider(this)">
-                    <img src="{{ url_for('static', filename='images/Sarah.jpg') }}" alt="Sarah Suggs">
-                    <div><div class="pname">Sarah Suggs, NP</div><div class="ptitle">Family &amp; Functional Medicine &middot; CFMP</div></div>
-                </div>
-                <div class="provider-option" data-provider="EHRIN IRVIN" onclick="selectProvider(this)">
-                    <img src="{{ url_for('static', filename='images/Ehrin.jpg') }}" alt="Ehrin Irvin">
-                    <div><div class="pname">Ehrin Irvin, NP</div><div class="ptitle">Family Medicine &middot; VA &amp; DOT Certified</div></div>
-                </div>
-                <div class="or-divider">or</div>
-                <a href="tel:4233735457" class="call-cta">&#128222;&nbsp; Call to Schedule: (423) 373-5457</a>
-                <div class="step-nav"><button class="btn-next" onclick="goStep(2)">Choose a Date &#8594;</button></div>
-            </div>
-
-            <!-- Step 2: Date -->
-            <div class="step-panel" id="step-2">
-                <h3>Select a date</h3>
-                <label class="sched-label">Appointment Date
-                    <input type="date" class="sched-input" id="appt-date" onchange="onDateChange()">
-                </label>
-                <p id="date-error" style="color:#ef4444;font-size:.85rem;display:none;">Please select a weekday (Mon-Fri).</p>
-                <div class="or-divider">or</div>
-                <a href="tel:4233735457" class="call-cta">&#128222;&nbsp; Call Us: (423) 373-5457</a>
-                <div class="step-nav">
-                    <button class="btn-back" onclick="goStep(1)">&#8592; Back</button>
-                    <button class="btn-next" id="btn-date-next" disabled onclick="goStep(3)">Choose a Time &#8594;</button>
-                </div>
-            </div>
-
-            <!-- Step 3: Time Slot -->
-            <div class="step-panel" id="step-3">
-                <h3>Available times</h3>
-                <div id="time-slots-container"><div class="time-loading">Loading available times...</div></div>
-                <p id="slot-error" style="color:#ef4444;font-size:.85rem;display:none;margin-top:.75rem;">Please select a time slot.</p>
-                <div class="or-divider">or</div>
-                <a href="tel:4233735457" class="call-cta">&#128222;&nbsp; Call Us: (423) 373-5457</a>
-                <div class="step-nav">
-                    <button class="btn-back" onclick="goStep(2)">&#8592; Back</button>
-                    <button class="btn-next" id="btn-slot-next" disabled onclick="goStep(4)">Enter Your Info &#8594;</button>
-                </div>
-            </div>
-
-            <!-- Step 4: Patient Info -->
-            <div class="step-panel" id="step-4">
-                <h3>Your contact information</h3>
-                <label class="sched-label">Full Name *
-                    <input type="text" class="sched-input" id="pt-name" placeholder="Jane Smith" oninput="validateInfo()">
-                </label>
-                <label class="sched-label">Phone Number *
-                    <input type="tel" class="sched-input" id="pt-phone" placeholder="(423) 555-0100" oninput="validateInfo()">
-                </label>
-                <label class="sched-label">Email Address
-                    <input type="email" class="sched-input" id="pt-email" placeholder="jane@example.com">
-                </label>
-                <label class="sched-label">Reason for Visit
-                    <select class="sched-input" id="pt-reason">
-                        <option value="New Patient Visit">New Patient Visit</option>
-                        <option value="Annual Physical">Annual Physical / Wellness Exam</option>
-                        <option value="Sick Visit">Sick Visit</option>
-                        <option value="Follow-Up">Follow-Up Appointment</option>
-                        <option value="Chronic Disease Management">Chronic Disease Management</option>
-                        <option value="Veterans Exam">Veterans C&amp;P Exam</option>
-                        <option value="Functional Medicine Consult">Functional Medicine Consultation</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </label>
-                <div class="step-nav">
-                    <button class="btn-back" onclick="goStep(3)">&#8592; Back</button>
-                    <button class="btn-next" id="btn-info-next" disabled onclick="goStep(5)">Review &#8594;</button>
-                </div>
-            </div>
-
-            <!-- Step 5: Confirm -->
-            <div class="step-panel" id="step-5">
-                <h3>Confirm your request</h3>
-                <div id="confirm-summary"></div>
-                <p style="font-size:.82rem;color:#64748b;margin-top:1rem;">
-                    This creates a <strong>tentative</strong> appointment request. Our team will confirm within 1 business day.
-                </p>
-                <div class="step-nav">
-                    <button class="btn-back" onclick="goStep(4)">&#8592; Back</button>
-                    <button class="btn-next" id="btn-submit" onclick="submitBooking()">Request Appointment</button>
-                </div>
-            </div>
-
-            <!-- Success -->
-            <div class="step-panel" id="step-success">
-                <div class="booking-success">
-                    <div class="check-icon">&#9989;</div>
-                    <h3>Request Received!</h3>
-                    <p>Thank you! Our team will contact you within 1 business day to confirm your appointment.</p>
-                    <p style="margin-top:1rem;">Questions? Call us at <a href="tel:4233735457">(423) 373-5457</a>.</p>
-                </div>
+            <div class="trust-item">
+                <span>✓ Most Insurance Accepted</span>
             </div>
         </div>
     </div>
@@ -205,212 +52,458 @@
 
 <section class="section section-bg reveal">
     <div class="container">
-        <div class="text-center mb-2"><h2>Our Core Services</h2><p>Comprehensive care for ages 5 and up.</p></div>
+        <div class="text-center mb-2">
+            <h2>Our Core Services</h2>
+            <p>Comprehensive care for ages 5 and up.</p>
+        </div>
+
         <div class="services-grid">
             <div class="service-card">
                 <img src="{{ url_for('static', filename='images/Primary Care Img.png') }}" alt="Primary Care">
                 <h3>Primary Care</h3>
-                <p style="color:#64748b;margin-bottom:1rem;">Complete health management for your family.</p>
-                <ul><li>Sick Visits &amp; Physicals</li><li>Chronic Disease Management</li><li>Women's Health</li></ul>
+                <p style="color: #64748b; margin-bottom: 1rem;">Complete health management for your family.</p>
+                <ul>
+                    <li>Sick Visits & Physicals</li>
+                    <li>Chronic Disease Management</li>
+                    <li>Women's Health</li>
+                </ul>
             </div>
+
             <div class="service-card">
                 <img src="{{ url_for('static', filename='images/Veteran Services Img.png') }}" alt="Veteran Services">
                 <h3>Veteran Services</h3>
-                <p style="color:#64748b;margin-bottom:1rem;">Specialized care for those who served.</p>
-                <ul><li>C&amp;P Disability Exams</li><li>VACCN Primary Care</li><li>Nexus Letters</li></ul>
+                <p style="color: #64748b; margin-bottom: 1rem;">Specialized care for those who served.</p>
+                <ul>
+                    <li>C&P Disability Exams</li>
+                    <li>VACCN Primary Care</li>
+                    <li>Nexus Letters</li>
+                </ul>
             </div>
+
             <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Functional Medicine Img.png') }}" alt="Functional Medicine">
+                <img src="{{ url_for('static', filename='images/Functional Medicine Img.png') }}"
+                    alt="Functional Medicine">
                 <h3>Functional Medicine</h3>
-                <p style="color:#64748b;margin-bottom:1rem;">Finding the root cause of illness.</p>
-                <ul><li>Holistic Approach</li><li>Personalized Plans</li><li>In-Depth Analysis</li></ul>
+                <p style="color: #64748b; margin-bottom: 1rem;">Finding the root cause of illness.</p>
+                <ul>
+                    <li>Holistic Approach</li>
+                    <li>Personalized Plans</li>
+                    <li>In-Depth Analysis</li>
+                </ul>
             </div>
+        </div>
+
+        <div class="text-center" style="margin-top: 3rem;">
+            <a href="#schedule-widget" class="button">
+                Book Your Visit Now
+            </a>
         </div>
     </div>
 </section>
+
+<section class="section reveal" id="schedule-widget">
+    <div class="container">
+        <div class="text-center mb-2">
+            <h2>Request an Appointment</h2>
+            <p>Pick a time that works for you — we'll confirm within one business day.</p>
+        </div>
+
+        <style>
+            .scheduling-widget {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 2em 2.5em;
+                max-width: 680px;
+                margin: 0 auto;
+                text-align: left;
+            }
+            .sched-row {
+                display: flex;
+                gap: 1em;
+                flex-wrap: wrap;
+                margin-bottom: 1em;
+            }
+            .sched-field {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 200px;
+            }
+            .sched-field label {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #475569;
+                margin-bottom: 0.3em;
+            }
+            .sched-field input,
+            .sched-field select {
+                padding: 0.55em 0.75em;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                background: #fff;
+                color: #1e293b;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .sched-field input:focus,
+            .sched-field select:focus {
+                outline: 2px solid var(--primary-color);
+                border-color: var(--primary-color);
+            }
+            .slots-grid {
+                margin: 0.75em 0 1.25em;
+                min-height: 2.5em;
+            }
+            .slots-period {
+                margin-bottom: 0.75em;
+            }
+            .slots-period-label {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 0.4em;
+            }
+            .slots-period-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45em;
+            }
+            .slot-btn {
+                background: #fff;
+                border: 1.5px solid var(--primary-color);
+                color: var(--primary-color);
+                border-radius: 6px;
+                padding: 0.4em 0.85em;
+                font-size: 0.875rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: background 0.15s, color 0.15s;
+                white-space: nowrap;
+                min-width: 72px;
+                text-align: center;
+            }
+            .slot-btn:hover,
+            .slot-btn.selected {
+                background: var(--primary-color);
+                color: #fff;
+            }
+            .slots-message {
+                font-size: 0.9rem;
+                color: #64748b;
+                font-style: italic;
+            }
+            .sched-divider {
+                border: 0;
+                border-top: 1px solid #e2e8f0;
+                margin: 1.25em 0;
+            }
+            #lp-book-btn {
+                width: 100%;
+                padding: 0.75em;
+                font-size: 1rem;
+                margin-top: 0.5em;
+                cursor: pointer;
+            }
+            #lp-book-btn:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            .sched-status {
+                margin-top: 0.75em;
+                font-size: 0.92rem;
+                min-height: 1.4em;
+                text-align: center;
+            }
+            .sched-status.success { color: #16a34a; font-weight: 600; }
+            .sched-status.error   { color: #dc2626; }
+            @media (max-width: 600px) {
+                .scheduling-widget { padding: 1.5em 1.2em; }
+                .sched-row { flex-direction: column; }
+            }
+        </style>
+
+        <div class="scheduling-widget" id="scheduling-widget-lp">
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-date">Preferred Date</label>
+                    <input type="date" id="lp-date" name="lp-date">
+                </div>
+                <div class="sched-field">
+                    <label for="lp-provider">Provider</label>
+                    <select id="lp-provider" name="lp-provider">
+                        <option value="SARAH F SUGGS, NP">Sarah Suggs, NP</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:0.85rem;font-weight:600;color:#475569;">Available Times</label>
+                <div class="slots-grid" id="lp-slots-grid">
+                    <span class="slots-message">Select a date to see available times.</span>
+                </div>
+                <input type="hidden" id="lp-selected-start" value="">
+                <input type="hidden" id="lp-selected-end" value="">
+            </div>
+
+            <hr class="sched-divider">
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-reason">Visit Reason</label>
+                    <select id="lp-reason" name="lp-reason">
+                        <option value="">Loading reasons...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-name">Full Name</label>
+                    <input type="text" id="lp-name" name="lp-name" placeholder="Jane Smith" autocomplete="name">
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-phone">Phone</label>
+                    <input type="tel" id="lp-phone" name="lp-phone" placeholder="(423) 555-1234" autocomplete="tel">
+                </div>
+                <div class="sched-field">
+                    <label for="lp-email">Email</label>
+                    <input type="email" id="lp-email" name="lp-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-notes">Additional Notes (optional)</label>
+                    <input type="text" id="lp-notes" name="lp-notes" placeholder="Anything we should know?">
+                </div>
+            </div>
+
+            <button class="button" id="lp-book-btn" disabled>Request Appointment</button>
+            <div class="sched-status" id="lp-status"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    'use strict';
+
+    var PREFIX = 'lp';
+    var PROVIDER_DEFAULT = 'SARAH F SUGGS, NP';
+
+    var dateInput     = document.getElementById(PREFIX + '-date');
+    var providerSel   = document.getElementById(PREFIX + '-provider');
+    var slotsGrid     = document.getElementById(PREFIX + '-slots-grid');
+    var selectedStart = document.getElementById(PREFIX + '-selected-start');
+    var selectedEnd   = document.getElementById(PREFIX + '-selected-end');
+    var reasonSel     = document.getElementById(PREFIX + '-reason');
+    var nameInput     = document.getElementById(PREFIX + '-name');
+    var phoneInput    = document.getElementById(PREFIX + '-phone');
+    var emailInput    = document.getElementById(PREFIX + '-email');
+    var notesInput    = document.getElementById(PREFIX + '-notes');
+    var bookBtn       = document.getElementById(PREFIX + '-book-btn');
+    var statusDiv     = document.getElementById(PREFIX + '-status');
+
+    // Set min date to today
+    dateInput.min = new Date().toISOString().slice(0, 10);
+
+    // Load providers
+    fetch('/api/schedule/providers')
+        .then(function (r) { return r.json(); })
+        .catch(function () { return { providers: [PROVIDER_DEFAULT] }; })
+        .then(function (data) {
+            var providers = data.providers || [PROVIDER_DEFAULT];
+            providerSel.innerHTML = '';
+            providers.forEach(function (p) {
+                var opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p === 'SARAH F SUGGS, NP' ? 'Sarah Suggs, NP' : p;
+                if (p === PROVIDER_DEFAULT) opt.selected = true;
+                providerSel.appendChild(opt);
+            });
+            if (!providers.length) {
+                var opt = document.createElement('option');
+                opt.value = PROVIDER_DEFAULT;
+                opt.textContent = 'Sarah Suggs, NP';
+                providerSel.appendChild(opt);
+            }
+        });
+
+    // Load reasons
+    fetch('/api/schedule/reasons')
+        .then(function (r) { return r.ok ? r.json() : { reasons: [] }; })
+        .catch(function () { return { reasons: [] }; })
+        .then(function (data) {
+            var reasons = data.reasons || [];
+            reasonSel.innerHTML = '';
+            if (!reasons.length) {
+                reasonSel.innerHTML = '<option value="0">General Consultation</option>';
+                return;
+            }
+            var placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select a reason...';
+            reasonSel.appendChild(placeholder);
+            reasons.forEach(function (r) {
+                var opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = r.name;
+                reasonSel.appendChild(opt);
+            });
+        });
+
+    function clearSlots(msg) {
+        slotsGrid.innerHTML = '<span class="slots-message">' + (msg || '') + '</span>';
+        selectedStart.value = '';
+        selectedEnd.value = '';
+        updateBookBtn();
+    }
+
+    function updateBookBtn() {
+        var ready = selectedStart.value &&
+                    nameInput.value.trim() &&
+                    phoneInput.value.trim() &&
+                    emailInput.value.trim() &&
+                    reasonSel.value;
+        bookBtn.disabled = !ready;
+    }
+
+    function loadSlots() {
+        var date = dateInput.value;
+        var provider = providerSel.value;
+        if (!date || !provider) return;
+
+        clearSlots('Loading available times...');
+
+        fetch('/api/schedule/available?provider=' + encodeURIComponent(provider) + '&date=' + encodeURIComponent(date))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                slotsGrid.innerHTML = '';
+                var slots = data.slots || [];
+                if (!slots.length) {
+                    slotsGrid.innerHTML = '<span class="slots-message">' + (data.message || 'No availability on this day.') + '</span>';
+                    return;
+                }
+                var am = slots.filter(function (s) { return s.start < s.start.slice(0, 11) + '12:00:00'; });
+                var pm = slots.filter(function (s) { return s.start >= s.start.slice(0, 11) + '12:00:00'; });
+                function renderPeriod(label, group) {
+                    if (!group.length) return;
+                    var period = document.createElement('div');
+                    period.className = 'slots-period';
+                    var lbl = document.createElement('div');
+                    lbl.className = 'slots-period-label';
+                    lbl.textContent = label;
+                    period.appendChild(lbl);
+                    var row = document.createElement('div');
+                    row.className = 'slots-period-row';
+                    group.forEach(function (slot) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'slot-btn';
+                        btn.textContent = slot.label;
+                        btn.dataset.start = slot.start;
+                        btn.dataset.end = slot.end;
+                        btn.addEventListener('click', function () {
+                            slotsGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
+                            btn.classList.add('selected');
+                            selectedStart.value = slot.start;
+                            selectedEnd.value = slot.end;
+                            updateBookBtn();
+                        });
+                        row.appendChild(btn);
+                    });
+                    period.appendChild(row);
+                    slotsGrid.appendChild(period);
+                }
+                renderPeriod('Morning', am);
+                renderPeriod('Afternoon', pm);
+            })
+            .catch(function () {
+                clearSlots('Unable to load times. Please call us.');
+            });
+    }
+
+    dateInput.addEventListener('change', loadSlots);
+    providerSel.addEventListener('change', function () { if (dateInput.value) loadSlots(); });
+    [nameInput, phoneInput, emailInput, reasonSel].forEach(function (el) {
+        el.addEventListener('input', updateBookBtn);
+        el.addEventListener('change', updateBookBtn);
+    });
+
+    bookBtn.addEventListener('click', function () {
+        statusDiv.textContent = '';
+        statusDiv.className = 'sched-status';
+        bookBtn.disabled = true;
+        bookBtn.textContent = 'Sending...';
+
+        var payload = {
+            provider:      providerSel.value,
+            start_time:    selectedStart.value,
+            end_time:      selectedEnd.value,
+            reason_id:     reasonSel.value || '0',
+            patient_name:  nameInput.value.trim(),
+            patient_phone: phoneInput.value.trim(),
+            patient_email: emailInput.value.trim(),
+            notes:         notesInput.value.trim()
+        };
+
+        fetch('/api/schedule/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                statusDiv.textContent = data.message || 'Request received! We will confirm your appointment soon.';
+                statusDiv.className = 'sched-status success';
+                if (typeof fbq === 'function') { fbq('track', 'Lead'); }
+                bookBtn.textContent = 'Request Sent';
+            } else {
+                statusDiv.textContent = data.error || 'Something went wrong. Please call us.';
+                statusDiv.className = 'sched-status error';
+                bookBtn.disabled = false;
+                bookBtn.textContent = 'Request Appointment';
+            }
+        })
+        .catch(function () {
+            statusDiv.textContent = 'Network error. Please call (423) 373-5457.';
+            statusDiv.className = 'sched-status error';
+            bookBtn.disabled = false;
+            bookBtn.textContent = 'Request Appointment';
+        });
+    });
+}());
+</script>
 
 <section class="section reveal">
     <div class="container text-center">
         <h2>Insurance Accepted</h2>
         <p class="mb-2">We work with most major providers including:</p>
-        <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:1rem 2rem;max-width:800px;margin:0 auto;font-weight:500;color:var(--text-color);">
-            <span>Blue Cross Blue Shield</span><span>United Healthcare</span><span>Cigna</span>
-            <span>Aetna</span><span>Medicare</span><span>Tricare</span>
-            <span>Humana</span><span>ChampVA</span><span>VA Community Care</span>
+        <div
+            style="display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem 2rem; max-width: 800px; margin: 0 auto; font-weight: 500; color: var(--text-color);">
+            <span>Blue Cross Blue Shield</span>
+            <span>United Healthcare</span>
+            <span>Cigna</span>
+            <span>Aetna</span>
+            <span>Medicare</span>
+            <span>Tricare</span>
+            <span>Humana</span>
+            <span>ChampVA</span>
+            <span>VA Community Care</span>
         </div>
-        <p style="margin-top:2rem;font-size:.9rem;color:#64748b;">*Please verify network status with your insurance card before your appointment.</p>
+        <p style="margin-top: 2rem; font-size: 0.9rem; color: #64748b;">
+            *Please verify network status with your insurance card before your appointment.
+        </p>
     </div>
 </section>
-
-<script>
-var state = { currentStep:1, provider:'SARAH SUGGS', date:'', slotStart:'', slotEnd:'', slotLabel:'', patientName:'', patientPhone:'', patientEmail:'', reasonName:'New Patient Visit' };
-
-function goStep(n) {
-    var cur = document.getElementById('step-' + state.currentStep);
-    if (cur) cur.classList.remove('active');
-    if (n === 'success') {
-        document.getElementById('step-success').classList.add('active');
-        updateDots(6);
-        return;
-    }
-    document.getElementById('step-' + n).classList.add('active');
-    updateDots(n);
-    state.currentStep = n;
-    if (n === 3) loadTimeSlots();
-    if (n === 5) buildConfirmSummary();
-}
-
-function updateDots(active) {
-    for (var i = 1; i <= 5; i++) {
-        var dot = document.getElementById('dot-' + i);
-        dot.classList.remove('active','done');
-        if (i < active) dot.classList.add('done');
-        else if (i === active) dot.classList.add('active');
-    }
-}
-
-function selectProvider(el) {
-    document.querySelectorAll('.provider-option').forEach(function(e){ e.classList.remove('selected'); });
-    el.classList.add('selected');
-    state.provider = el.dataset.provider;
-}
-
-// Init date to next weekday
-(function(){
-    var input = document.getElementById('appt-date');
-    var d = new Date();
-    d.setDate(d.getDate() + 1);
-    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
-    var iso = d.toISOString().split('T')[0];
-    input.min = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    input.value = iso;
-    state.date = iso;
-    document.getElementById('btn-date-next').disabled = false;
-})();
-
-function onDateChange() {
-    var val = document.getElementById('appt-date').value;
-    var err = document.getElementById('date-error');
-    if (!val) { document.getElementById('btn-date-next').disabled = true; return; }
-    var dow = new Date(val + 'T00:00:00').getDay();
-    if (dow === 0 || dow === 6) {
-        err.style.display = 'block';
-        document.getElementById('btn-date-next').disabled = true;
-    } else {
-        err.style.display = 'none';
-        state.date = val;
-        state.slotStart = ''; state.slotEnd = ''; state.slotLabel = '';
-        document.getElementById('btn-date-next').disabled = false;
-    }
-}
-
-function loadTimeSlots() {
-    var container = document.getElementById('time-slots-container');
-    container.innerHTML = '<div class="time-loading">Loading available times...</div>';
-    document.getElementById('btn-slot-next').disabled = true;
-    state.slotStart = ''; state.slotEnd = ''; state.slotLabel = '';
-
-    fetch('/api/schedule/available?provider=' + encodeURIComponent(state.provider) + '&date=' + state.date)
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-            var slots = data.slots || [];
-            if (!slots.length) {
-                container.innerHTML = '<p style="color:#64748b;text-align:center;padding:1rem 0">' + (data.message || 'No times available. Try another day or call us.') + '</p>';
-                return;
-            }
-            var grid = document.createElement('div');
-            grid.className = 'time-grid';
-            slots.forEach(function(slot){
-                var btn = document.createElement('button');
-                btn.className = 'time-slot';
-                // label may contain en-dash; split on first part for compact display
-                var parts = slot.label.split('\u2013');
-                btn.innerHTML = parts[0].trim() + (parts[1] ? '<br><span style="font-size:.75rem;opacity:.7">' + parts[1].trim() + '</span>' : '');
-                btn.title = slot.label;
-                (function(b, s){ b.onclick = function(){ selectSlot(b, s.start, s.end, s.label); }; })(btn, slot);
-                grid.appendChild(btn);
-            });
-            container.innerHTML = '';
-            container.appendChild(grid);
-        })
-        .catch(function(){
-            container.innerHTML = '<p style="color:#ef4444;text-align:center;padding:1rem 0">Could not load availability. Please call us to schedule.</p>';
-        });
-}
-
-function selectSlot(btn, start, end, label) {
-    document.querySelectorAll('.time-slot').forEach(function(b){ b.classList.remove('selected'); });
-    btn.classList.add('selected');
-    state.slotStart = start;
-    state.slotEnd   = end;
-    state.slotLabel = label;
-    document.getElementById('btn-slot-next').disabled = false;
-    document.getElementById('slot-error').style.display = 'none';
-}
-
-function validateInfo() {
-    var name  = document.getElementById('pt-name').value.trim();
-    var phone = document.getElementById('pt-phone').value.trim();
-    document.getElementById('btn-info-next').disabled = !(name && phone);
-}
-
-function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function buildConfirmSummary() {
-    state.patientName  = document.getElementById('pt-name').value.trim();
-    state.patientPhone = document.getElementById('pt-phone').value.trim();
-    state.patientEmail = document.getElementById('pt-email').value.trim();
-    state.reasonName   = document.getElementById('pt-reason').value || 'New Patient Visit';
-    var providerLabel = state.provider === 'SARAH SUGGS' ? 'Sarah Suggs, NP' : 'Ehrin Irvin, NP';
-    var dateLabel = new Date(state.date + 'T00:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-    document.getElementById('confirm-summary').innerHTML =
-        '<div class="confirm-row"><span class="label">Provider</span><span class="value">' + esc(providerLabel) + '</span></div>' +
-        '<div class="confirm-row"><span class="label">Date &amp; Time</span><span class="value">' + esc(dateLabel) + '<br>' + esc(state.slotLabel) + '</span></div>' +
-        '<div class="confirm-row"><span class="label">Name</span><span class="value">' + esc(state.patientName) + '</span></div>' +
-        '<div class="confirm-row"><span class="label">Phone</span><span class="value">' + esc(state.patientPhone) + '</span></div>' +
-        (state.patientEmail ? '<div class="confirm-row"><span class="label">Email</span><span class="value">' + esc(state.patientEmail) + '</span></div>' : '') +
-        '<div class="confirm-row"><span class="label">Reason</span><span class="value">' + esc(state.reasonName) + '</span></div>';
-}
-
-function submitBooking() {
-    var btn = document.getElementById('btn-submit');
-    btn.disabled = true;
-    btn.textContent = 'Sending...';
-
-    fetch('/api/schedule/book', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            provider:      state.provider,
-            start_time:    state.slotStart,
-            end_time:      state.slotEnd,
-            reason_id:     '',
-            patient_name:  state.patientName,
-            patient_phone: state.patientPhone,
-            patient_email: state.patientEmail,
-            notes:         'Reason: ' + state.reasonName + '. Source: landing_page',
-        }),
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-        if (data.success) {
-            if (typeof fbq !== 'undefined') fbq('track', 'Lead', { content_name:'Appointment Request', content_category:state.provider });
-            goStep('success');
-        } else {
-            btn.disabled = false;
-            btn.textContent = 'Request Appointment';
-            alert('There was a problem: ' + (data.error || data.message || 'Please try again or call us.'));
-        }
-    })
-    .catch(function(){
-        btn.disabled = false;
-        btn.textContent = 'Request Appointment';
-        alert('Network error. Please try again or call us at (423) 373-5457.');
-    });
-}
-</script>
 {% endblock %}
 
 {% block footer %}
@@ -422,7 +515,7 @@ function submitBooking() {
                 <a href="tel:4233735457" style="color: #94a3b8;">(423) 373-5457</a>
             </p>
             <p style="margin-top: 1rem; font-size: 0.85rem; color: #64748b;">
-                &copy; {{ current_year }} Jenks Family Medicine.
+                © {{ current_year }} Jenks Family Medicine.
             </p>
         </div>
     </div>
