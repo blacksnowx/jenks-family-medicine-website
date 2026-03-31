@@ -94,12 +94,363 @@
         </div>
 
         <div class="text-center" style="margin-top: 3rem;">
-            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">
+            <a href="#schedule-widget" class="button">
                 Book Your Visit Now
             </a>
         </div>
     </div>
 </section>
+
+<section class="section reveal" id="schedule-widget">
+    <div class="container">
+        <div class="text-center mb-2">
+            <h2>Request an Appointment</h2>
+            <p>Pick a time that works for you — we'll confirm within one business day.</p>
+        </div>
+
+        <style>
+            .scheduling-widget {
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-radius: 12px;
+                padding: 2em 2.5em;
+                max-width: 680px;
+                margin: 0 auto;
+                text-align: left;
+            }
+            .sched-row {
+                display: flex;
+                gap: 1em;
+                flex-wrap: wrap;
+                margin-bottom: 1em;
+            }
+            .sched-field {
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 200px;
+            }
+            .sched-field label {
+                font-size: 0.85rem;
+                font-weight: 600;
+                color: #475569;
+                margin-bottom: 0.3em;
+            }
+            .sched-field input,
+            .sched-field select {
+                padding: 0.55em 0.75em;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                background: #fff;
+                color: #1e293b;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .sched-field input:focus,
+            .sched-field select:focus {
+                outline: 2px solid var(--primary-color);
+                border-color: var(--primary-color);
+            }
+            .slots-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5em;
+                margin: 0.75em 0 1.25em;
+                min-height: 2.5em;
+            }
+            .slot-btn {
+                background: #fff;
+                border: 1.5px solid var(--primary-color);
+                color: var(--primary-color);
+                border-radius: 6px;
+                padding: 0.45em 0.9em;
+                font-size: 0.88rem;
+                cursor: pointer;
+                transition: background 0.2s, color 0.2s;
+                white-space: nowrap;
+            }
+            .slot-btn:hover,
+            .slot-btn.selected {
+                background: var(--primary-color);
+                color: #fff;
+            }
+            .slots-message {
+                font-size: 0.9rem;
+                color: #64748b;
+                font-style: italic;
+            }
+            .sched-divider {
+                border: 0;
+                border-top: 1px solid #e2e8f0;
+                margin: 1.25em 0;
+            }
+            #lp-book-btn {
+                width: 100%;
+                padding: 0.75em;
+                font-size: 1rem;
+                margin-top: 0.5em;
+                cursor: pointer;
+            }
+            #lp-book-btn:disabled {
+                opacity: 0.55;
+                cursor: not-allowed;
+            }
+            .sched-status {
+                margin-top: 0.75em;
+                font-size: 0.92rem;
+                min-height: 1.4em;
+                text-align: center;
+            }
+            .sched-status.success { color: #16a34a; font-weight: 600; }
+            .sched-status.error   { color: #dc2626; }
+            @media (max-width: 600px) {
+                .scheduling-widget { padding: 1.5em 1.2em; }
+                .sched-row { flex-direction: column; }
+            }
+        </style>
+
+        <div class="scheduling-widget" id="scheduling-widget-lp">
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-date">Preferred Date</label>
+                    <input type="date" id="lp-date" name="lp-date">
+                </div>
+                <div class="sched-field">
+                    <label for="lp-provider">Provider</label>
+                    <select id="lp-provider" name="lp-provider">
+                        <option value="SARAH SUGGS">Sarah Suggs, NP</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size:0.85rem;font-weight:600;color:#475569;">Available Times</label>
+                <div class="slots-grid" id="lp-slots-grid">
+                    <span class="slots-message">Select a date to see available times.</span>
+                </div>
+                <input type="hidden" id="lp-selected-start" value="">
+                <input type="hidden" id="lp-selected-end" value="">
+            </div>
+
+            <hr class="sched-divider">
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-reason">Visit Reason</label>
+                    <select id="lp-reason" name="lp-reason">
+                        <option value="">Loading reasons...</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-name">Full Name</label>
+                    <input type="text" id="lp-name" name="lp-name" placeholder="Jane Smith" autocomplete="name">
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-phone">Phone</label>
+                    <input type="tel" id="lp-phone" name="lp-phone" placeholder="(423) 555-1234" autocomplete="tel">
+                </div>
+                <div class="sched-field">
+                    <label for="lp-email">Email</label>
+                    <input type="email" id="lp-email" name="lp-email" placeholder="you@example.com" autocomplete="email">
+                </div>
+            </div>
+
+            <div class="sched-row">
+                <div class="sched-field">
+                    <label for="lp-notes">Additional Notes (optional)</label>
+                    <input type="text" id="lp-notes" name="lp-notes" placeholder="Anything we should know?">
+                </div>
+            </div>
+
+            <button class="button" id="lp-book-btn" disabled>Request Appointment</button>
+            <div class="sched-status" id="lp-status"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+(function () {
+    'use strict';
+
+    var PREFIX = 'lp';
+    var PROVIDER_DEFAULT = 'SARAH SUGGS';
+
+    var dateInput     = document.getElementById(PREFIX + '-date');
+    var providerSel   = document.getElementById(PREFIX + '-provider');
+    var slotsGrid     = document.getElementById(PREFIX + '-slots-grid');
+    var selectedStart = document.getElementById(PREFIX + '-selected-start');
+    var selectedEnd   = document.getElementById(PREFIX + '-selected-end');
+    var reasonSel     = document.getElementById(PREFIX + '-reason');
+    var nameInput     = document.getElementById(PREFIX + '-name');
+    var phoneInput    = document.getElementById(PREFIX + '-phone');
+    var emailInput    = document.getElementById(PREFIX + '-email');
+    var notesInput    = document.getElementById(PREFIX + '-notes');
+    var bookBtn       = document.getElementById(PREFIX + '-book-btn');
+    var statusDiv     = document.getElementById(PREFIX + '-status');
+
+    // Set min date to tomorrow
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    dateInput.min = tomorrow.toISOString().slice(0, 10);
+
+    // Load providers
+    fetch('/api/schedule/providers')
+        .then(function (r) { return r.json(); })
+        .catch(function () { return { providers: [PROVIDER_DEFAULT] }; })
+        .then(function (data) {
+            var providers = data.providers || [PROVIDER_DEFAULT];
+            providerSel.innerHTML = '';
+            providers.forEach(function (p) {
+                var opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p === 'SARAH SUGGS' ? 'Sarah Suggs, NP' : p;
+                if (p === PROVIDER_DEFAULT) opt.selected = true;
+                providerSel.appendChild(opt);
+            });
+            if (!providers.length) {
+                var opt = document.createElement('option');
+                opt.value = PROVIDER_DEFAULT;
+                opt.textContent = 'Sarah Suggs, NP';
+                providerSel.appendChild(opt);
+            }
+        });
+
+    // Load reasons
+    fetch('/api/schedule/reasons')
+        .then(function (r) { return r.ok ? r.json() : { reasons: [] }; })
+        .catch(function () { return { reasons: [] }; })
+        .then(function (data) {
+            var reasons = data.reasons || [];
+            reasonSel.innerHTML = '';
+            if (!reasons.length) {
+                reasonSel.innerHTML = '<option value="0">General Consultation</option>';
+                return;
+            }
+            var placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = 'Select a reason...';
+            reasonSel.appendChild(placeholder);
+            reasons.forEach(function (r) {
+                var opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = r.name;
+                reasonSel.appendChild(opt);
+            });
+        });
+
+    function clearSlots(msg) {
+        slotsGrid.innerHTML = '<span class="slots-message">' + (msg || '') + '</span>';
+        selectedStart.value = '';
+        selectedEnd.value = '';
+        updateBookBtn();
+    }
+
+    function updateBookBtn() {
+        var ready = selectedStart.value &&
+                    nameInput.value.trim() &&
+                    phoneInput.value.trim() &&
+                    emailInput.value.trim() &&
+                    reasonSel.value;
+        bookBtn.disabled = !ready;
+    }
+
+    function loadSlots() {
+        var date = dateInput.value;
+        var provider = providerSel.value;
+        if (!date || !provider) return;
+
+        clearSlots('Loading available times...');
+
+        fetch('/api/schedule/available?provider=' + encodeURIComponent(provider) + '&date=' + encodeURIComponent(date))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                slotsGrid.innerHTML = '';
+                var slots = data.slots || [];
+                if (!slots.length) {
+                    slotsGrid.innerHTML = '<span class="slots-message">' + (data.message || 'No availability on this day.') + '</span>';
+                    return;
+                }
+                slots.forEach(function (slot) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'slot-btn';
+                    btn.textContent = slot.label;
+                    btn.dataset.start = slot.start;
+                    btn.dataset.end = slot.end;
+                    btn.addEventListener('click', function () {
+                        slotsGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
+                        btn.classList.add('selected');
+                        selectedStart.value = slot.start;
+                        selectedEnd.value = slot.end;
+                        updateBookBtn();
+                    });
+                    slotsGrid.appendChild(btn);
+                });
+            })
+            .catch(function () {
+                clearSlots('Unable to load times. Please call us.');
+            });
+    }
+
+    dateInput.addEventListener('change', loadSlots);
+    providerSel.addEventListener('change', function () { if (dateInput.value) loadSlots(); });
+    [nameInput, phoneInput, emailInput, reasonSel].forEach(function (el) {
+        el.addEventListener('input', updateBookBtn);
+        el.addEventListener('change', updateBookBtn);
+    });
+
+    bookBtn.addEventListener('click', function () {
+        statusDiv.textContent = '';
+        statusDiv.className = 'sched-status';
+        bookBtn.disabled = true;
+        bookBtn.textContent = 'Sending...';
+
+        var payload = {
+            provider:      providerSel.value,
+            start_time:    selectedStart.value,
+            end_time:      selectedEnd.value,
+            reason_id:     reasonSel.value || '0',
+            patient_name:  nameInput.value.trim(),
+            patient_phone: phoneInput.value.trim(),
+            patient_email: emailInput.value.trim(),
+            notes:         notesInput.value.trim()
+        };
+
+        fetch('/api/schedule/book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                statusDiv.textContent = data.message || 'Request received! We will confirm your appointment soon.';
+                statusDiv.className = 'sched-status success';
+                if (typeof fbq === 'function') { fbq('track', 'Lead'); }
+                bookBtn.textContent = 'Request Sent';
+            } else {
+                statusDiv.textContent = data.error || 'Something went wrong. Please call us.';
+                statusDiv.className = 'sched-status error';
+                bookBtn.disabled = false;
+                bookBtn.textContent = 'Request Appointment';
+            }
+        })
+        .catch(function () {
+            statusDiv.textContent = 'Network error. Please call (423) 373-5457.';
+            statusDiv.className = 'sched-status error';
+            bookBtn.disabled = false;
+            bookBtn.textContent = 'Request Appointment';
+        });
+    });
+}());
+</script>
 
 <section class="section reveal">
     <div class="container text-center">

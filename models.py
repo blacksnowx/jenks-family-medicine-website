@@ -121,3 +121,44 @@ class SyncLog(db.Model):
 
     def __repr__(self) -> str:
         return f"<SyncLog {self.sync_type} {self.status} @ {self.started_at}>"
+
+
+class ProviderSchedule(db.Model):
+    """Defines schedulable hours for a provider (used by the online booking widget)."""
+
+    __tablename__ = "provider_schedule"
+
+    id            = db.Column(db.Integer, primary_key=True)
+    provider_name = db.Column(db.String(100))
+    day_of_week   = db.Column(db.Integer)   # 0=Mon, 6=Sun
+    start_hour    = db.Column(db.Integer, default=8)
+    end_hour      = db.Column(db.Integer, default=17)
+    slot_duration = db.Column(db.Integer, default=30)
+    is_active     = db.Column(db.Boolean, default=True)
+
+    def __repr__(self) -> str:
+        return f"<ProviderSchedule {self.provider_name} dow={self.day_of_week}>"
+
+
+class TebraBooking(db.Model):
+    """Tebra-integrated booking requests from the slot-picker scheduling widget."""
+
+    __tablename__ = "tebra_bookings"
+
+    id              = db.Column(db.Integer, primary_key=True)
+    provider_name   = db.Column(db.String(100), nullable=False)
+    start_time      = db.Column(db.DateTime, nullable=False)
+    end_time        = db.Column(db.DateTime, nullable=False)
+    reason_id       = db.Column(db.String(50))
+    patient_name    = db.Column(db.String(200), nullable=False)
+    patient_phone   = db.Column(db.String(30), nullable=False)
+    patient_email   = db.Column(db.String(200), nullable=False)
+    notes           = db.Column(db.Text, default="")
+    tebra_appt_id   = db.Column(db.String(50))   # ID returned by CreateAppointment (may be None)
+    status          = db.Column(db.String(20), default="pending")  # pending / booked / error
+    created_at      = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+    def __repr__(self) -> str:
+        return f"<TebraBooking {self.patient_name} @ {self.start_time}>"

@@ -9,7 +9,7 @@ import threading
 
 import requests
 
-from models import db, User, BannerSettings, ReferenceData, SyncLog, AppointmentRequest
+from models import db, User, BannerSettings, ReferenceData, SyncLog, AppointmentRequest, ProviderSchedule, TebraBooking
 from datetime import timezone
 from data import rvu_analytics
 from data import revenue_per_rvu
@@ -717,6 +717,185 @@ def create_app():
         logout_user()
         flash('You have been logged out.', 'info')
         return redirect(url_for('admin_login'))
+
+    # -------------------------------------------------------------------
+    #  Scheduling API Routes (public, no auth required)
+    # -------------------------------------------------------------------
+
+    @app.route('/api/schedule/providers')
+    def schedule_providers():
+        """Return distinct active providers from ProviderSchedule."""
+        try:
+            rows = (
+                ProviderSchedule.query
+                .filter_by(is_active=True)
+                .with_entities(ProviderSchedule.provider_name)
+                .distinct()
+                .all()
+            )
+            providers = [r.provider_name for r in rows]
+            return jsonify({'providers': providers})
+        except Exception as exc:
+            app.logger.error("schedule_providers error: %s", exc)
+            return jsonify({'error': 'Unable to fetch providers.'}), 500
+
+    @app.route('/api/schedule/reasons')
+    def schedule_reasons():
+        """Return appointment reasons from Tebra."""
+        try:
+            from data.tebra_appointments import get_appointment_reasons
+            reasons = get_appointment_reasons()
+            return jsonify({'reasons': reasons})
+        except RuntimeError as exc:
+            app.logger.error("schedule_reasons RuntimeError: %s", exc)
+            return jsonify({'reasons': [], 'error': 'Scheduling service unavailable.'}), 503
+        except Exception as exc:
+            app.logger.error("schedule_reasons error: %s", exc)
+            return jsonify({'reasons': [], 'error': 'Unable to fetch reasons.'}), 500
+
+    @app.route('/api/schedule/available')
+    def schedule_available():
+        """
+        Return available appointment slots for a provider on a given date.
+        Query params: provider (str), date (YYYY-MM-DD)
+        """
+        provider = request.args.get('provider', '').strip()
+        date_str = request.args.get('date', '').strip()
+
+        if not provider or not date_str:
+            return jsonify({'error': 'provider and date are required'}), 400
+
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'date must be YYYY-MM-DD format'}), 400
+
+        # Reject requests for dates in the past
+        if target_date < datetime.now().date():
+            return jsonify({'error': 'date must be today or in the future'}), 400
+
+        # Look up provider schedule for this day of week
+        dow = target_date.weekday()  # 0=Mon, 6=Sun
+        schedule = (
+            ProviderSchedule.query
+            .filter_by(provider_name=provider, day_of_week=dow, is_active=True)
+            .first()
+        )
+
+        if not schedule:
+            # Provider not scheduled on this day
+            return jsonify({'slots': [], 'message': 'No availability on this day.'})
+
+        try:
+            from data.tebra_appointments import calculate_available_slots
+            slots = calculate_available_slots(
+                provider_name=provider,
+                target_date=target_date,
+                start_hour=schedule.start_hour,
+                end_hour=schedule.end_hour,
+                slot_minutes=schedule.slot_duration,
+            )
+        except RuntimeError as exc:
+            app.logger.error("calculate_available_slots RuntimeError: %s", exc)
+            return jsonify({'error': 'Scheduling service unavailable.'}), 503
+        except Exception as exc:
+            app.logger.error("calculate_available_slots error: %s", exc)
+            return jsonify({'error': 'Unable to fetch available slots.'}), 500
+
+        payload = [
+            {
+                'start': s['start'].strftime('%Y-%m-%dT%H:%M:%S'),
+                'end':   s['end'].strftime('%Y-%m-%dT%H:%M:%S'),
+                'label': s['label'],
+            }
+            for s in slots
+        ]
+        return jsonify({'slots': payload})
+
+    @app.route('/api/schedule/book', methods=['POST'])
+    def schedule_book():
+        """
+        Book a tentative appointment.
+        Request JSON: provider, start_time, end_time, reason_id,
+                      patient_name, patient_phone, patient_email, notes (optional)
+        """
+        data = request.get_json(silent=True) or {}
+
+        required_fields = ['provider', 'start_time', 'end_time', 'reason_id',
+                            'patient_name', 'patient_phone', 'patient_email']
+        missing = [f for f in required_fields if not data.get(f, '').strip()]
+        if missing:
+            return jsonify({'error': f"Missing fields: {', '.join(missing)}"}), 400
+
+        provider      = data['provider'].strip()
+        start_time_str = data['start_time'].strip()
+        end_time_str   = data['end_time'].strip()
+        reason_id     = data['reason_id'].strip()
+        patient_name  = data['patient_name'].strip()
+        patient_phone = data['patient_phone'].strip()
+        patient_email = data['patient_email'].strip()
+        notes         = data.get('notes', '').strip()
+
+        try:
+            start_dt = datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
+            end_dt   = datetime.strptime(end_time_str,   '%Y-%m-%dT%H:%M:%S')
+        except ValueError:
+            return jsonify({'error': 'start_time and end_time must be YYYY-MM-DDTHH:MM:SS'}), 400
+
+        # Reject bookings in the past
+        if start_dt.date() < datetime.now().date():
+            return jsonify({'error': 'Cannot book appointments in the past'}), 400
+
+        tebra_id = None
+        booking_status = 'pending'
+
+        # Attempt to create a tentative appointment in Tebra
+        try:
+            from data.tebra_appointments import create_tentative_appointment
+            tebra_id = create_tentative_appointment(
+                provider_name=provider,
+                start_time=start_dt,
+                end_time=end_dt,
+                reason_id=reason_id,
+                patient_name=patient_name,
+                patient_phone=patient_phone,
+                patient_email=patient_email,
+                notes=notes,
+            )
+            booking_status = 'booked' if tebra_id else 'pending'
+        except RuntimeError as exc:
+            app.logger.error("create_tentative_appointment RuntimeError: %s", exc)
+            # Continue — still record the request locally even if Tebra is unavailable
+        except Exception as exc:
+            app.logger.error("create_tentative_appointment error: %s", exc)
+
+        # Always persist the request in the local database
+        try:
+            booking = TebraBooking(
+                provider_name=provider,
+                start_time=start_dt,
+                end_time=end_dt,
+                reason_id=reason_id,
+                patient_name=patient_name,
+                patient_phone=patient_phone,
+                patient_email=patient_email,
+                notes=notes,
+                tebra_appt_id=tebra_id,
+                status=booking_status,
+            )
+            db.session.add(booking)
+            db.session.commit()
+        except Exception as exc:
+            app.logger.error("TebraBooking DB save error: %s", exc)
+            db.session.rollback()
+            return jsonify({'error': 'Unable to save appointment request.'}), 500
+
+        return jsonify({
+            'success': True,
+            'message': 'Your appointment request has been received. We will confirm shortly.',
+            'appointment_id': tebra_id,
+            'status': booking_status,
+        })
 
     # -------------------------------------------------------------------
     #  SEO Routes
