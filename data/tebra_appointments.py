@@ -344,7 +344,7 @@ def calculate_available_slots(
                 break
 
         if is_free:
-            label = current.strftime("%-I:%M %p") + " – " + slot_end.strftime("%-I:%M %p")
+            label = current.strftime("%-I:%M %p")
             available.append({
                 "start": current,
                 "end":   slot_end,

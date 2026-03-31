@@ -152,22 +152,38 @@
                 border-color: var(--primary-color);
             }
             .slots-grid {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 0.5em;
                 margin: 0.75em 0 1.25em;
                 min-height: 2.5em;
+            }
+            .slots-period {
+                margin-bottom: 0.75em;
+            }
+            .slots-period-label {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 0.4em;
+            }
+            .slots-period-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45em;
             }
             .slot-btn {
                 background: #fff;
                 border: 1.5px solid var(--primary-color);
                 color: var(--primary-color);
                 border-radius: 6px;
-                padding: 0.45em 0.9em;
-                font-size: 0.88rem;
+                padding: 0.4em 0.85em;
+                font-size: 0.875rem;
+                font-weight: 500;
                 cursor: pointer;
-                transition: background 0.2s, color 0.2s;
+                transition: background 0.15s, color 0.15s;
                 white-space: nowrap;
+                min-width: 72px;
+                text-align: center;
             }
             .slot-btn:hover,
             .slot-btn.selected {
@@ -219,7 +235,7 @@
                 <div class="sched-field">
                     <label for="lp-provider">Provider</label>
                     <select id="lp-provider" name="lp-provider">
-                        <option value="SARAH SUGGS">Sarah Suggs, NP</option>
+                        <option value="SARAH F SUGGS, NP">Sarah Suggs, NP</option>
                     </select>
                 </div>
             </div>
@@ -280,7 +296,7 @@
     'use strict';
 
     var PREFIX = 'lp';
-    var PROVIDER_DEFAULT = 'SARAH SUGGS';
+    var PROVIDER_DEFAULT = 'SARAH F SUGGS, NP';
 
     var dateInput     = document.getElementById(PREFIX + '-date');
     var providerSel   = document.getElementById(PREFIX + '-provider');
@@ -295,10 +311,8 @@
     var bookBtn       = document.getElementById(PREFIX + '-book-btn');
     var statusDiv     = document.getElementById(PREFIX + '-status');
 
-    // Set min date to tomorrow
-    var tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    dateInput.min = tomorrow.toISOString().slice(0, 10);
+    // Set min date to today
+    dateInput.min = new Date().toISOString().slice(0, 10);
 
     // Load providers
     fetch('/api/schedule/providers')
@@ -310,7 +324,7 @@
             providers.forEach(function (p) {
                 var opt = document.createElement('option');
                 opt.value = p;
-                opt.textContent = p === 'SARAH SUGGS' ? 'Sarah Suggs, NP' : p;
+                opt.textContent = p === 'SARAH F SUGGS, NP' ? 'Sarah Suggs, NP' : p;
                 if (p === PROVIDER_DEFAULT) opt.selected = true;
                 providerSel.appendChild(opt);
             });
@@ -377,22 +391,39 @@
                     slotsGrid.innerHTML = '<span class="slots-message">' + (data.message || 'No availability on this day.') + '</span>';
                     return;
                 }
-                slots.forEach(function (slot) {
-                    var btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.className = 'slot-btn';
-                    btn.textContent = slot.label;
-                    btn.dataset.start = slot.start;
-                    btn.dataset.end = slot.end;
-                    btn.addEventListener('click', function () {
-                        slotsGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
-                        btn.classList.add('selected');
-                        selectedStart.value = slot.start;
-                        selectedEnd.value = slot.end;
-                        updateBookBtn();
+                var am = slots.filter(function (s) { return s.start < s.start.slice(0, 11) + '12:00:00'; });
+                var pm = slots.filter(function (s) { return s.start >= s.start.slice(0, 11) + '12:00:00'; });
+                function renderPeriod(label, group) {
+                    if (!group.length) return;
+                    var period = document.createElement('div');
+                    period.className = 'slots-period';
+                    var lbl = document.createElement('div');
+                    lbl.className = 'slots-period-label';
+                    lbl.textContent = label;
+                    period.appendChild(lbl);
+                    var row = document.createElement('div');
+                    row.className = 'slots-period-row';
+                    group.forEach(function (slot) {
+                        var btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'slot-btn';
+                        btn.textContent = slot.label;
+                        btn.dataset.start = slot.start;
+                        btn.dataset.end = slot.end;
+                        btn.addEventListener('click', function () {
+                            slotsGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
+                            btn.classList.add('selected');
+                            selectedStart.value = slot.start;
+                            selectedEnd.value = slot.end;
+                            updateBookBtn();
+                        });
+                        row.appendChild(btn);
                     });
-                    slotsGrid.appendChild(btn);
-                });
+                    period.appendChild(row);
+                    slotsGrid.appendChild(period);
+                }
+                renderPeriod('Morning', am);
+                renderPeriod('Afternoon', pm);
             })
             .catch(function () {
                 clearSlots('Unable to load times. Please call us.');
