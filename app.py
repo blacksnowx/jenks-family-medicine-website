@@ -766,12 +766,12 @@ def create_app():
             return jsonify({'error': 'provider and date are required'}), 400
 
         try:
-            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            target_date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
             return jsonify({'error': 'date must be YYYY-MM-DD format'}), 400
 
         # Reject requests for dates in the past
-        if target_date < datetime.now().date():
+        if target_date < datetime.datetime.now().date():
             return jsonify({'error': 'date must be today or in the future'}), 400
 
         # Look up provider schedule for this day of week
@@ -841,13 +841,13 @@ def create_app():
         notes         = data.get('notes', '').strip()
 
         try:
-            start_dt = datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
-            end_dt   = datetime.strptime(end_time_str,   '%Y-%m-%dT%H:%M:%S')
+            start_dt = datetime.datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
+            end_dt   = datetime.datetime.strptime(end_time_str,   '%Y-%m-%dT%H:%M:%S')
         except ValueError:
             return jsonify({'error': 'start_time and end_time must be YYYY-MM-DDTHH:MM:SS'}), 400
 
         # Reject bookings in the past
-        if start_dt.date() < datetime.now().date():
+        if start_dt.date() < datetime.datetime.now().date():
             return jsonify({'error': 'Cannot book appointments in the past'}), 400
 
         tebra_id = None
