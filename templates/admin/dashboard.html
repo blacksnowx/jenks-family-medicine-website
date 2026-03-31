@@ -316,6 +316,7 @@
             <button class="tab-button" onclick="openTab('section-owner-analytics', this); initOwnerAnalytics();">Owner Analytics</button>
             <button class="tab-button" onclick="openTab('section-upload', this)">Upload Data</button>
             <button class="tab-button" onclick="openTab('section-sync', this); initSyncStatus();">Data Sync</button>
+            <button class="tab-button" onclick="openTab('section-schedule', this); initSchedule();">Scheduling</button>
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
             <button class="tab-button" onclick="openTab('section-banner', this)">Site Banner</button>
@@ -846,6 +847,62 @@
                             </tr>
                         </thead>
                         <tbody id="appt-requests-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Scheduling -->
+        {% if current_user.role == 'Owner' %}
+        <div id="section-schedule" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>🗓️ Schedule Templates</h2>
+                <p style="color:var(--text-light);font-size:0.95rem;margin-bottom:1.5rem;">
+                    Manage provider availability windows used by the online booking widget.
+                </p>
+                <div id="sched-loading" style="color:var(--text-light);font-size:0.95rem;padding:1rem 0;">Loading…</div>
+                <div id="sched-error" style="display:none;color:#991b1b;font-size:0.9rem;padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);margin-bottom:1rem;"></div>
+                <div style="overflow-x:auto;">
+                    <table id="sched-table" style="width:100%;border-collapse:collapse;display:none;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #e5e7eb;text-align:left;">
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Provider</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Day</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Hours</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Slot</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Tebra ID</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sched-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-panel" style="margin-top:1.5rem;">
+                <h2>📋 Recent Bookings</h2>
+                <p style="color:var(--text-light);font-size:0.95rem;margin-bottom:1.5rem;">
+                    Tentative appointments booked through the scheduling widget (last 60 days).
+                    <a href="https://pm.kareo.com/" target="_blank" rel="noopener" style="color:var(--primary-blue);text-decoration:underline;margin-left:0.5rem;">Confirm in Tebra →</a>
+                </p>
+                <div id="bookings-loading" style="color:var(--text-light);font-size:0.95rem;padding:1rem 0;">Loading…</div>
+                <div id="bookings-empty" style="display:none;color:var(--text-light);font-size:0.95rem;padding:1rem 0;">No bookings yet.</div>
+                <div id="bookings-error" style="display:none;color:#991b1b;font-size:0.9rem;padding:0.75rem 1rem;background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius-md);margin-bottom:1rem;"></div>
+                <div style="overflow-x:auto;">
+                    <table id="bookings-table" style="width:100%;border-collapse:collapse;display:none;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #e5e7eb;text-align:left;">
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Requested</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Patient</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Phone</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Appt Time</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Provider</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Status</th>
+                                <th style="padding:0.6rem 0.9rem;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-light);">Tebra Appt ID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-tbody"></tbody>
                     </table>
                 </div>
             </div>
@@ -1678,6 +1735,116 @@
                 resultEl.textContent = '✗ Request failed: ' + e.message;
             } finally {
                 [btnTebra, btnSheets, btnAll, btnDraft].forEach(b => { if (b) b.disabled = false; });
+            }
+        }
+
+        // ── Scheduling tab ───────────────────────────────────────────────
+        let scheduleLoaded = false;
+        let bookingsLoaded = false;
+
+        function initSchedule() {
+            if (!scheduleLoaded) loadScheduleTemplates();
+            if (!bookingsLoaded) loadScheduleBookings();
+        }
+
+        async function loadScheduleTemplates() {
+            const loadEl  = document.getElementById('sched-loading');
+            const errEl   = document.getElementById('sched-error');
+            const tableEl = document.getElementById('sched-table');
+            const tbody   = document.getElementById('sched-tbody');
+            try {
+                const r = await fetch('/admin/schedule/templates');
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                loadEl.style.display = 'none';
+                if (!data.length) { loadEl.textContent = 'No schedule templates found.'; loadEl.style.display = ''; return; }
+                tbody.innerHTML = data.map(t => `
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${t.provider_name || '—'}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${t.day_name}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${fmtHour(t.start_hour, t.start_minute)} – ${fmtHour(t.end_hour, t.end_minute)}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.9rem;">${t.slot_duration} min</td>
+                        <td style="padding:0.6rem 0.9rem;">
+                            <input type="text" value="${t.provider_tebra_id || ''}" placeholder="Resource ID"
+                                style="width:120px;padding:0.25rem 0.5rem;border:1px solid #d1d5db;border-radius:4px;font-size:0.85rem;"
+                                onblur="saveTebraId(${t.id}, this.value)">
+                        </td>
+                        <td style="padding:0.6rem 0.9rem;">
+                            <input type="checkbox" ${t.is_active ? 'checked' : ''}
+                                onchange="saveActiveState(${t.id}, this.checked)">
+                        </td>
+                    </tr>`).join('');
+                tableEl.style.display = '';
+                scheduleLoaded = true;
+            } catch(e) {
+                loadEl.style.display = 'none';
+                errEl.textContent = 'Failed to load templates: ' + e.message;
+                errEl.style.display = '';
+            }
+        }
+
+        function fmtHour(h, m) {
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const hour = h % 12 || 12;
+            const min  = String(m || 0).padStart(2, '0');
+            return `${hour}:${min} ${ampm}`;
+        }
+
+        async function saveTebraId(id, value) {
+            await fetch(`/admin/schedule/templates/${id}`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({field:'provider_tebra_id', value})
+            });
+        }
+
+        async function saveActiveState(id, checked) {
+            await fetch(`/admin/schedule/templates/${id}`, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({field:'is_active', value: checked})
+            });
+        }
+
+        async function loadScheduleBookings() {
+            const loadEl  = document.getElementById('bookings-loading');
+            const emptyEl = document.getElementById('bookings-empty');
+            const errEl   = document.getElementById('bookings-error');
+            const tableEl = document.getElementById('bookings-table');
+            const tbody   = document.getElementById('bookings-tbody');
+            try {
+                const r = await fetch('/admin/schedule/bookings');
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const data = await r.json();
+                loadEl.style.display = 'none';
+                if (!data.length) { emptyEl.style.display = ''; return; }
+                const statusColors = {
+                    pending: {bg:'#fffbeb',color:'#92400e'},
+                    booked:  {bg:'#f0fdf4',color:'#166534'},
+                    error:   {bg:'#fef2f2',color:'#991b1b'},
+                };
+                tbody.innerHTML = data.map(b => {
+                    const sc = statusColors[b.status] || {bg:'#f9fafb',color:'#374151'};
+                    const apptDt = b.start_time ? new Date(b.start_time).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
+                    const createdDt = b.created_at ? new Date(b.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+                    return `<tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding:0.6rem 0.9rem;font-size:0.85rem;">${createdDt}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.9rem;font-weight:500;">${b.patient_name}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.85rem;">${b.patient_phone}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.85rem;">${apptDt}</td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.85rem;">${b.provider_name}</td>
+                        <td style="padding:0.6rem 0.9rem;">
+                            <span style="padding:0.2rem 0.6rem;border-radius:9999px;font-size:0.78rem;font-weight:600;background:${sc.bg};color:${sc.color};">${b.status}</span>
+                        </td>
+                        <td style="padding:0.6rem 0.9rem;font-size:0.8rem;color:var(--text-light);">${b.tebra_appt_id || '—'}</td>
+                    </tr>`;
+                }).join('');
+                tableEl.style.display = '';
+                bookingsLoaded = true;
+            } catch(e) {
+                loadEl.style.display = 'none';
+                errEl.textContent = 'Failed to load bookings: ' + e.message;
+                errEl.style.display = '';
             }
         }
     </script>

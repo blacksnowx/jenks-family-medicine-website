@@ -12,7 +12,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 
 from app import create_app  # noqa: E402
-from models import BannerSettings, User, db  # noqa: E402
+from models import BannerSettings, ProviderSchedule, User, db  # noqa: E402
 
 from datetime import datetime, timedelta, timezone
 
@@ -24,6 +24,27 @@ SEED_USERS = [
     {"email": "heather@jenksfamilymedicine.com", "password": "heather123", "role": "Provider"},
     {"email": "ehrin@jenksfamilymedicine.com", "password": "ehrin123", "role": "Provider"},
 ]
+
+
+def _seed_provider_schedule() -> None:
+    """Seed Sarah Suggs Mon-Fri 8am-5pm, 30-min slots, noon-1pm break."""
+    if ProviderSchedule.query.first():
+        print("  ✓ Provider schedule already seeded")
+        return
+    for dow in range(5):  # 0=Mon … 4=Fri
+        db.session.add(ProviderSchedule(
+            provider_name="SARAH SUGGS",
+            day_of_week=dow,
+            start_hour=8,
+            start_minute=0,
+            end_hour=17,
+            end_minute=0,
+            slot_duration=30,
+            break_start_hour=12,
+            break_end_hour=13,
+            is_active=True,
+        ))
+    print("  + Seeded Sarah Suggs schedule (Mon-Fri 8am-5pm, noon break)")
 
 
 def seed() -> None:
@@ -49,6 +70,8 @@ def seed() -> None:
             print("  + Created default banner settings")
         else:
             print("  ✓ Banner settings already exist")
+
+        _seed_provider_schedule()
 
         db.session.commit()
         print("\nDone.")

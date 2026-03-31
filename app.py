@@ -794,6 +794,10 @@ def create_app():
                 start_hour=schedule.start_hour,
                 end_hour=schedule.end_hour,
                 slot_minutes=schedule.slot_duration,
+                start_minute=schedule.start_minute or 0,
+                end_minute=schedule.end_minute or 0,
+                break_start_hour=schedule.break_start_hour,
+                break_end_hour=schedule.break_end_hour,
             )
         except RuntimeError as exc:
             app.logger.error("calculate_available_slots RuntimeError: %s", exc)
@@ -821,7 +825,7 @@ def create_app():
         """
         data = request.get_json(silent=True) or {}
 
-        required_fields = ['provider', 'start_time', 'end_time', 'reason_id',
+        required_fields = ['provider', 'start_time', 'end_time',
                             'patient_name', 'patient_phone', 'patient_email']
         missing = [f for f in required_fields if not data.get(f, '').strip()]
         if missing:
@@ -896,6 +900,70 @@ def create_app():
             'appointment_id': tebra_id,
             'status': booking_status,
         })
+
+    # -------------------------------------------------------------------
+    #  Admin Schedule Management Routes (Owner only)
+    # -------------------------------------------------------------------
+
+    @app.route('/admin/schedule/templates')
+    @login_required
+    def admin_schedule_templates():
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        templates = ProviderSchedule.query.order_by(
+            ProviderSchedule.provider_name, ProviderSchedule.day_of_week
+        ).all()
+        return jsonify({'templates': [t.to_dict() for t in templates]})
+
+    @app.route('/admin/schedule/templates/<int:template_id>', methods=['POST'])
+    @login_required
+    def admin_schedule_update_template(template_id):
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        tmpl = db.session.get(ProviderSchedule, template_id)
+        if not tmpl:
+            return jsonify({'error': 'Not found'}), 404
+        data = request.get_json(silent=True) or {}
+        for field in ('start_hour', 'start_minute', 'end_hour', 'end_minute',
+                      'slot_duration', 'break_start_hour', 'break_end_hour'):
+            if field in data:
+                val = data[field]
+                setattr(tmpl, field, int(val) if val is not None else None)
+        if 'is_active' in data:
+            tmpl.is_active = bool(data['is_active'])
+        if 'provider_tebra_id' in data:
+            tmpl.provider_tebra_id = str(data['provider_tebra_id']).strip() or None
+        db.session.commit()
+        return jsonify({'success': True})
+
+    @app.route('/admin/schedule/bookings')
+    @login_required
+    def admin_schedule_bookings():
+        """Return recent Tebra booking requests (Owner only)."""
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        bookings = (
+            TebraBooking.query
+            .order_by(TebraBooking.created_at.desc())
+            .limit(50)
+            .all()
+        )
+        result = []
+        for b in bookings:
+            result.append({
+                'id': b.id,
+                'provider_name': b.provider_name,
+                'start_time': b.start_time.isoformat() if b.start_time else None,
+                'end_time': b.end_time.isoformat() if b.end_time else None,
+                'patient_name': b.patient_name,
+                'patient_phone': b.patient_phone,
+                'patient_email': b.patient_email,
+                'reason_id': b.reason_id,
+                'status': b.status,
+                'tebra_appt_id': b.tebra_appt_id,
+                'created_at': b.created_at.isoformat() + 'Z' if b.created_at else None,
+            })
+        return jsonify({'bookings': result})
 
     # -------------------------------------------------------------------
     #  SEO Routes

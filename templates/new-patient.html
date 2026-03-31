@@ -4,113 +4,68 @@
 <meta name="description"
     content="Choose a provider accepting new patients at Jenks Family Medicine in Chattanooga, TN.">
 <style>
-    .provider-select-header {
-        background-color: #f8f8f8;
-        padding: 2.5em 0;
-        text-align: center;
+    .provider-select-header { background-color:#f8f8f8; padding:2.5em 0; text-align:center; }
+    .provider-select-header h1 { margin-bottom:.25em; }
+    .provider-select-header p { max-width:600px; margin:0 auto; color:var(--text-light); font-size:1.1rem; }
+    .provider-select-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:2.5rem; max-width:900px; margin:0 auto; }
+    .provider-select-card { background:#fff; border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-lg); border:1px solid rgba(0,0,0,.04); transition:transform .3s ease,box-shadow .3s ease; display:flex; flex-direction:column; }
+    .provider-select-card:hover { transform:translateY(-6px); box-shadow:var(--shadow-xl); }
+    .provider-select-card__image { width:100%; height:340px; object-fit:cover; object-position:center top; }
+    .provider-select-card__body { padding:2rem 2rem 2.5rem; flex:1; display:flex; flex-direction:column; }
+    .provider-select-card__body h3 { font-size:1.6rem; color:var(--primary-color); margin-bottom:.2em; }
+    .provider-select-card__title { font-size:1rem; color:var(--text-light); font-style:italic; margin-bottom:1em; }
+    .provider-select-card__highlights { list-style:none; padding:0; margin-bottom:1.5em; flex:1; }
+    .provider-select-card__highlights li { position:relative; padding-left:1.5em; margin-bottom:.55em; font-size:.95rem; color:var(--text-color); line-height:1.5; }
+    .provider-select-card__highlights li::before { content:"\2713"; color:var(--primary-color); font-weight:bold; position:absolute; left:0; top:1px; }
+    .provider-select-card__cta { text-align:center; }
+    .provider-select-card__cta .button { width:100%; }
+    /* Scheduling widget */
+    .scheduler-section { background:#f8fafc; padding:4rem 0; }
+    .scheduler-card { background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.08); max-width:640px; margin:0 auto; overflow:hidden; }
+    .scheduler-header { background:var(--primary-color); color:#fff; padding:1.5rem 2rem; }
+    .scheduler-header h2 { margin:0; font-size:1.4rem; color:#fff; }
+    .scheduler-header p  { margin:.35rem 0 0; opacity:.85; font-size:.95rem; }
+    .step-bar { display:flex; padding:1.25rem 2rem; border-bottom:1px solid #f1f5f9; }
+    .step-dot { flex:1; display:flex; flex-direction:column; align-items:center; gap:.3rem; font-size:.75rem; color:#94a3b8; position:relative; }
+    .step-dot::after { content:''; position:absolute; top:12px; left:50%; width:100%; height:2px; background:#e2e8f0; z-index:0; }
+    .step-dot:last-child::after { display:none; }
+    .step-dot .dot { width:26px; height:26px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; position:relative; z-index:1; }
+    .step-dot.active .dot { background:var(--primary-color); color:#fff; }
+    .step-dot.done   .dot { background:#22c55e; color:#fff; }
+    .step-dot.active { color:var(--primary-color); font-weight:600; }
+    .step-dot.done   { color:#22c55e; }
+    .step-dot.done::after   { background:#22c55e; }
+    .step-dot.active::after { background:var(--primary-color); }
+    .step-panel { padding:1.75rem 2rem; display:none; }
+    .step-panel.active { display:block; }
+    .step-panel h3 { font-size:1.1rem; margin:0 0 1.25rem; color:#1e293b; }
+    input[type="date"].sched-input, input[type="text"].sched-input, input[type="tel"].sched-input, input[type="email"].sched-input, select.sched-input {
+        width:100%; padding:.65rem .9rem; border:1px solid #d1d5db; border-radius:8px; font-size:.95rem; margin-top:.35rem; font-family:inherit; box-sizing:border-box;
     }
-
-    .provider-select-header h1 {
-        margin-bottom: 0.25em;
-    }
-
-    .provider-select-header p {
-        max-width: 600px;
-        margin: 0 auto;
-        color: var(--text-light);
-        font-size: 1.1rem;
-    }
-
-    .provider-select-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 2.5rem;
-        max-width: 900px;
-        margin: 0 auto;
-    }
-
-    .provider-select-card {
-        background: #fff;
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        box-shadow: var(--shadow-lg);
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .provider-select-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-xl);
-    }
-
-    .provider-select-card__image {
-        width: 100%;
-        height: 340px;
-        object-fit: cover;
-        object-position: center top;
-    }
-
-    .provider-select-card__body {
-        padding: 2rem 2rem 2.5rem;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .provider-select-card__body h3 {
-        font-size: 1.6rem;
-        color: var(--primary-color);
-        margin-bottom: 0.2em;
-    }
-
-    .provider-select-card__title {
-        font-size: 1rem;
-        color: var(--text-light);
-        font-style: italic;
-        margin-bottom: 1em;
-    }
-
-    .provider-select-card__highlights {
-        list-style: none;
-        padding: 0;
-        margin-bottom: 1.5em;
-        flex: 1;
-    }
-
-    .provider-select-card__highlights li {
-        position: relative;
-        padding-left: 1.5em;
-        margin-bottom: 0.55em;
-        font-size: 0.95rem;
-        color: var(--text-color);
-        line-height: 1.5;
-    }
-
-    .provider-select-card__highlights li::before {
-        content: "✓";
-        color: var(--primary-color);
-        font-weight: bold;
-        position: absolute;
-        left: 0;
-        top: 1px;
-    }
-
-    .provider-select-card__cta {
-        text-align: center;
-    }
-
-    .provider-select-card__cta .button {
-        width: 100%;
-    }
-
-    @media (max-width: 740px) {
-        .provider-select-grid {
-            grid-template-columns: 1fr;
-            max-width: 420px;
-        }
-    }
+    .sched-label { display:block; font-size:.88rem; font-weight:600; color:#374151; margin-bottom:1rem; }
+    .time-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; margin-top:.5rem; }
+    .time-slot { border:1.5px solid #d1d5db; border-radius:8px; padding:.5rem .3rem; text-align:center; font-size:.82rem; cursor:pointer; background:#fff; transition:all .15s; font-weight:500; line-height:1.2; }
+    .time-slot:hover:not(.unavailable) { border-color:var(--primary-color); background:#f0f9ff; }
+    .time-slot.selected    { border-color:var(--primary-color); background:var(--primary-color); color:#fff; }
+    .time-slot.unavailable { background:#f1f5f9; color:#94a3b8; cursor:default; text-decoration:line-through; }
+    .time-loading { text-align:center; color:#64748b; padding:1.5rem 0; font-size:.9rem; }
+    .confirm-row { display:flex; justify-content:space-between; padding:.55rem 0; border-bottom:1px solid #f1f5f9; font-size:.92rem; }
+    .confirm-row:last-child { border-bottom:none; }
+    .confirm-row .label { color:#64748b; }
+    .confirm-row .value { font-weight:600; }
+    .step-nav { display:flex; gap:.75rem; margin-top:1.5rem; justify-content:flex-end; }
+    .btn-back { background:none; border:1.5px solid #d1d5db; border-radius:8px; padding:.6rem 1.25rem; cursor:pointer; font-size:.9rem; font-family:inherit; color:#374151; }
+    .btn-next { background:var(--primary-color); color:#fff; border:none; border-radius:8px; padding:.6rem 1.5rem; cursor:pointer; font-size:.9rem; font-weight:600; font-family:inherit; }
+    .btn-next:disabled { opacity:.5; cursor:not-allowed; }
+    .or-divider { text-align:center; color:#94a3b8; font-size:.85rem; margin:1.25rem 0; }
+    .call-cta { display:flex; align-items:center; justify-content:center; gap:.75rem; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:.9rem 1.25rem; text-decoration:none; color:var(--text-color,#1e293b); font-weight:600; font-size:.95rem; transition:background .2s; }
+    .call-cta:hover { background:#f1f5f9; }
+    .booking-success { text-align:center; padding:2.5rem 1rem; }
+    .booking-success .check-icon { font-size:3rem; margin-bottom:.75rem; }
+    .booking-success h3 { font-size:1.3rem; margin-bottom:.5rem; }
+    .booking-success p  { color:#64748b; font-size:.95rem; }
+    @media (max-width:740px) { .provider-select-grid { grid-template-columns:1fr; max-width:420px; } }
+    @media (max-width:520px) { .step-panel { padding:1.25rem 1rem; } .scheduler-header { padding:1.25rem 1rem; } .step-bar { padding:1rem; } .time-grid { grid-template-columns:repeat(2,1fr); } .step-dot .label { display:none; } }
 </style>
 {% endblock %}
 
@@ -118,20 +73,15 @@
 <section class="provider-select-header">
     <div class="container">
         <h1>Choose Your Provider</h1>
-        <p>The following providers are currently accepting new patients. Select one to learn more and schedule your
-            first
-            visit.</p>
+        <p>The following providers are currently accepting new patients. Select one to schedule your first visit.</p>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
         <div class="provider-select-grid">
-
-            <!-- Sarah Suggs -->
             <div class="provider-select-card reveal">
-                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Sarah.jpg') }}"
-                    alt="Sarah Suggs, NP">
+                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Sarah.jpg') }}" alt="Sarah Suggs, NP">
                 <div class="provider-select-card__body">
                     <h3>Sarah Suggs, NP</h3>
                     <p class="provider-select-card__title">AANP Board Certified Family Nurse Practitioner</p>
@@ -141,16 +91,12 @@
                         <li>MSN, University of Alabama at Birmingham</li>
                     </ul>
                     <div class="provider-select-card__cta">
-                        <a href="https://www.tebra.com/care/provider/sarah-suggs-np-1871041251" class="button"
-                            target="_blank" rel="noopener">Schedule with Sarah</a>
+                        <button class="button" onclick="openScheduler('SARAH SUGGS','Sarah Suggs, NP')">Schedule with Sarah</button>
                     </div>
                 </div>
             </div>
-
-            <!-- Ehrin Irvin -->
             <div class="provider-select-card reveal">
-                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Ehrin.jpg') }}"
-                    alt="Ehrin Irvin, NP">
+                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Ehrin.jpg') }}" alt="Ehrin Irvin, NP">
                 <div class="provider-select-card__body">
                     <h3>Ehrin Irvin, NP</h3>
                     <p class="provider-select-card__title">AANP Board Certified Family Nurse Practitioner</p>
@@ -160,13 +106,277 @@
                         <li>MSN, University of Tennessee at Chattanooga</li>
                     </ul>
                     <div class="provider-select-card__cta">
-                        <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button"
-                            target="_blank" rel="noopener">Schedule with Ehrin</a>
+                        <button class="button" onclick="openScheduler('EHRIN IRVIN','Ehrin Irvin, NP')">Schedule with Ehrin</button>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </section>
+
+<section class="scheduler-section" id="scheduler-section" style="display:none;">
+    <div class="container">
+        <div class="scheduler-card">
+            <div class="scheduler-header">
+                <h2 id="scheduler-title">Request an Appointment</h2>
+                <p>Pick a time that works for you — we'll confirm within 1 business day.</p>
+            </div>
+            <div class="step-bar">
+                <div class="step-dot active" id="dot-1"><div class="dot">1</div><span class="label">Date</span></div>
+                <div class="step-dot"        id="dot-2"><div class="dot">2</div><span class="label">Time</span></div>
+                <div class="step-dot"        id="dot-3"><div class="dot">3</div><span class="label">Info</span></div>
+                <div class="step-dot"        id="dot-4"><div class="dot">4</div><span class="label">Confirm</span></div>
+            </div>
+            <!-- Step 1: Date -->
+            <div class="step-panel active" id="np-step-1">
+                <h3>Select a date</h3>
+                <label class="sched-label">Appointment Date
+                    <input type="date" class="sched-input" id="np-appt-date" onchange="npOnDateChange()">
+                </label>
+                <p id="np-date-error" style="color:#ef4444;font-size:.85rem;display:none;">Please select a weekday (Mon-Fri).</p>
+                <div class="or-divider">or</div>
+                <a href="tel:4233735457" class="call-cta">&#128222;&nbsp; Call Us: (423) 373-5457</a>
+                <div class="step-nav">
+                    <button class="btn-next" id="np-btn-date-next" disabled onclick="npGoStep(2)">Choose a Time &#8594;</button>
+                </div>
+            </div>
+            <!-- Step 2: Time -->
+            <div class="step-panel" id="np-step-2">
+                <h3>Available times</h3>
+                <div id="np-time-slots-container"><div class="time-loading">Loading available times...</div></div>
+                <p id="np-slot-error" style="color:#ef4444;font-size:.85rem;display:none;margin-top:.75rem;">Please select a time slot.</p>
+                <div class="or-divider">or</div>
+                <a href="tel:4233735457" class="call-cta">&#128222;&nbsp; Call Us: (423) 373-5457</a>
+                <div class="step-nav">
+                    <button class="btn-back" onclick="npGoStep(1)">&#8592; Back</button>
+                    <button class="btn-next" id="np-btn-slot-next" disabled onclick="npGoStep(3)">Enter Your Info &#8594;</button>
+                </div>
+            </div>
+            <!-- Step 3: Info -->
+            <div class="step-panel" id="np-step-3">
+                <h3>Your contact information</h3>
+                <label class="sched-label">Full Name *
+                    <input type="text" class="sched-input" id="np-pt-name" placeholder="Jane Smith" oninput="npValidateInfo()">
+                </label>
+                <label class="sched-label">Phone Number *
+                    <input type="tel" class="sched-input" id="np-pt-phone" placeholder="(423) 555-0100" oninput="npValidateInfo()">
+                </label>
+                <label class="sched-label">Email Address
+                    <input type="email" class="sched-input" id="np-pt-email" placeholder="jane@example.com">
+                </label>
+                <label class="sched-label">Reason for Visit
+                    <select class="sched-input" id="np-pt-reason">
+                        <option value="New Patient Visit">New Patient Visit</option>
+                        <option value="Annual Physical">Annual Physical / Wellness Exam</option>
+                        <option value="Sick Visit">Sick Visit</option>
+                        <option value="Follow-Up">Follow-Up Appointment</option>
+                        <option value="Chronic Disease Management">Chronic Disease Management</option>
+                        <option value="Veterans Exam">Veterans C&amp;P Exam</option>
+                        <option value="Functional Medicine Consult">Functional Medicine Consultation</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </label>
+                <div class="step-nav">
+                    <button class="btn-back" onclick="npGoStep(2)">&#8592; Back</button>
+                    <button class="btn-next" id="np-btn-info-next" disabled onclick="npGoStep(4)">Review &#8594;</button>
+                </div>
+            </div>
+            <!-- Step 4: Confirm -->
+            <div class="step-panel" id="np-step-4">
+                <h3>Confirm your request</h3>
+                <div id="np-confirm-summary"></div>
+                <p style="font-size:.82rem;color:#64748b;margin-top:1rem;">
+                    This creates a <strong>tentative</strong> appointment request. Our team will confirm within 1 business day.
+                </p>
+                <div class="step-nav">
+                    <button class="btn-back" onclick="npGoStep(3)">&#8592; Back</button>
+                    <button class="btn-next" id="np-btn-submit" onclick="npSubmitBooking()">Request Appointment</button>
+                </div>
+            </div>
+            <!-- Success -->
+            <div class="step-panel" id="np-step-success">
+                <div class="booking-success">
+                    <div class="check-icon">&#9989;</div>
+                    <h3>Request Received!</h3>
+                    <p>Thank you! Our team will contact you within 1 business day to confirm your appointment.</p>
+                    <p style="margin-top:1rem;">Questions? Call us at <a href="tel:4233735457">(423) 373-5457</a>.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+var npState = { currentStep:1, provider:'', providerLabel:'', date:'', slotStart:'', slotEnd:'', slotLabel:'', patientName:'', patientPhone:'', patientEmail:'', reasonName:'New Patient Visit' };
+
+function openScheduler(providerKey, providerLabel) {
+    npState.provider = providerKey;
+    npState.providerLabel = providerLabel;
+    npState.currentStep = 1;
+    document.getElementById('scheduler-title').textContent = 'Schedule with ' + providerLabel.split(',')[0];
+    document.querySelectorAll('[id^="np-step-"]').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('np-step-1').classList.add('active');
+    npUpdateDots(1);
+    var section = document.getElementById('scheduler-section');
+    section.style.display = 'block';
+    setTimeout(function(){ section.scrollIntoView({ behavior:'smooth', block:'start' }); }, 50);
+    npInitDate();
+}
+
+function npGoStep(n) {
+    document.getElementById('np-step-' + npState.currentStep).classList.remove('active');
+    if (n === 'success') {
+        document.getElementById('np-step-success').classList.add('active');
+        npUpdateDots(5);
+        return;
+    }
+    document.getElementById('np-step-' + n).classList.add('active');
+    npUpdateDots(n);
+    npState.currentStep = n;
+    if (n === 2) npLoadTimeSlots();
+    if (n === 4) npBuildConfirmSummary();
+}
+
+function npUpdateDots(active) {
+    for (var i = 1; i <= 4; i++) {
+        var dot = document.getElementById('dot-' + i);
+        if (!dot) continue;
+        dot.classList.remove('active','done');
+        if (i < active) dot.classList.add('done');
+        else if (i === active) dot.classList.add('active');
+    }
+}
+
+function npInitDate() {
+    var input = document.getElementById('np-appt-date');
+    var d = new Date();
+    d.setDate(d.getDate() + 1);
+    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+    var iso = d.toISOString().split('T')[0];
+    input.min = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    input.value = iso;
+    npState.date = iso;
+    document.getElementById('np-btn-date-next').disabled = false;
+}
+
+function npOnDateChange() {
+    var val = document.getElementById('np-appt-date').value;
+    var err = document.getElementById('np-date-error');
+    if (!val) { document.getElementById('np-btn-date-next').disabled = true; return; }
+    var dow = new Date(val + 'T00:00:00').getDay();
+    if (dow === 0 || dow === 6) {
+        err.style.display = 'block';
+        document.getElementById('np-btn-date-next').disabled = true;
+    } else {
+        err.style.display = 'none';
+        npState.date = val;
+        npState.slotStart = ''; npState.slotEnd = ''; npState.slotLabel = '';
+        document.getElementById('np-btn-date-next').disabled = false;
+    }
+}
+
+function npLoadTimeSlots() {
+    var container = document.getElementById('np-time-slots-container');
+    container.innerHTML = '<div class="time-loading">Loading available times...</div>';
+    document.getElementById('np-btn-slot-next').disabled = true;
+    npState.slotStart = ''; npState.slotEnd = ''; npState.slotLabel = '';
+
+    fetch('/api/schedule/available?provider=' + encodeURIComponent(npState.provider) + '&date=' + npState.date)
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            var slots = data.slots || [];
+            if (!slots.length) {
+                container.innerHTML = '<p style="color:#64748b;text-align:center;padding:1rem 0">' + (data.message || 'No times available. Try another day or call us.') + '</p>';
+                return;
+            }
+            var grid = document.createElement('div');
+            grid.className = 'time-grid';
+            slots.forEach(function(slot){
+                var btn = document.createElement('button');
+                btn.className = 'time-slot';
+                var parts = slot.label.split('\u2013');
+                btn.innerHTML = parts[0].trim() + (parts[1] ? '<br><span style="font-size:.75rem;opacity:.7">' + parts[1].trim() + '</span>' : '');
+                btn.title = slot.label;
+                (function(b, s){ b.onclick = function(){ npSelectSlot(b, s.start, s.end, s.label); }; })(btn, slot);
+                grid.appendChild(btn);
+            });
+            container.innerHTML = '';
+            container.appendChild(grid);
+        })
+        .catch(function(){
+            container.innerHTML = '<p style="color:#ef4444;text-align:center;padding:1rem 0">Could not load availability. Please call us to schedule.</p>';
+        });
+}
+
+function npSelectSlot(btn, start, end, label) {
+    document.querySelectorAll('#np-time-slots-container .time-slot').forEach(function(b){ b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    npState.slotStart = start;
+    npState.slotEnd   = end;
+    npState.slotLabel = label;
+    document.getElementById('np-btn-slot-next').disabled = false;
+    document.getElementById('np-slot-error').style.display = 'none';
+}
+
+function npValidateInfo() {
+    var name  = document.getElementById('np-pt-name').value.trim();
+    var phone = document.getElementById('np-pt-phone').value.trim();
+    document.getElementById('np-btn-info-next').disabled = !(name && phone);
+}
+
+function npEsc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function npBuildConfirmSummary() {
+    npState.patientName  = document.getElementById('np-pt-name').value.trim();
+    npState.patientPhone = document.getElementById('np-pt-phone').value.trim();
+    npState.patientEmail = document.getElementById('np-pt-email').value.trim();
+    npState.reasonName   = document.getElementById('np-pt-reason').value || 'New Patient Visit';
+    var dateLabel = new Date(npState.date + 'T00:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    document.getElementById('np-confirm-summary').innerHTML =
+        '<div class="confirm-row"><span class="label">Provider</span><span class="value">' + npEsc(npState.providerLabel) + '</span></div>' +
+        '<div class="confirm-row"><span class="label">Date &amp; Time</span><span class="value">' + npEsc(dateLabel) + '<br>' + npEsc(npState.slotLabel) + '</span></div>' +
+        '<div class="confirm-row"><span class="label">Name</span><span class="value">' + npEsc(npState.patientName) + '</span></div>' +
+        '<div class="confirm-row"><span class="label">Phone</span><span class="value">' + npEsc(npState.patientPhone) + '</span></div>' +
+        (npState.patientEmail ? '<div class="confirm-row"><span class="label">Email</span><span class="value">' + npEsc(npState.patientEmail) + '</span></div>' : '') +
+        '<div class="confirm-row"><span class="label">Reason</span><span class="value">' + npEsc(npState.reasonName) + '</span></div>';
+}
+
+function npSubmitBooking() {
+    var btn = document.getElementById('np-btn-submit');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    fetch('/api/schedule/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            provider:      npState.provider,
+            start_time:    npState.slotStart,
+            end_time:      npState.slotEnd,
+            reason_id:     '',
+            patient_name:  npState.patientName,
+            patient_phone: npState.patientPhone,
+            patient_email: npState.patientEmail,
+            notes:         'Reason: ' + npState.reasonName + '. Source: new_patient_page',
+        }),
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+        if (data.success) {
+            if (typeof fbq !== 'undefined') fbq('track', 'Lead', { content_name:'Appointment Request', content_category:npState.provider });
+            npGoStep('success');
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Request Appointment';
+            alert('There was a problem: ' + (data.error || data.message || 'Please try again or call us.'));
+        }
+    })
+    .catch(function(){
+        btn.disabled = false;
+        btn.textContent = 'Request Appointment';
+        alert('Network error. Please try again or call us at (423) 373-5457.');
+    });
+}
+</script>
 {% endblock %}

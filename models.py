@@ -128,16 +128,39 @@ class ProviderSchedule(db.Model):
 
     __tablename__ = "provider_schedule"
 
-    id            = db.Column(db.Integer, primary_key=True)
-    provider_name = db.Column(db.String(100))
-    day_of_week   = db.Column(db.Integer)   # 0=Mon, 6=Sun
-    start_hour    = db.Column(db.Integer, default=8)
-    end_hour      = db.Column(db.Integer, default=17)
-    slot_duration = db.Column(db.Integer, default=30)
-    is_active     = db.Column(db.Boolean, default=True)
+    id               = db.Column(db.Integer, primary_key=True)
+    provider_name    = db.Column(db.String(100))
+    provider_tebra_id = db.Column(db.String(50))   # Tebra ResourceId (optional)
+    day_of_week      = db.Column(db.Integer)         # 0=Mon, 6=Sun
+    start_hour       = db.Column(db.Integer, default=8)
+    start_minute     = db.Column(db.Integer, default=0)
+    end_hour         = db.Column(db.Integer, default=17)
+    end_minute       = db.Column(db.Integer, default=0)
+    slot_duration    = db.Column(db.Integer, default=30)
+    break_start_hour = db.Column(db.Integer)         # e.g. 12 = noon (NULL = no break)
+    break_end_hour   = db.Column(db.Integer)         # e.g. 13 = 1 PM
+    is_active        = db.Column(db.Boolean, default=True)
 
     def __repr__(self) -> str:
         return f"<ProviderSchedule {self.provider_name} dow={self.day_of_week}>"
+
+    def to_dict(self) -> dict:
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        return {
+            "id": self.id,
+            "provider_name": self.provider_name,
+            "provider_tebra_id": self.provider_tebra_id or "",
+            "day_of_week": self.day_of_week,
+            "day_name": days[self.day_of_week] if self.day_of_week is not None else "",
+            "start_hour": self.start_hour,
+            "start_minute": self.start_minute or 0,
+            "end_hour": self.end_hour,
+            "end_minute": self.end_minute or 0,
+            "slot_duration": self.slot_duration,
+            "break_start_hour": self.break_start_hour,
+            "break_end_hour": self.break_end_hour,
+            "is_active": self.is_active,
+        }
 
 
 class TebraBooking(db.Model):

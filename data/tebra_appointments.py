@@ -304,12 +304,20 @@ def calculate_available_slots(
     start_hour: int = 8,
     end_hour: int = 17,
     slot_minutes: int = 30,
+    start_minute: int = 0,
+    end_minute: int = 0,
+    break_start_hour: int | None = None,
+    break_end_hour: int | None = None,
 ) -> list[dict]:
     """
     Calculate available appointment slots for a provider on a given day.
 
     Fetches existing appointments, then removes occupied time from the
     provider's working hours, returning a list of free slots.
+
+    Args:
+        break_start_hour: Hour when lunch break starts (e.g. 12). None = no break.
+        break_end_hour:   Hour when lunch break ends   (e.g. 13). None = no break.
 
     Returns a list of dicts: {start: datetime, end: datetime, label: str}
     """
@@ -322,9 +330,16 @@ def calculate_available_slots(
         if a["status"] not in ("Cancelled", "No Show")
     ]
 
+    # Break window (if configured)
+    break_start_dt = None
+    break_end_dt   = None
+    if break_start_hour is not None and break_end_hour is not None:
+        break_start_dt = datetime(target_date.year, target_date.month, target_date.day, break_start_hour, 0)
+        break_end_dt   = datetime(target_date.year, target_date.month, target_date.day, break_end_hour, 0)
+
     # Generate all candidate slots for the day
-    slot_start = datetime(target_date.year, target_date.month, target_date.day, start_hour, 0)
-    day_end    = datetime(target_date.year, target_date.month, target_date.day, end_hour, 0)
+    slot_start = datetime(target_date.year, target_date.month, target_date.day, start_hour, start_minute)
+    day_end    = datetime(target_date.year, target_date.month, target_date.day, end_hour, end_minute)
     delta      = timedelta(minutes=slot_minutes)
 
     available = []
@@ -332,10 +347,15 @@ def calculate_available_slots(
     while current + delta <= day_end:
         slot_end = current + delta
 
+        # Skip break window
+        if break_start_dt and break_end_dt:
+            if current >= break_start_dt and current < break_end_dt:
+                current += delta
+                continue
+
         # Check overlap with any occupied interval
         is_free = True
         for occ_start, occ_end in occupied:
-            # Overlap if current < occ_end AND slot_end > occ_start
             # Strip timezone info for comparison if present
             s = occ_start.replace(tzinfo=None) if occ_start.tzinfo else occ_start
             e = occ_end.replace(tzinfo=None)   if occ_end.tzinfo   else occ_end
@@ -344,14 +364,14 @@ def calculate_available_slots(
                 break
 
         if is_free:
-            label = current.strftime("%-I:%M %p") + " – " + slot_end.strftime("%-I:%M %p")
+            label = current.strftime("%-I:%M %p") + " \u2013 " + slot_end.strftime("%-I:%M %p")
             available.append({
                 "start": current,
                 "end":   slot_end,
                 "label": label,
             })
 
-        current = current + delta
+        current += delta
 
     logger.info(
         "calculate_available_slots: %s %s → %d available / %d occupied",
