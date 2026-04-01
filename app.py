@@ -722,9 +722,17 @@ def create_app():
     #  Scheduling API Routes (public, no auth required)
     # -------------------------------------------------------------------
 
+    # Provider display name mapping
+    PROVIDER_DISPLAY = {
+        'SARAH SUGGS': 'Sarah Suggs, NP',
+        'EHRIN IRVIN': 'Ehrin Irvin, NP',
+        'ANNE JENKS': 'Anne Jenks, NP',
+    }
+    DISPLAY_TO_CANONICAL = {v: k for k, v in PROVIDER_DISPLAY.items()}
+
     @app.route('/api/schedule/providers')
     def schedule_providers():
-        """Return distinct active providers from ProviderSchedule."""
+        """Return distinct active providers from ProviderSchedule with display names."""
         try:
             rows = (
                 ProviderSchedule.query
@@ -733,7 +741,11 @@ def create_app():
                 .distinct()
                 .all()
             )
-            providers = [r.provider_name for r in rows]
+            providers = []
+            for r in rows:
+                canonical = r.provider_name
+                display = PROVIDER_DISPLAY.get(canonical, canonical)
+                providers.append({'name': canonical, 'display': display})
             return jsonify({'providers': providers})
         except Exception as exc:
             app.logger.error("schedule_providers error: %s", exc)
@@ -759,7 +771,9 @@ def create_app():
         Return available appointment slots for a provider on a given date.
         Query params: provider (str), date (YYYY-MM-DD)
         """
-        provider = normalize_provider(request.args.get('provider', '').strip())
+        raw_provider = request.args.get('provider', '').strip()
+        # Accept both display names ("Sarah Suggs, NP") and canonical names ("SARAH SUGGS")
+        provider = DISPLAY_TO_CANONICAL.get(raw_provider, normalize_provider(raw_provider))
         date_str = request.args.get('date', '').strip()
 
         if not provider or not date_str:
@@ -834,11 +848,12 @@ def create_app():
         provider      = data['provider'].strip()
         start_time_str = data['start_time'].strip()
         end_time_str   = data['end_time'].strip()
-        reason_id     = data['reason_id'].strip()
+        reason_id     = data.get('reason_id', '').strip() or 'new-patient'
         patient_name  = data['patient_name'].strip()
         patient_phone = data['patient_phone'].strip()
         patient_email = data['patient_email'].strip()
         notes         = data.get('notes', '').strip()
+        source        = data.get('source', '').strip()
 
         try:
             start_dt = datetime.datetime.strptime(start_time_str, '%Y-%m-%dT%H:%M:%S')
