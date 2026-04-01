@@ -126,14 +126,21 @@ def _post_soap(action: str, envelope: str) -> ET.Element | None:
         logger.warning("Tebra SOAP request failed (%s): %s", action, exc)
         return None
 
+    logger.info("Tebra HTTP status %d for %s", resp.status_code, action)
     if resp.status_code != 200:
-        logger.warning("Tebra non-200 response (status %d) for %s", resp.status_code, action)
+        logger.warning(
+            "Tebra non-200 response for %s; body prefix: %.200s",
+            action, resp.text,
+        )
         return None
 
     try:
         return ET.fromstring(resp.text)
     except ET.ParseError as exc:
-        logger.warning("Tebra XML parse error for %s: %s", action, exc)
+        logger.warning(
+            "Tebra XML parse error for %s: %s; body prefix: %.200s",
+            action, exc, resp.text,
+        )
         return None
 
 
@@ -174,10 +181,10 @@ def get_appointments(provider_name: str, start_date: date, end_date: date) -> li
       <kar:request>
 {_request_header_xml(customer_key, username, password)}
         <kar:Fields>
-          <kar:AppointmentEndTime>true</kar:AppointmentEndTime>
-          <kar:AppointmentStartTime>true</kar:AppointmentStartTime>
-          <kar:AppointmentStatus>true</kar:AppointmentStatus>
+          <kar:ConfirmationStatus>true</kar:ConfirmationStatus>
+          <kar:EndDate>true</kar:EndDate>
           <kar:ID>true</kar:ID>
+          <kar:StartDate>true</kar:StartDate>
         </kar:Fields>
         <kar:Filter>
           <kar:EndDate>{end_str}</kar:EndDate>
@@ -205,9 +212,9 @@ def get_appointments(provider_name: str, start_date: date, end_date: date) -> li
 
     appointments = []
     for appt in root.findall(f".//{{{NS_KAREO}}}AppointmentData"):
-        start_raw  = _parse_text(appt, "AppointmentStartTime")
-        end_raw    = _parse_text(appt, "AppointmentEndTime")
-        status_raw = _parse_text(appt, "AppointmentStatus")
+        start_raw  = _parse_text(appt, "StartDate")
+        end_raw    = _parse_text(appt, "EndDate")
+        status_raw = _parse_text(appt, "ConfirmationStatus")
 
         try:
             start_dt = datetime.fromisoformat(start_raw) if start_raw else None
