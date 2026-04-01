@@ -692,7 +692,7 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
         list.forEach(function (p, i) {
           var opt = document.createElement('option');
           opt.value = typeof p === 'string' ? p : p.name;
-          opt.textContent = typeof p === 'string' ? p : (p.display_name || p.name);
+          opt.textContent = typeof p === 'string' ? p : (p.display || p.name);
           if (i === 0) opt.selected = true;
           providerSel.appendChild(opt);
         });
