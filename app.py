@@ -14,7 +14,7 @@ from datetime import timezone
 from data import rvu_analytics
 from data import revenue_per_rvu
 from data import new_patients_analytics
-from data.data_loader import get_database_url
+from data.data_loader import get_database_url, normalize_provider
 from data import owner_analytics
 from data.pii_utils import hash_pii_columns
 
@@ -759,7 +759,7 @@ def create_app():
         Return available appointment slots for a provider on a given date.
         Query params: provider (str), date (YYYY-MM-DD)
         """
-        provider = request.args.get('provider', '').strip()
+        provider = normalize_provider(request.args.get('provider', '').strip())
         date_str = request.args.get('date', '').strip()
 
         if not provider or not date_str:

@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app import app, db
 from models import ProviderSchedule  # noqa: E402
 
-PROVIDER_NAME = "SARAH F SUGGS, NP"
+PROVIDER_NAME = "SARAH SUGGS"
 
 with app.app_context():
     existing = ProviderSchedule.query.filter_by(provider_name=PROVIDER_NAME).count()
