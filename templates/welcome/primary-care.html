@@ -263,12 +263,130 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
   }
   .phone-cta:hover { text-decoration: underline; }
 
+  /* ── Scheduling Widget ── */
+  .sched-stepper {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+  .sched-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+  }
+  .sched-step .step-dot {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+  }
+  .sched-step .step-label {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  .sched-step.active .step-dot { background: var(--primary-color); color: #fff; }
+  .sched-step.active .step-label { color: var(--primary-color); }
+  .sched-step.done .step-dot { background: #16a34a; color: #fff; }
+  .sched-step.done .step-label { color: #16a34a; }
+  .sched-step-line {
+    flex: 1;
+    height: 2px;
+    background: #e2e8f0;
+    margin-bottom: 1.4rem;
+    min-width: 0.75rem;
+  }
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .slot-btn {
+    padding: 0.6rem 0.25rem;
+    border: 2px solid #d1d5db;
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+    text-align: center;
+    font-family: var(--body-font);
+  }
+  .slot-btn:hover { border-color: var(--primary-color); background: #f0f8ff; transform: translateY(-1px); }
+  .slot-btn.selected { border-color: var(--primary-color); background: var(--primary-color); color: #fff; }
+  .sched-slots-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .sched-slots-date { font-weight: 600; color: var(--accent-color); font-size: 0.95rem; }
+  .sched-back-btn {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.2rem 0;
+    font-family: var(--body-font);
+  }
+  .sched-back-btn:hover { text-decoration: underline; }
+  .sched-selected-badge {
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+  }
+  .sched-loading, .sched-no-slots {
+    text-align: center;
+    color: var(--text-light);
+    padding: 1.25rem;
+    font-size: 0.93rem;
+  }
+  .sched-no-slots a { color: var(--primary-color); font-weight: 600; }
+  .sched-phone-alt {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  .sched-phone-alt a {
+    color: var(--primary-color);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 1.05rem;
+  }
+  .sched-phone-alt a:hover { text-decoration: underline; }
+
   /* ── Responsive ── */
   @media (max-width: 768px) {
     .form-row { grid-template-columns: 1fr; }
     .appt-form { padding: 1.75rem 1.25rem; }
     .location-grid { grid-template-columns: 1fr; }
     .lp-hero h1 { font-size: 2rem; }
+    .slot-grid { grid-template-columns: repeat(2, 1fr); }
+    .sched-step .step-label { display: none; }
   }
 </style>
 {% endblock %}
@@ -357,49 +475,113 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
   </div>
 </section>
 
-<!-- ── Appointment Request Form ── -->
+<!-- ── Appointment Scheduling Widget ── -->
 <section class="lp-form-section" id="request-appointment">
   <div class="container">
-    <h2>Request an Appointment</h2>
-    <p class="form-intro">Fill out the form below and our team will call you to confirm your appointment — usually within one business day.</p>
+    <h2>Book an Appointment Online</h2>
+    <p class="form-intro">Pick a date and time that works for you — and confirm your spot instantly.</p>
     <div class="appt-form">
+
+      <!-- Stepper -->
+      <div class="sched-stepper">
+        <div class="sched-step active" id="pc-step-1">
+          <span class="step-dot">1</span>
+          <span class="step-label">Pick Date</span>
+        </div>
+        <div class="sched-step-line"></div>
+        <div class="sched-step" id="pc-step-2">
+          <span class="step-dot">2</span>
+          <span class="step-label">Pick Time</span>
+        </div>
+        <div class="sched-step-line"></div>
+        <div class="sched-step" id="pc-step-3">
+          <span class="step-dot">3</span>
+          <span class="step-label">Your Info</span>
+        </div>
+        <div class="sched-step-line"></div>
+        <div class="sched-step" id="pc-step-4">
+          <span class="step-dot">4</span>
+          <span class="step-label">Confirm</span>
+        </div>
+      </div>
+
+      <!-- Error -->
       <div class="form-error-msg" id="pc-form-error"></div>
+
+      <!-- Success -->
       <div class="form-success" id="pc-form-success">
         <div class="success-icon">✅</div>
-        <h3 style="color:#166534;margin-bottom:0.5rem;">Request Received!</h3>
-        <p style="color:#374151;">We'll give you a call to confirm your appointment shortly. If you need immediate help, call us at <strong>(423) 373-5457</strong>.</p>
+        <h3 style="color:#166534;margin-bottom:0.5rem;">Appointment Booked!</h3>
+        <p id="pc-success-details" style="color:#374151;font-weight:600;margin-bottom:0.5rem;"></p>
+        <p style="color:#374151;">We'll send a confirmation and call if we need anything. Questions? Call <strong>(423) 373-5457</strong>.</p>
       </div>
-      <form id="pc-appt-form">
+
+      <!-- Panel 1: Date + Provider -->
+      <div id="pc-panel-date">
         <div class="form-row">
           <div class="form-group">
-            <label for="pc-name">Full Name *</label>
-            <input type="text" id="pc-name" name="name" required placeholder="Jane Smith">
+            <label for="pc-date">Select Date *</label>
+            <input type="date" id="pc-date">
           </div>
           <div class="form-group">
-            <label for="pc-phone">Phone Number *</label>
-            <input type="tel" id="pc-phone" name="phone" required placeholder="(423) 555-0100">
+            <label for="pc-provider">Provider *</label>
+            <select id="pc-provider">
+              <option value="">Loading…</option>
+            </select>
           </div>
         </div>
-        <div class="form-group">
-          <label for="pc-email">Email Address</label>
-          <input type="email" id="pc-email" name="email" placeholder="jane@example.com">
+        <p style="font-size:0.85rem;color:var(--text-light);margin-top:-0.5rem;">
+          Select a date to see available times.
+        </p>
+      </div>
+
+      <!-- Panel 2: Time Slots -->
+      <div id="pc-panel-slots" style="display:none;">
+        <div class="sched-slots-header">
+          <button class="sched-back-btn" id="pc-back-to-date">← Change Date</button>
+          <span class="sched-slots-date" id="pc-slots-date-label"></span>
         </div>
-        <div class="form-group">
-          <label for="pc-time">Preferred Time</label>
-          <select id="pc-time" name="preferred_time">
-            <option value="">No preference</option>
-            <option value="Morning (8am–12pm)">Morning (8am–12pm)</option>
-            <option value="Afternoon (12pm–4pm)">Afternoon (12pm–4pm)</option>
-            <option value="As soon as possible">As soon as possible</option>
-          </select>
+        <div class="sched-loading" id="pc-slots-loading">Loading available times…</div>
+        <div class="sched-no-slots" id="pc-no-slots" style="display:none;">
+          No open slots for this date. Try another day or <a href="tel:4233735457">call us</a>.
         </div>
-        <div class="form-group">
-          <label for="pc-reason">Reason for Visit</label>
-          <textarea id="pc-reason" name="reason" placeholder="e.g., new patient physical, sick visit, follow-up..."></textarea>
+        <div class="slot-grid" id="pc-slot-grid"></div>
+      </div>
+
+      <!-- Panel 3: Patient Info -->
+      <div id="pc-panel-info" style="display:none;">
+        <div class="sched-slots-header">
+          <button class="sched-back-btn" id="pc-back-to-slots">← Change Time</button>
+          <span class="sched-selected-badge" id="pc-selected-slot-label"></span>
         </div>
-        <input type="hidden" name="source" value="primary-care">
-        <button type="submit" class="form-submit-btn" id="pc-submit-btn">Request My Appointment</button>
-      </form>
+        <form id="pc-appt-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pc-name">Full Name *</label>
+              <input type="text" id="pc-name" name="name" required placeholder="Jane Smith">
+            </div>
+            <div class="form-group">
+              <label for="pc-phone">Phone Number *</label>
+              <input type="tel" id="pc-phone" name="phone" required placeholder="(423) 555-0100">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="pc-email">Email Address</label>
+            <input type="email" id="pc-email" name="email" placeholder="jane@example.com">
+          </div>
+          <div class="form-group">
+            <label for="pc-reason">Reason for Visit</label>
+            <textarea id="pc-reason" name="reason" placeholder="e.g., new patient physical, sick visit, follow-up…"></textarea>
+          </div>
+          <button type="submit" class="form-submit-btn" id="pc-submit-btn">Book My Appointment</button>
+        </form>
+      </div>
+
+      <!-- Phone alternative -->
+      <div class="sched-phone-alt">
+        Prefer to call? <a href="tel:4233735457">(423) 373-5457</a>
+      </div>
+
     </div>
   </div>
 </section>
@@ -449,54 +631,194 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
 {% block scripts %}
 <script>
 (function () {
-  const form = document.getElementById('pc-appt-form');
-  const submitBtn = document.getElementById('pc-submit-btn');
-  const errorEl = document.getElementById('pc-form-error');
-  const successEl = document.getElementById('pc-form-success');
+  var dateInput     = document.getElementById('pc-date');
+  var providerSel   = document.getElementById('pc-provider');
+  var panelDate     = document.getElementById('pc-panel-date');
+  var panelSlots    = document.getElementById('pc-panel-slots');
+  var panelInfo     = document.getElementById('pc-panel-info');
+  var slotsLoading  = document.getElementById('pc-slots-loading');
+  var noSlots       = document.getElementById('pc-no-slots');
+  var slotGrid      = document.getElementById('pc-slot-grid');
+  var slotsDateLbl  = document.getElementById('pc-slots-date-label');
+  var selectedBadge = document.getElementById('pc-selected-slot-label');
+  var backToDate    = document.getElementById('pc-back-to-date');
+  var backToSlots   = document.getElementById('pc-back-to-slots');
+  var form          = document.getElementById('pc-appt-form');
+  var submitBtn     = document.getElementById('pc-submit-btn');
+  var errorEl       = document.getElementById('pc-form-error');
+  var successEl     = document.getElementById('pc-form-success');
+  var successDet    = document.getElementById('pc-success-details');
+  var steps         = [
+    document.getElementById('pc-step-1'),
+    document.getElementById('pc-step-2'),
+    document.getElementById('pc-step-3'),
+    document.getElementById('pc-step-4'),
+  ];
 
-  form.addEventListener('submit', async function (e) {
+  var selectedSlot = null;
+
+  // Set min date to tomorrow
+  var tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  dateInput.min = tomorrow.toISOString().split('T')[0];
+
+  function setStep(n) {
+    steps.forEach(function (el, i) {
+      el.classList.remove('active', 'done');
+      if (i + 1 < n) el.classList.add('done');
+      if (i + 1 === n) el.classList.add('active');
+    });
+  }
+
+  function fmtDate(dateStr) {
+    var parts = dateStr.split('-');
+    var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function fmtDateShort(dateStr) {
+    var parts = dateStr.split('-');
+    var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  // Load providers
+  fetch('/api/schedule/providers')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var list = data.providers || data;
+      providerSel.innerHTML = '';
+      if (Array.isArray(list) && list.length) {
+        list.forEach(function (p, i) {
+          var opt = document.createElement('option');
+          opt.value = typeof p === 'string' ? p : p.name;
+          opt.textContent = typeof p === 'string' ? p : (p.display_name || p.name);
+          if (i === 0) opt.selected = true;
+          providerSel.appendChild(opt);
+        });
+      } else {
+        providerSel.innerHTML = '<option value="SARAH SUGGS">Sarah Suggs, NP</option>';
+      }
+    })
+    .catch(function () {
+      providerSel.innerHTML = '<option value="SARAH SUGGS">Sarah Suggs, NP</option>';
+    });
+
+  function fetchSlots() {
+    var date = dateInput.value;
+    var provider = providerSel.value;
+    if (!date || !provider) return;
+
+    panelDate.style.display = 'none';
+    panelSlots.style.display = 'block';
+    panelInfo.style.display = 'none';
+    setStep(2);
+
+    slotsDateLbl.textContent = fmtDate(date);
+    slotsLoading.style.display = 'block';
+    noSlots.style.display = 'none';
+    slotGrid.innerHTML = '';
+
+    fetch('/api/schedule/available?provider=' + encodeURIComponent(provider) + '&date=' + date)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        slotsLoading.style.display = 'none';
+        var slots = data.slots || data;
+        if (!Array.isArray(slots) || !slots.length) {
+          noSlots.style.display = 'block';
+          return;
+        }
+        slots.forEach(function (slot) {
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'slot-btn';
+          btn.textContent = slot.display || slot.start_time;
+          btn.addEventListener('click', function () { selectSlot(btn, slot); });
+          slotGrid.appendChild(btn);
+        });
+      })
+      .catch(function () {
+        slotsLoading.style.display = 'none';
+        noSlots.textContent = 'Unable to load slots. Please call us at (423) 373-5457.';
+        noSlots.style.display = 'block';
+      });
+  }
+
+  function selectSlot(btn, slot) {
+    slotGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
+    btn.classList.add('selected');
+    selectedSlot = slot;
+
+    panelSlots.style.display = 'none';
+    panelInfo.style.display = 'block';
+    setStep(3);
+
+    selectedBadge.textContent = (slot.display || slot.start_time) + ' · ' + fmtDateShort(dateInput.value);
+  }
+
+  backToDate.addEventListener('click', function () {
+    panelSlots.style.display = 'none';
+    panelDate.style.display = 'block';
+    setStep(1);
+  });
+
+  backToSlots.addEventListener('click', function () {
+    panelInfo.style.display = 'none';
+    panelSlots.style.display = 'block';
+    setStep(2);
+  });
+
+  dateInput.addEventListener('change', fetchSlots);
+  providerSel.addEventListener('change', function () { if (dateInput.value) fetchSlots(); });
+
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
     errorEl.style.display = 'none';
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending…';
+    submitBtn.textContent = 'Booking…';
 
-    const body = {
-      name: form.elements['name'].value,
-      phone: form.elements['phone'].value,
-      email: form.elements['email'].value,
-      preferred_time: form.elements['preferred_time'].value,
+    var body = {
+      provider: providerSel.value,
+      date: dateInput.value,
+      start_time: selectedSlot.start_time,
+      end_time: selectedSlot.end_time,
+      patient_name: form.elements['name'].value,
+      patient_phone: form.elements['phone'].value,
+      patient_email: form.elements['email'].value,
       reason: form.elements['reason'].value,
       source: 'primary-care',
     };
 
-    try {
-      const resp = await fetch('/api/appointment-request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await resp.json();
-
-      if (data.success) {
-        form.style.display = 'none';
-        successEl.style.display = 'block';
-        {% if meta_pixel_id %}
-        if (typeof fbq !== 'undefined') {
-          fbq('track', 'Lead', { content_name: 'Primary Care Appointment Request' });
+    fetch('/api/schedule/book', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success) {
+          panelInfo.style.display = 'none';
+          successEl.style.display = 'block';
+          setStep(4);
+          successDet.textContent = (selectedSlot.display || selectedSlot.start_time) + ' on ' + fmtDate(dateInput.value);
+          {% if meta_pixel_id %}
+          if (typeof fbq !== 'undefined') {
+            fbq('track', 'Lead', { content_name: 'Primary Care Appointment Booked' });
+          }
+          {% endif %}
+        } else {
+          errorEl.textContent = data.error || 'Unable to book. Please call us at (423) 373-5457.';
+          errorEl.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Book My Appointment';
         }
-        {% endif %}
-      } else {
-        errorEl.textContent = data.error || 'Something went wrong. Please call us at (423) 373-5457.';
+      })
+      .catch(function () {
+        errorEl.textContent = 'Unable to book. Please call us at (423) 373-5457.';
         errorEl.style.display = 'block';
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Request My Appointment';
-      }
-    } catch (err) {
-      errorEl.textContent = 'Unable to submit. Please call us at (423) 373-5457.';
-      errorEl.style.display = 'block';
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Request My Appointment';
-    }
+        submitBtn.textContent = 'Book My Appointment';
+      });
   });
 })();
 </script>
