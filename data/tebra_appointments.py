@@ -124,9 +124,11 @@ def _post_soap(action: str, envelope: str) -> ET.Element | None:
         )
     except requests.RequestException as exc:
         logger.warning("Tebra SOAP request failed (%s): %s", action, exc)
+        print(f"[TEBRA DEBUG] SOAP request exception for {action}: {exc}")
         return None
 
     logger.info("Tebra HTTP status %d for %s", resp.status_code, action)
+    print(f"[TEBRA DEBUG] {action} HTTP status={resp.status_code} len={len(resp.text)} body[:200]={resp.text[:200]!r}")
     if resp.status_code != 200:
         logger.warning(
             "Tebra non-200 response for %s; body prefix: %.200s",
@@ -135,12 +137,15 @@ def _post_soap(action: str, envelope: str) -> ET.Element | None:
         return None
 
     try:
-        return ET.fromstring(resp.text)
+        root = ET.fromstring(resp.text)
+        print(f"[TEBRA DEBUG] {action} parsed OK; root tag={root.tag}")
+        return root
     except ET.ParseError as exc:
         logger.warning(
             "Tebra XML parse error for %s: %s; body prefix: %.200s",
             action, exc, resp.text,
         )
+        print(f"[TEBRA DEBUG] {action} XML parse error: {exc}")
         return None
 
 
@@ -203,6 +208,7 @@ def get_appointments(provider_name: str, start_date: date, end_date: date) -> li
     result_el = root.find(f".//{{{NS_KAREO}}}GetAppointmentsResult")
     if result_el is None:
         logger.warning("GetAppointmentsResult not found in response")
+        print(f"[TEBRA DEBUG] GetAppointmentsResult not found; all tags: {[el.tag for el in root.iter()][:20]}")
         return []
 
     err = _check_error_and_auth(result_el)
@@ -463,6 +469,7 @@ def create_tentative_appointment(
     result_el = root.find(f".//{{{NS_KAREO}}}CreateAppointmentResult")
     if result_el is None:
         logger.warning("CreateAppointmentResult not found in response")
+        print(f"[TEBRA DEBUG] CreateAppointmentResult not found; all tags: {[el.tag for el in root.iter()][:20]}")
         return None
 
     err = _check_error_and_auth(result_el)
