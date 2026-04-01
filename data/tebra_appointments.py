@@ -22,8 +22,11 @@ import logging
 import os
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import requests
+
+EASTERN = ZoneInfo("America/New_York")
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +134,7 @@ def _post_soap(action: str, envelope: str) -> ET.Element | None:
     print(f"[TEBRA DEBUG] {action} HTTP status={resp.status_code} len={len(resp.text)} body[:200]={resp.text[:200]!r}")
     if resp.status_code != 200:
         logger.warning(
-            "Tebra non-200 response for %s; body prefix: %.200s",
+            "Tebra non-200 response for %s; body prefix: %.500s",
             action, resp.text,
         )
         return None
@@ -139,14 +142,27 @@ def _post_soap(action: str, envelope: str) -> ET.Element | None:
     try:
         root = ET.fromstring(resp.text)
         print(f"[TEBRA DEBUG] {action} parsed OK; root tag={root.tag}")
-        return root
     except ET.ParseError as exc:
         logger.warning(
-            "Tebra XML parse error for %s: %s; body prefix: %.200s",
+            "Tebra XML parse error for %s: %s; body prefix: %.500s",
             action, exc, resp.text,
         )
         print(f"[TEBRA DEBUG] {action} XML parse error: {exc}")
         return None
+
+    # If it's a SOAP Fault, log the full faultstring for diagnosis
+    fault_el = root.find(".//{http://schemas.xmlsoap.org/soap/envelope/}Fault")
+    if fault_el is None:
+        fault_el = root.find(".//Fault")
+    if fault_el is not None:
+        faultcode = (fault_el.findtext("faultcode") or "").strip()
+        faultstring = (fault_el.findtext("faultstring") or "").strip()
+        logger.warning(
+            "Tebra SOAP Fault for %s: code=%s string=%.500s",
+            action, faultcode, faultstring,
+        )
+
+    return root
 
 
 # ---------------------------------------------------------------------------
@@ -235,7 +251,17 @@ def get_appointments(provider_name: str, start_date: date, end_date: date) -> li
                 start_dt = None
                 end_dt   = None
 
+        # Convert UTC-aware datetimes to Eastern naive (JFM is America/New_York)
+        if start_dt and start_dt.tzinfo is not None:
+            start_dt = start_dt.astimezone(EASTERN).replace(tzinfo=None)
+        if end_dt and end_dt.tzinfo is not None:
+            end_dt = end_dt.astimezone(EASTERN).replace(tzinfo=None)
+
         if start_dt and end_dt:
+            logger.debug(
+                "Tebra appt (Eastern naive): start=%s end=%s status=%s",
+                start_dt.isoformat(), end_dt.isoformat(), status_raw,
+            )
             appointments.append({
                 "start":  start_dt,
                 "end":    end_dt,
@@ -437,8 +463,10 @@ def create_tentative_appointment(
         provider_name, start_iso, reason_id,
     )
 
+    practice_id = os.environ.get("TEBRA_PRACTICE_ID", "100713")
+
     # Only send the minimal required fields.
-    # AppointmentCreate xs:sequence order (alphabetical):
+    # AppointmentCreate xs:sequence order (alphabetical from XSD):
     envelope = f"""<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"
@@ -454,6 +482,7 @@ def create_tentative_appointment(
           <kar:AppointmentStatus>Tentative</kar:AppointmentStatus>
           <kar:EndTime>{end_iso}</kar:EndTime>
           <kar:Notes>{_esc(full_notes)}</kar:Notes>
+          <kar:PracticeId>{practice_id}</kar:PracticeId>
           <kar:StartTime>{start_iso}</kar:StartTime>
           <kar:WasCreatedOnline>true</kar:WasCreatedOnline>
         </kar:Appointment>
