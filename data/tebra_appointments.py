@@ -304,16 +304,25 @@ def calculate_available_slots(
     start_hour: int = 8,
     end_hour: int = 17,
     slot_minutes: int = 30,
+    start_minute: int = 0,
+    end_minute: int = 0,
+    break_start_hour: int = None,
+    break_end_hour: int = None,
 ) -> list[dict]:
     """
     Calculate available appointment slots for a provider on a given day.
 
-    Fetches existing appointments, then removes occupied time from the
-    provider's working hours, returning a list of free slots.
+    Fetches existing appointments (gracefully handles API failures), then
+    removes occupied time from the provider's working hours, returning
+    a list of free slots.
 
     Returns a list of dicts: {start: datetime, end: datetime, label: str}
     """
-    existing = get_appointments(provider_name, target_date, target_date)
+    try:
+        existing = get_appointments(provider_name, target_date, target_date)
+    except Exception as exc:
+        logger.warning("Tebra appointment fetch failed (non-fatal): %s", exc)
+        existing = []
 
     # Build a set of occupied (start, end) intervals
     occupied: list[tuple[datetime, datetime]] = [
@@ -322,9 +331,15 @@ def calculate_available_slots(
         if a["status"] not in ("Cancelled", "No Show")
     ]
 
+    # Add break time as occupied if configured
+    if break_start_hour is not None and break_end_hour is not None:
+        break_start = datetime(target_date.year, target_date.month, target_date.day, break_start_hour, 0)
+        break_end = datetime(target_date.year, target_date.month, target_date.day, break_end_hour, 0)
+        occupied.append((break_start, break_end))
+
     # Generate all candidate slots for the day
-    slot_start = datetime(target_date.year, target_date.month, target_date.day, start_hour, 0)
-    day_end    = datetime(target_date.year, target_date.month, target_date.day, end_hour, 0)
+    slot_start = datetime(target_date.year, target_date.month, target_date.day, start_hour, start_minute)
+    day_end    = datetime(target_date.year, target_date.month, target_date.day, end_hour, end_minute)
     delta      = timedelta(minutes=slot_minutes)
 
     available = []
