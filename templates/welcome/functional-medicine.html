@@ -921,7 +921,7 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
           var btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'slot-btn';
-          btn.textContent = slot.display || slot.start_time;
+          btn.textContent = slot.label || slot.display || slot.start_time || slot.start;
           btn.addEventListener('click', function () { selectSlot(btn, slot); });
           slotGrid.appendChild(btn);
         });
@@ -933,6 +933,18 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
       });
   }
 
+  function slotLabel(slot) {
+    return slot.label || slot.display || slot.start_time || slot.start;
+  }
+
+  function slotStart(slot) {
+    return slot.start_time || slot.start;
+  }
+
+  function slotEnd(slot) {
+    return slot.end_time || slot.end;
+  }
+
   function selectSlot(btn, slot) {
     slotGrid.querySelectorAll('.slot-btn').forEach(function (b) { b.classList.remove('selected'); });
     btn.classList.add('selected');
@@ -942,7 +954,7 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
     panelInfo.style.display = 'block';
     setStep(3);
 
-    selectedBadge.textContent = (slot.display || slot.start_time) + ' · ' + fmtDateShort(dateInput.value);
+    selectedBadge.textContent = slotLabel(slot) + ' · ' + fmtDateShort(dateInput.value);
   }
 
   backToDate.addEventListener('click', function () {
@@ -969,8 +981,8 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
     var body = {
       provider: providerSel.value,
       date: dateInput.value,
-      start_time: selectedSlot.start_time,
-      end_time: selectedSlot.end_time,
+      start_time: slotStart(selectedSlot),
+      end_time: slotEnd(selectedSlot),
       patient_name: form.elements['name'].value,
       patient_phone: form.elements['phone'].value,
       patient_email: form.elements['email'].value,
@@ -989,7 +1001,7 @@ src="https://www.facebook.com/tr?id={{ meta_pixel_id }}&ev=PageView&noscript=1"
           panelInfo.style.display = 'none';
           successEl.style.display = 'block';
           setStep(4);
-          successDet.textContent = (selectedSlot.display || selectedSlot.start_time) + ' on ' + fmtDate(dateInput.value);
+          successDet.textContent = slotLabel(selectedSlot) + ' on ' + fmtDate(dateInput.value);
           {% if meta_pixel_id %}
           if (typeof fbq !== 'undefined') {
             fbq('track', 'Lead', { content_name: 'Functional Medicine Consultation Booked' });
