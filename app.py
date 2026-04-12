@@ -11,6 +11,7 @@ import requests
 from models import db, User, BannerSettings, ReferenceData
 from datetime import timezone
 from data import rvu_analytics
+from data import quarterly_bonus_analytics
 
 def create_app():
     app = Flask(__name__)
@@ -342,19 +343,41 @@ def create_app():
                     flash('You must change your password before performing any actions.', 'error')
                 else:
                     selected_view = request.form.get('rvu_view', 'Company Wide')
-                    
+
                     # Store selected view in session or pass directly to template
                     # For simplicity, we just render the template with the selection
-                    return render_template('admin/dashboard.html', 
-                                           page_title='Admin Dashboard', 
-                                           banner=banner, 
+                    return render_template('admin/dashboard.html',
+                                           page_title='Admin Dashboard',
+                                           banner=banner,
                                            needs_password_change=needs_password_change,
                                            active_tab='section-reports',
                                            rvu_view=selected_view)
 
+            elif action == 'generate_quarterly_bonus':
+                if needs_password_change:
+                    flash('You must change your password before performing any actions.', 'error')
+                else:
+                    raw_quarter = request.form.get('quarter', '')
+                    # Parse "2026Q1" → year=2026, quarter=1
+                    try:
+                        year = int(raw_quarter[:4])
+                        quarter = int(raw_quarter[5])
+                        bonus_report = quarterly_bonus_analytics.get_quarterly_bonus_report(year, quarter)
+                    except (ValueError, IndexError):
+                        bonus_report = None
+                        flash('Invalid quarter selection.', 'error')
+
+                    return render_template('admin/dashboard.html',
+                                           page_title='Admin Dashboard',
+                                           banner=banner,
+                                           needs_password_change=needs_password_change,
+                                           active_tab='section-reports',
+                                           bonus_report=bonus_report,
+                                           selected_quarter=raw_quarter)
+
             return redirect(url_for('admin_dashboard'))
 
-        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change)
+        return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner, needs_password_change=needs_password_change, bonus_report=None, selected_quarter='')
 
     @app.route('/admin/reports/rvu_image')
     @login_required

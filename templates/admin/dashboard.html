@@ -369,6 +369,75 @@
                 </div>
                 {% endif %}
             </div>
+
+            <!-- Quarterly Bonus Report -->
+            <div class="admin-panel" style="margin-top: 2rem;">
+                <h2>💰 Quarterly Bonus Report</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
+                    Select a historical quarter to see total RVUs earned and bonus earned per provider.<br>
+                    <small>Bonus = max(0, (Total RVUs &minus; Threshold RVUs) &times; ${{ '%.0f'|format(10) }}/RVU) &nbsp;&bull;&nbsp;
+                    Threshold = weeks in quarter &times; 49 RVUs/week (individual breakeven)</small>
+                </p>
+
+                <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
+                    <input type="hidden" name="action" value="generate_quarterly_bonus">
+                    <div class="admin-form-group" style="display: flex; gap: 1rem; align-items: flex-end;">
+                        <div style="flex-grow: 1;">
+                            <label for="quarter_select">Quarter</label>
+                            <select id="quarter_select" name="quarter"
+                                style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: var(--radius-md); font-size: 1rem; font-family: var(--body-font);">
+                                {% if bonus_report and bonus_report.available_quarters %}
+                                    {% for q in bonus_report.available_quarters %}
+                                    <option value="{{ q }}" {% if q == selected_quarter %}selected{% endif %}>{{ q }}</option>
+                                    {% endfor %}
+                                {% else %}
+                                    <option value="">-- No data available --</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <button type="submit" class="button" style="margin-top: 0; padding: 0.75rem 1.5rem;">Generate Report</button>
+                    </div>
+                </form>
+
+                {% if bonus_report and bonus_report.providers %}
+                <div style="border: 1px solid #e5e7eb; border-radius: var(--radius-md); overflow: hidden; background: #fafafa;">
+                    <div style="background: #f3f4f6; padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <strong>{{ bonus_report.quarter_label }} — Per-Provider Summary</strong>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                        <thead>
+                            <tr style="background: #f9fafb; text-align: left;">
+                                <th style="padding: 0.65rem 1rem; border-bottom: 1px solid #e5e7eb;">Provider</th>
+                                <th style="padding: 0.65rem 1rem; border-bottom: 1px solid #e5e7eb; text-align: right;">Total RVUs</th>
+                                <th style="padding: 0.65rem 1rem; border-bottom: 1px solid #e5e7eb; text-align: right;">Threshold RVUs</th>
+                                <th style="padding: 0.65rem 1rem; border-bottom: 1px solid #e5e7eb; text-align: right;">Bonus Earned</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in bonus_report.providers %}
+                            <tr style="border-bottom: 1px solid #f3f4f6;">
+                                <td style="padding: 0.65rem 1rem; font-weight: 500;">{{ p.name }}</td>
+                                <td style="padding: 0.65rem 1rem; text-align: right;">{{ '%.1f'|format(p.total_rvus) }}</td>
+                                <td style="padding: 0.65rem 1rem; text-align: right; color: var(--text-light);">{{ p.threshold_rvus }}</td>
+                                <td style="padding: 0.65rem 1rem; text-align: right; font-weight: 600;
+                                    color: {% if p.bonus_earned > 0 %}#16a34a{% else %}var(--text-light){% endif %};">
+                                    ${{ '%.2f'|format(p.bonus_earned) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% elif bonus_report and bonus_report.providers is defined and bonus_report.providers|length == 0 %}
+                <div style="border: 1px dashed #e5e7eb; border-radius: var(--radius-md); padding: 2rem 1rem; text-align: center; color: var(--text-light); background: #fafafa;">
+                    No RVU data found for {{ bonus_report.quarter_label }}.
+                </div>
+                {% else %}
+                <div style="border: 1px dashed #e5e7eb; border-radius: var(--radius-md); padding: 2rem 1rem; text-align: center; color: var(--text-light); background: #fafafa;">
+                    Select a quarter above and click "Generate Report" to view the data.
+                </div>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Conditional Banner Management -->
