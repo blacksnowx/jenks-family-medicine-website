@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /c/Users/jenks/PycharmProjects/jenks-family-medicine-website/.claude/worktrees/happy-mcclintock/data/*.py)",
+      "Bash(xargs grep:*)",
+      "Bash(python -m pytest data/tests/test_quarterly_bonus_analytics.py -v)",
+      "Bash(python -c \"import matplotlib; print\\(matplotlib.__version__\\)\")",
+      "Bash(python -m pytest data/tests/test_provider_analytics.py -v)",
+      "Bash(python -m pytest tests/test_rbac.py -v)",
+      "Read(//c/Users/jenks/PycharmProjects/jenks-family-medicine-website/**)",
+      "Bash(pip install:*)",
+      "Bash(python -m pip install matplotlib --quiet)",
+      "Bash(python -m pytest data/tests/test_quarterly_bonus_analytics.py tests/test_quarterly_bonus_route.py -v)"
+    ]
+  }
+}

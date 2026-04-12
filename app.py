@@ -12,6 +12,7 @@ import requests
 from models import db, User, BannerSettings, ReferenceData, SyncLog, AppointmentRequest, ProviderSchedule, TebraBooking
 from datetime import timezone
 from data import rvu_analytics
+from data import quarterly_bonus_analytics
 from data import revenue_per_rvu
 from data import new_patients_analytics
 from data.data_loader import get_database_url, normalize_provider
@@ -468,7 +469,7 @@ def create_app():
                     flash('You must change your password before performing any actions.', 'error')
                 else:
                     selected_view = request.form.get('rvu_view', 'Company Wide')
-                    
+
                     # Store selected view in session or pass directly to template
                     # For simplicity, we just render the template with the selection
                     appt_requests_early = []
@@ -487,6 +488,28 @@ def create_app():
                                            rvu_view=selected_view,
                                            appt_requests=appt_requests_early)
 
+            elif action == 'generate_quarterly_bonus':
+                if needs_password_change:
+                    flash('You must change your password before performing any actions.', 'error')
+                else:
+                    raw_quarter = request.form.get('quarter', '')
+                    # Parse "2026Q1" → year=2026, quarter=1
+                    try:
+                        year = int(raw_quarter[:4])
+                        quarter = int(raw_quarter[5])
+                        bonus_report = quarterly_bonus_analytics.get_quarterly_bonus_report(year, quarter)
+                    except (ValueError, IndexError):
+                        bonus_report = None
+                        flash('Invalid quarter selection.', 'error')
+
+                    return render_template('admin/dashboard.html',
+                                           page_title='Admin Dashboard',
+                                           banner=banner,
+                                           needs_password_change=needs_password_change,
+                                           active_tab='section-reports',
+                                           bonus_report=bonus_report,
+                                           selected_quarter=raw_quarter)
+
             return redirect(url_for('admin_dashboard'))
 
         appt_requests = []
@@ -499,7 +522,8 @@ def create_app():
             )
 
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
-                               needs_password_change=needs_password_change, appt_requests=appt_requests)
+                               needs_password_change=needs_password_change, appt_requests=appt_requests,
+                               bonus_report=None, selected_quarter='')
 
     @app.route('/admin/reports/rvu_image')
     @login_required
