@@ -10,10 +10,14 @@ MOCK_REPORT = {
     'quarter_label': 'Q1 2026',
     'available_quarters': ['2026Q1', '2025Q4'],
     'providers': [
-        {'name': 'Anne Jenks',   'total_rvus': 850.0, 'threshold_rvus': 637, 'bonus_earned': 2130.0},
-        {'name': 'Ehrin Irvin',  'total_rvus': 500.0, 'threshold_rvus': 637, 'bonus_earned':    0.0},
-        {'name': 'Heather Mayo', 'total_rvus': 100.0, 'threshold_rvus': 637, 'bonus_earned':    0.0},
-        {'name': 'Sarah Suggs',  'total_rvus': 700.0, 'threshold_rvus': 637, 'bonus_earned':  630.0},
+        # 850 RVUs: Tier3 = $3,910 + $35*(850-827) = $3,910 + $805 = $4,715
+        {'name': 'Anne Jenks',   'total_rvus': 850.0, 'threshold_rvus': 689, 'bonus_earned': 4715.0},
+        # 500 RVUs: below threshold → $0
+        {'name': 'Ehrin Irvin',  'total_rvus': 500.0, 'threshold_rvus': 689, 'bonus_earned':    0.0},
+        # 100 RVUs: below threshold → $0
+        {'name': 'Heather Mayo', 'total_rvus': 100.0, 'threshold_rvus': 689, 'bonus_earned':    0.0},
+        # 700 RVUs: Tier1 = $25*(700-689) = $25*11 = $275
+        {'name': 'Sarah Suggs',  'total_rvus': 700.0, 'threshold_rvus': 689, 'bonus_earned':  275.0},
     ],
 }
 
@@ -134,8 +138,8 @@ class QuarterlyBonusRouteTestCase(unittest.TestCase):
             data=dict(action='generate_quarterly_bonus', quarter='2026Q1'),
             follow_redirects=True,
         )
-        self.assertIn(b'2130', response.data)   # Anne Jenks bonus
-        self.assertIn(b'630', response.data)    # Sarah Suggs bonus
+        self.assertIn(b'4715', response.data)   # Anne Jenks bonus
+        self.assertIn(b'275', response.data)    # Sarah Suggs bonus
 
     @patch('app.quarterly_bonus_analytics.get_quarterly_bonus_report', return_value=MOCK_REPORT)
     def test_quarter_selector_shows_available_quarters(self, _mock):
