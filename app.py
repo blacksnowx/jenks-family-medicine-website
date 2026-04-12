@@ -521,9 +521,15 @@ def create_app():
                 .all()
             )
 
+        try:
+            available_quarters = quarterly_bonus_analytics.get_available_quarters()
+        except Exception:
+            available_quarters = []
+
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
                                needs_password_change=needs_password_change, appt_requests=appt_requests,
-                               bonus_report=None, selected_quarter='')
+                               bonus_report=None, selected_quarter='',
+                               available_quarters=available_quarters)
 
     @app.route('/admin/reports/rvu_image')
     @login_required
