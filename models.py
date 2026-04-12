@@ -83,3 +83,105 @@ class ReferenceData(db.Model):
     def __repr__(self) -> str:
         return f"<ReferenceData {self.filename}>"
 
+
+class AppointmentRequest(db.Model):
+    """Appointment requests submitted via the marketing landing pages."""
+
+    __tablename__ = "appointment_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    preferred_time = db.Column(db.String(50))
+    reason = db.Column(db.Text)
+    source = db.Column(db.String(50))  # 'primary-care' or 'functional-medicine'
+    status = db.Column(db.String(20), default="new")  # new / contacted / scheduled
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    notes = db.Column(db.Text)
+
+    def __repr__(self) -> str:
+        return f"<AppointmentRequest {self.name} ({self.source}) [{self.status}]>"
+
+
+class SyncLog(db.Model):
+    """Audit log for automated data sync runs (Tebra and Google Sheets)."""
+
+    __tablename__ = "sync_log"
+
+    id = db.Column(db.Integer, primary_key=True)
+    sync_type = db.Column(db.String(50), nullable=False)   # 'tebra' or 'sheets'
+    status = db.Column(db.String(20), nullable=False)      # 'running', 'success', 'error'
+    records_fetched = db.Column(db.Integer, default=0)
+    records_new = db.Column(db.Integer, default=0)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    completed_at = db.Column(db.DateTime, nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    last_sync_date = db.Column(db.DateTime, nullable=True)  # Upper bound of the synced date range
+
+    def __repr__(self) -> str:
+        return f"<SyncLog {self.sync_type} {self.status} @ {self.started_at}>"
+
+
+class ProviderSchedule(db.Model):
+    """Defines schedulable hours for a provider (used by the online booking widget)."""
+
+    __tablename__ = "provider_schedule"
+
+    id               = db.Column(db.Integer, primary_key=True)
+    provider_name    = db.Column(db.String(100))
+    provider_tebra_id = db.Column(db.String(50))   # Tebra ResourceId (optional)
+    day_of_week      = db.Column(db.Integer)         # 0=Mon, 6=Sun
+    start_hour       = db.Column(db.Integer, default=8)
+    start_minute     = db.Column(db.Integer, default=0)
+    end_hour         = db.Column(db.Integer, default=17)
+    end_minute       = db.Column(db.Integer, default=0)
+    slot_duration    = db.Column(db.Integer, default=30)
+    break_start_hour = db.Column(db.Integer)         # e.g. 12 = noon (NULL = no break)
+    break_end_hour   = db.Column(db.Integer)         # e.g. 13 = 1 PM
+    is_active        = db.Column(db.Boolean, default=True)
+
+    def __repr__(self) -> str:
+        return f"<ProviderSchedule {self.provider_name} dow={self.day_of_week}>"
+
+    def to_dict(self) -> dict:
+        days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        return {
+            "id": self.id,
+            "provider_name": self.provider_name,
+            "provider_tebra_id": self.provider_tebra_id or "",
+            "day_of_week": self.day_of_week,
+            "day_name": days[self.day_of_week] if self.day_of_week is not None else "",
+            "start_hour": self.start_hour,
+            "start_minute": self.start_minute or 0,
+            "end_hour": self.end_hour,
+            "end_minute": self.end_minute or 0,
+            "slot_duration": self.slot_duration,
+            "break_start_hour": self.break_start_hour,
+            "break_end_hour": self.break_end_hour,
+            "is_active": self.is_active,
+        }
+
+
+class TebraBooking(db.Model):
+    """Tebra-integrated booking requests from the slot-picker scheduling widget."""
+
+    __tablename__ = "tebra_bookings"
+
+    id              = db.Column(db.Integer, primary_key=True)
+    provider_name   = db.Column(db.String(100), nullable=False)
+    start_time      = db.Column(db.DateTime, nullable=False)
+    end_time        = db.Column(db.DateTime, nullable=False)
+    reason_id       = db.Column(db.String(50))
+    patient_name    = db.Column(db.String(200), nullable=False)
+    patient_phone   = db.Column(db.String(30), nullable=False)
+    patient_email   = db.Column(db.String(200), nullable=False)
+    notes           = db.Column(db.Text, default="")
+    tebra_appt_id   = db.Column(db.String(50))   # ID returned by CreateAppointment (may be None)
+    status          = db.Column(db.String(20), default="pending")  # pending / booked / error
+    created_at      = db.Column(
+        db.DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+    def __repr__(self) -> str:
+        return f"<TebraBooking {self.patient_name} @ {self.start_time}>"

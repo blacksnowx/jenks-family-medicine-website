@@ -8,10 +8,12 @@ Two versions:
                   Both providers get 4 weeks off per year
 
 Uses:
-  - VA exam revenue from 201 Bills and Payments.csv (fee schedule)
-  - PC revenue from Charges Export CSV.csv
+  - VA exam revenue from 201 Bills and Payments.csv (fee schedule via data_loader)
+  - PC revenue from Charges Export.csv (via data_loader)
   - PC revenue driver slope from pc_revenue_drivers regression
   - Historical weekly exam distributions for variance modeling
+
+Run directly: python -m data.suggs_mayo_revenue_model
 """
 
 import pandas as pd
@@ -20,96 +22,45 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from scipy import stats as scipy_stats
 from datetime import timedelta
+import os
+import sys
 
 np.random.seed(42)
 
+# Allow running as a script or as a module
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import data_loader
+
 # ============================================
-# 1. LOAD AND PREPARE DATA
+# 1. LOAD AND PREPARE DATA (using shared data_loader)
 # ============================================
 print("Loading data...")
 
-def clean_curr(x):
-    if pd.isna(x): return 0
-    if isinstance(x, (int, float)): return float(x)
-    try: return float(str(x).replace('$', '').replace(',', '').strip())
-    except: return 0
-
 # --- VA data ---
-va_df = pd.read_csv('201 Bills and Payments.csv')
-va_df = va_df.rename(columns={va_df.columns[0]: 'Patient_ID', va_df.columns[1]: 'Provider'})
-va_df.columns = va_df.columns.str.strip()
-va_df['Provider'] = va_df['Provider'].str.strip()
-va_df['DOS'] = pd.to_datetime(va_df['Date of Service'], errors='coerce')
-va_df = va_df.dropna(subset=['DOS'])
+va_df = data_loader.load_va_data()
+va_df['DOS'] = va_df['Date of Service']
 
-# Fee calculation (from weekly_revenue_report.py)
-fees = {
-    'GenMed': {'0': 0, '1-5': 180, '6-10': 360, '11-15': 520, '16+': 700},
-    'Focused': {'0': 0, '1-5': 200, '6-10': 280, '11-15': 370, '16+': 480},
-    'TBI': 250, 'R-TBI': 250,
-    'IMO': {'0': 0, '1-3': 150, '4-6': 260, '7-9': 330, '10-12': 350,
-            '13-15': 465, '16-18': 525, '19+': 600},
-    'No_Show': {'0': 0, '1': 60}
-}
-
-def lookup_range(val_str, schedule):
-    """Look up a value in a ranged fee schedule"""
-    if not val_str or val_str.lower() == 'nan':
-        return 0
-    if isinstance(schedule, (int, float)):
-        try: return schedule * max(1, int(float(val_str)))
-        except: return 0
-    for k, v in schedule.items():
-        if k == '0' and val_str == '0':
-            return v
-        elif '-' in k:
-            lo, hi = map(int, k.split('-'))
-            try:
-                if lo <= int(float(val_str)) <= hi: return v
-            except: pass
-        elif k.endswith('+'):
-            try:
-                if int(float(val_str)) >= int(k[:-1]): return v
-            except: pass
-    return 0
-
-def fee_calc(row):
-    total = 0
-    total += lookup_range(str(row.get('Gen Med DBQs', '')).strip(), fees['GenMed'])
-    total += lookup_range(str(row.get('Focused DBQs', '')).strip(), fees['Focused'])
-    total += lookup_range(str(row.get('TBI', '')).strip(), fees['TBI'])
-    total += lookup_range(str(row.get('Routine IMOs', '')).strip(), fees['IMO'])
-    total += lookup_range(str(row.get('No Show', '')).strip(), fees['No_Show'])
-    return total
-
-va_df['VA_Revenue'] = va_df.apply(fee_calc, axis=1)
+# Assign Patient_ID from first non-standard column if needed
+if 'Patient_ID' not in va_df.columns and len(va_df.columns) > 0:
+    patient_col = [c for c in va_df.columns if c not in ('Provider', 'Date of Service', 'Week', 'VA_Revenue', 'DOS')][0]
+    va_df = va_df.rename(columns={patient_col: 'Patient_ID'})
 
 # Provider flags
 va_df['Is_Suggs'] = va_df['Provider'].str.contains('sarah suggs', case=False, na=False)
 va_df['Is_Mayo'] = va_df['Provider'].str.contains('heather mayo', case=False, na=False)
 
 # --- PC data ---
-charges = pd.read_csv('Charges Export CSV.csv')
-charges['Date Of Service'] = pd.to_datetime(charges['Date Of Service'], errors='coerce')
+charges = data_loader.load_pc_data()
 charges = charges.dropna(subset=['Date Of Service', 'Patient ID'])
 
-for col in ['Service Charge Amount', 'Pri Ins Insurance Payment', 'Sec Ins Insurance Payment',
-            'Other Ins Insurance Payment', 'Pat Payment Amount']:
-    if col in charges.columns:
-        charges[col] = charges[col].apply(clean_curr)
-
-charges['PC_Revenue'] = (
-    charges['Pri Ins Insurance Payment'] +
-    charges['Sec Ins Insurance Payment'] +
-    charges['Other Ins Insurance Payment'] +
-    charges['Pat Payment Amount']
-)
+# PC_Revenue already computed by data_loader
 
 # Weekly revenue report (for historical monthly totals)
-weekly_rev = pd.read_csv('weekly_revenue_report.csv')
+weekly_rev = pd.read_csv(os.path.join(data_loader.BASE_DIR, 'weekly_revenue_report.csv'))
 weekly_rev['Week'] = pd.to_datetime(weekly_rev['Week'])
 for col in ['VA_Revenue', 'PC_Revenue', 'PC_Charges']:
-    weekly_rev[col] = weekly_rev[col].apply(clean_curr)
+    if col in weekly_rev.columns:
+        weekly_rev[col] = weekly_rev[col].apply(data_loader.clean_currency)
 
 # ============================================
 # 2. COMPUTE KEY PARAMETERS
@@ -642,8 +593,10 @@ ax.text(0.05, 0.95, summary_text, transform=ax.transAxes, fontsize=10,
                   linewidth=2, alpha=0.95))
 
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig('suggs_mayo_revenue_model.png', dpi=150, bbox_inches='tight')
-print(f"\nChart saved to: suggs_mayo_revenue_model.png")
+output_path = os.path.join(data_loader.BASE_DIR, 'images', 'suggs_mayo_revenue_model.png')
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
+plt.savefig(output_path, dpi=150, bbox_inches='tight')
+print(f"\nChart saved to: {output_path}")
 plt.close()
 
 # ============================================

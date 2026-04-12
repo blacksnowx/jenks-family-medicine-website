@@ -1,14 +1,11 @@
 import pandas as pd
 import numpy as np
 from scipy import stats as scipy_stats
-import os
 
 try:
     from . import data_loader
 except ImportError:
     import data_loader
-
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
 def calculate_patient_metrics(df_pc):
     """

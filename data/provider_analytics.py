@@ -1,16 +1,11 @@
 import pandas as pd
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import os
 
 try:
     from . import data_loader
 except ImportError:
     import data_loader
-
-IMAGES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'images')
 
 ESTABLISHED_EM = {'99211', '99212', '99213', '99214', '99215'}
 NEW_PATIENT_EM = {'99202', '99203', '99204', '99205'}
@@ -62,7 +57,11 @@ def analyze_provider(df_pc, provider_name):
                 if codes & NEW_PATIENT_EM:
                     return True
                 if codes & PHYSICAL_CODES:
-                    if row['Date Of Service'] == row['First_Clinic_Visit']:
+                    dos = row['Date Of Service']
+                    fcv = row['First_Clinic_Visit']
+                    if isinstance(dos, pd.Series): dos = dos.iloc[0] if not dos.empty else None
+                    if isinstance(fcv, pd.Series): fcv = fcv.iloc[0] if not fcv.empty else None
+                    if dos == fcv:
                         return True
                 return False
             

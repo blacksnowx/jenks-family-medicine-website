@@ -2,34 +2,106 @@ import pandas as pd
 import os
 import io
 
-# Base directory relative to scripts
+# ---------------------------------------------------------------------------
+#  Paths
+# ---------------------------------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 VA_CSV = os.path.join(BASE_DIR, '201 Bills and Payments.csv')
 CHARGES_CSV = os.path.join(BASE_DIR, 'Charges Export.csv')
 BANK_CSV = os.path.join(BASE_DIR, 'bank.csv')
 
+# ---------------------------------------------------------------------------
+#  Provider Registry — single source of truth for name normalization
+# ---------------------------------------------------------------------------
+VALID_PROVIDERS = ['ANNE JENKS', 'EHRIN IRVIN', 'HEATHER MAYO', 'SARAH SUGGS']
+
+# Maps raw CSV values → canonical uppercase names
+PROVIDER_ALIASES = {
+    'Jenks, Anne ':          'ANNE JENKS',
+    'REDD, DAVID ':          'ANNE JENKS',
+    'Anne Jenks, APRN':      'ANNE JENKS',
+    'DAVID REDD, MD':        'ANNE JENKS',
+    'DAVID C REDD, MD':      'ANNE JENKS',  # Tebra RenderingProviderName format
+    'Anne Renee Jenks, APRN': 'ANNE JENKS',  # Tebra RenderingProviderName format
+    'IRVIN, EHRIN ':         'EHRIN IRVIN',
+    'Irvin, Ehrin':          'EHRIN IRVIN',
+    'EHRIN IRVIN, FNP':      'EHRIN IRVIN',
+    'EHRIN M. IRVIN, FNP':   'EHRIN IRVIN',  # Tebra RenderingProviderName format
+    'Ehrin Irvin, FNP-C':    'EHRIN IRVIN',
+    'Ehrin Irvin, APRN':     'EHRIN IRVIN',
+    'Ehrin Irvin, NP':       'EHRIN IRVIN',
+    'Ehrin Irvin, ARNP':     'EHRIN IRVIN',
+    'Ehrin Irvin':           'EHRIN IRVIN',
+    'SUGGS, SARAH ':         'SARAH SUGGS',
+    'SARAH SUGGS, NP':       'SARAH SUGGS',
+    'SARAH F SUGGS, NP':     'SARAH SUGGS',  # Tebra RenderingProviderName format
+    'Sarah Suggs':           'SARAH SUGGS',
+    'Sarah Suggs ':          'SARAH SUGGS',
+    'sArah Suggs':           'SARAH SUGGS',
+    'SArah Suggs':           'SARAH SUGGS',
+    'Heather Mayo':          'HEATHER MAYO',
+    '0':                     'ANNE JENKS',  # legacy VA data quirk
+}
+
+# VA fee schedule
+VA_FEES = {
+    'GenMed':  {'0': 0, '1-5': 180, '6-10': 360, '11-15': 520, '16+': 700},
+    'Focused': {'0': 0, '1-5': 200, '6-10': 280, '11-15': 370, '16+': 480},
+    'TBI':     250,
+    'IMO':     {'0': 0, '1-3': 150, '4-6': 260, '7-9': 330, '10-12': 350,
+                '13-15': 465, '16-18': 525, '19+': 600},
+}
+
+# ---------------------------------------------------------------------------
+#  Database helpers
+# ---------------------------------------------------------------------------
+
+def get_database_url():
+    """Return the SQLAlchemy-compatible database URL."""
+    if "DATABASE_URL" not in os.environ:
+        project_root = os.path.dirname(BASE_DIR)
+        db_path = os.path.join(project_root, 'instance', 'site.db')
+        return f"sqlite:///{db_path}"
+    url = os.environ["DATABASE_URL"]
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return url
+
+
 def get_csv_from_db(filename):
-    """Attempt to load the CSV from the ReferenceData DB table."""
+    """Attempt to load a CSV from the ReferenceData DB table."""
     try:
         from sqlalchemy import create_engine, text
-        if "DATABASE_URL" not in os.environ:
-            project_root = os.path.dirname(BASE_DIR)
-            db_path = os.path.join(project_root, 'instance', 'site.db')
-            database_url = f"sqlite:///{db_path}"
-        else:
-            database_url = os.environ["DATABASE_URL"]
-            
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace("postgres://", "postgresql://", 1)
-            
-        engine = create_engine(database_url)
+        engine = create_engine(get_database_url())
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT data FROM reference_data WHERE filename = :f"), {"f": filename}).fetchone()
+            result = conn.execute(
+                text("SELECT data FROM reference_data WHERE filename = :f"),
+                {"f": filename},
+            ).fetchone()
             if result and result[0]:
                 return io.BytesIO(result[0])
-    except Exception as e:
+    except Exception:
         pass
     return None
+
+
+def normalize_provider(name):
+    """Normalize a provider name to its canonical uppercase form."""
+    if isinstance(name, pd.Series):
+        name = name.iloc[0] if not name.empty else None
+    if pd.isna(name):
+        return name
+    raw = str(name).strip()
+    if raw in PROVIDER_ALIASES:
+        return PROVIDER_ALIASES[raw]
+    upper = raw.upper().strip()
+    if upper in VALID_PROVIDERS:
+        return upper
+    # Check partial matches for common variations
+    for alias, canonical in PROVIDER_ALIASES.items():
+        if alias.upper().strip() == upper:
+            return canonical
+    return upper
 
 def get_week_ending_friday(date_series):
     """Calculate the Friday that ends the week for each date (matching historical code)."""
@@ -49,48 +121,44 @@ def clean_currency(x):
     except:
         return 0.0
 
+def _match_fee(value_str, schedule):
+    """Look up a value in a ranged fee schedule dict. Returns the matched fee."""
+    if isinstance(schedule, (int, float)):
+        # Flat fee (e.g. TBI) — return it if value indicates presence
+        return schedule
+    for key, val in schedule.items():
+        if value_str == key:
+            return val
+    return 0
+
+
 def calculate_va_fee(row):
-    """Calculate total fee for a VA DBQ encounter based on historical logic."""
-    fees = {
-        'GenMed': {'0': 0, '1-5': 180, '6-10': 360, '11-15': 520, '16+': 700},
-        'Focused': {'0': 0, '1-5': 200, '6-10': 280, '11-15': 370, '16+': 480},
-        'TBI': 250,
-        'IMO': {'0': 0, '1-3': 150, '4-6': 260, '7-9': 330, '10-12': 350, '13-15': 465, '16-18': 525, '19+': 600},
-    }
+    """Calculate total fee for a VA DBQ encounter based on the VA fee schedule."""
     total = 0.0
-    
+
     focused = str(row.get('Focused DBQs', '0')).strip()
     if focused.lower() in ['lab', 'visual', 'visual screen', 'bp check', '']:
         focused = '0'
-    for key, val in fees['Focused'].items():
-        if focused == key:
-            total += val
-            break
-            
+    total += _match_fee(focused, VA_FEES['Focused'])
+
     imo = str(row.get('Routine IMOs', '0')).strip()
     if imo in ['', '0', 'nan', 'NaN']:
         imo = '0'
-    for key, val in fees['IMO'].items():
-        if imo == key:
-            total += val
-            break
-            
+    total += _match_fee(imo, VA_FEES['IMO'])
+
     tbi = str(row.get('TBI', '0')).strip().lower()
     if tbi in ['1', 'r-tbi', 'tbi']:
-        total += fees['TBI']
-        
+        total += VA_FEES['TBI']
+
     genmed = str(row.get('Gen Med DBQs', '0')).strip()
     if genmed.lower() in ['bp check', '']:
         genmed = '0'
-    for key, val in fees['GenMed'].items():
-        if genmed == key:
-            total += val
-            break
-            
+    total += _match_fee(genmed, VA_FEES['GenMed'])
+
     no_show = str(row.get('No Show', '0')).strip()
     if no_show == '1':
         total += 60.0
-        
+
     return total
 
 def load_va_data(csv_path=VA_CSV):
@@ -103,11 +171,31 @@ def load_va_data(csv_path=VA_CSV):
             df = pd.read_csv(csv_path)
     except Exception:
         return pd.DataFrame()
-    if 'Sarah Suggs ' in df.columns:
-        df = df.rename(columns={'Sarah Suggs ': 'Provider'})
-    elif 'Sarah Suggs' in df.columns:
-        df = df.rename(columns={'Sarah Suggs': 'Provider'})
-        
+    # Remove duplicate column names — same fix as load_pc_data
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+
+    # Normalize provider column: the original CSV uses 'Sarah Suggs ' as header,
+    # while sheets_sync uses 'Provider'.  Handle both, plus the case where a
+    # bad merge left us with BOTH columns (one has NaN for some rows).
+    provider_col = None
+    for candidate in ['Sarah Suggs ', 'Sarah Suggs']:
+        if candidate in df.columns:
+            provider_col = candidate
+            break
+
+    if provider_col and 'Provider' in df.columns:
+        # Both exist — fill NaNs in one from the other, then drop the extra
+        df['Provider'] = df['Provider'].fillna(df[provider_col])
+        df = df.drop(columns=[provider_col])
+    elif provider_col:
+        df = df.rename(columns={provider_col: 'Provider'})
+    # else: 'Provider' already exists or neither exists — leave as-is
+
+    # Final dedup safety net
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+
     # Date processing
     df['Date of Service'] = pd.to_datetime(df['Date of Service'], errors='coerce')
     df = df.dropna(subset=['Date of Service']).copy()
@@ -129,8 +217,29 @@ def load_pc_data(csv_path=CHARGES_CSV):
             df = pd.read_csv(csv_path)
     except Exception:
         return pd.DataFrame()
+    # Remove duplicate column names — the merged CSV may have duplicates if the
+    # original manually-uploaded CSV had repeated column headers.  Keeping only
+    # the first occurrence is safe: load_pc_data only uses the canonical column
+    # names, so a duplicate would just carry redundant (or misaligned) data.
+    if df.columns.duplicated().any():
+        df = df.loc[:, ~df.columns.duplicated()]
+
+    # Deduplicate by Encounter Procedure ID (primary) or all columns (fallback).
+    # Defensive guard against double-synced data in the DB.
+    epid_col = 'Encounter Procedure ID'
+    if epid_col in df.columns and df[epid_col].astype(str).str.strip().ne('').any():
+        before = len(df)
+        df = df.drop_duplicates(subset=[epid_col], keep='first')
+        if len(df) < before:
+            import logging
+            logging.getLogger(__name__).warning(
+                "load_pc_data: dropped %d duplicate rows by Encounter Procedure ID", before - len(df)
+            )
+    else:
+        df = df.drop_duplicates()
+
     df['Date Of Service'] = pd.to_datetime(df['Date Of Service'], errors='coerce')
-    
+
     # Clean currency columns
     currency_cols = [
         'Service Charge Amount', 'Pri Ins Insurance Contract Adjustment', 
@@ -154,6 +263,9 @@ def load_pc_data(csv_path=CHARGES_CSV):
         chg = row['Service Charge Amount']
         adj = row['Total Adjustments']
         pay = row['Total Payments']
+        if isinstance(chg, pd.Series): chg = chg.iloc[0] if not chg.empty else 0.0
+        if isinstance(adj, pd.Series): adj = adj.iloc[0] if not adj.empty else 0.0
+        if isinstance(pay, pd.Series): pay = pay.iloc[0] if not pay.empty else 0.0
         if adj == 0 and pay == 0 and chg > 0:
             return chg * 0.3287
         return chg - adj
