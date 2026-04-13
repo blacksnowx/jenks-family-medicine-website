@@ -174,10 +174,6 @@ def create_app():
     def services():
         return render_template('services.html', page_title='Services & Insurance')
 
-    @app.route('/functional-medicine')
-    def functional_medicine():
-        return render_template('functional-medicine.html', page_title='Functional Medicine')
-
     @app.route('/veteran-resources')
     def veteran_resources():
         return render_template('veteran-resources.html', page_title='Veteran Resources')
@@ -211,13 +207,6 @@ def create_app():
         meta_pixel_id = os.environ.get('META_PIXEL_ID', '')
         return render_template('welcome/primary-care.html',
                                page_title='Your New Doctor is Ready to See You',
-                               meta_pixel_id=meta_pixel_id)
-
-    @app.route('/welcome/functional-medicine')
-    def welcome_functional_medicine():
-        meta_pixel_id = os.environ.get('META_PIXEL_ID', '')
-        return render_template('welcome/functional-medicine.html',
-                               page_title='Get to the Root Cause — Functional Medicine',
                                meta_pixel_id=meta_pixel_id)
 
     # -------------------------------------------------------------------
@@ -1024,7 +1013,7 @@ def create_app():
             {"loc": f"{base_url}{url_for('index')}", "changefreq": "weekly", "priority": "1.0"},
             {"loc": f"{base_url}{url_for('about')}", "changefreq": "monthly", "priority": "0.8"},
             {"loc": f"{base_url}{url_for('services')}", "changefreq": "monthly", "priority": "0.8"},
-            {"loc": f"{base_url}{url_for('functional_medicine')}", "changefreq": "monthly", "priority": "0.8"},
+
             {"loc": f"{base_url}{url_for('veteran_resources')}", "changefreq": "monthly", "priority": "0.8"},
             {"loc": f"{base_url}{url_for('patient_portal')}", "changefreq": "monthly", "priority": "0.6"},
             {"loc": f"{base_url}{url_for('contact')}", "changefreq": "monthly", "priority": "0.7"},

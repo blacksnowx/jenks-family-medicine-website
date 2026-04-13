@@ -194,6 +194,89 @@ def test_bonus_report_providers_is_list(app):
     assert isinstance(report["providers"], list)
 
 
+def test_bonus_report_rvus_earned_is_whole_number(app):
+    """rvus_earned must be a floored integer — no fractional RVUs in bonus calc."""
+    from data.rvu_analytics import get_quarterly_bonus_report
+
+    with (
+        patch("data.data_loader.load_pc_data", return_value=_make_pc_df()),
+        patch("data.data_loader.load_va_data", return_value=_make_va_df()),
+        patch("data.data_loader.get_csv_from_db", return_value=None),
+    ):
+        report = get_quarterly_bonus_report()
+
+    for prov in report["providers"]:
+        earned = prov["rvus_earned"]
+        assert earned == int(earned), (
+            f"{prov['provider']}: rvus_earned={earned} is not a whole number (floor not applied)"
+        )
+
+
+def test_bonus_report_draft_rvus_always_present(app):
+    """Every provider dict must contain 'draft_rvus' for the current quarter."""
+    from data.rvu_analytics import get_quarterly_bonus_report
+
+    with (
+        patch("data.data_loader.load_pc_data", return_value=_make_pc_df()),
+        patch("data.data_loader.load_va_data", return_value=_make_va_df()),
+        patch("data.data_loader.get_csv_from_db", return_value=None),
+    ):
+        report = get_quarterly_bonus_report()
+
+    for prov in report["providers"]:
+        assert "draft_rvus" in prov, (
+            f"{prov['provider']}: missing 'draft_rvus' key in current-quarter bonus report"
+        )
+
+
+def test_bonus_report_estimated_total_rvus_always_present(app):
+    """Every provider dict must contain 'estimated_total_rvus' for the current quarter."""
+    from data.rvu_analytics import get_quarterly_bonus_report
+
+    with (
+        patch("data.data_loader.load_pc_data", return_value=_make_pc_df()),
+        patch("data.data_loader.load_va_data", return_value=_make_va_df()),
+        patch("data.data_loader.get_csv_from_db", return_value=None),
+    ):
+        report = get_quarterly_bonus_report()
+
+    for prov in report["providers"]:
+        assert "estimated_total_rvus" in prov, (
+            f"{prov['provider']}: missing 'estimated_total_rvus' key in current-quarter bonus report"
+        )
+
+
+def test_bonus_report_estimated_total_rvus_includes_draft(app):
+    """estimated_total_rvus >= rvus_earned (draft can only add, never subtract)."""
+    from data.rvu_analytics import get_quarterly_bonus_report
+
+    # Build a draft charges CSV with charges in the current quarter
+    import io
+    from datetime import date
+    today = date.today()
+    draft_df = pd.DataFrame({
+        "Date Of Service": pd.to_datetime([today.strftime("%Y-%m-%d")]),
+        "Rendering Provider": ["Jenks, Anne "],
+        "Procedure Code": ["99213"],
+        "Procedure Codes with Modifiers": ["99213"],
+        "Service Charge Amount": [150.0],
+        "Encounter Procedure ID": ["epid_draft_new_999"],
+    })
+    draft_csv = io.BytesIO(draft_df.to_csv(index=False).encode())
+
+    with (
+        patch("data.data_loader.load_pc_data", return_value=_make_pc_df()),
+        patch("data.data_loader.load_va_data", return_value=_make_va_df()),
+        patch("data.data_loader.get_csv_from_db", return_value=draft_csv),
+    ):
+        report = get_quarterly_bonus_report()
+
+    for prov in report["providers"]:
+        assert prov["estimated_total_rvus"] >= prov["rvus_earned"], (
+            f"{prov['provider']}: estimated_total_rvus < rvus_earned — draft should only add"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Revenue per RVU report
 # ---------------------------------------------------------------------------

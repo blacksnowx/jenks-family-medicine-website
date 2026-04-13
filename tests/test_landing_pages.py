@@ -1,5 +1,5 @@
 """
-Tests for the /welcome/primary-care and /welcome/functional-medicine landing pages.
+Tests for the /welcome/primary-care landing page.
 """
 
 import os
@@ -8,7 +8,6 @@ import pytest
 
 LANDING_ROUTES = [
     "/welcome/primary-care",
-    "/welcome/functional-medicine",
 ]
 
 
@@ -32,14 +31,6 @@ def test_primary_care_contains_key_content(client):
     # Hero should mention new patients / care / appointment concepts
     assert any(kw in body for kw in [b"primary care", b"new patient", b"doctor", b"appointment"]), (
         "primary-care page missing expected hero content"
-    )
-
-
-def test_functional_medicine_contains_key_content(client):
-    resp = client.get("/welcome/functional-medicine")
-    body = resp.data.lower()
-    assert any(kw in body for kw in [b"functional", b"root cause", b"medicine"]), (
-        "functional-medicine page missing expected content"
     )
 
 

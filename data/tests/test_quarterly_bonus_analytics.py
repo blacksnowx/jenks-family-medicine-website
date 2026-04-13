@@ -100,9 +100,51 @@ class TestQuarterlyBonusReport(unittest.TestCase):
 
         providers = {p['name']: p for p in report['providers']}
         ehrin = providers['Ehrin Irvin']
-        # Q1 2026: Ehrin has 1 row with RVU=2.5
+        # Q1 2026: Ehrin has 1 row with RVU=2.5; floor(2.5) = 2
         # Anne Jenks adjustment is spread over ALL 5 weeks in dataset → Ehrin gets 0 adjustment
-        self.assertAlmostEqual(ehrin['total_rvus'], 2.5, delta=0.1)
+        self.assertEqual(ehrin['total_rvus'], 2)
+
+    @patch('quarterly_bonus_analytics.rvu_analytics')
+    def test_total_rvus_floored_not_rounded(self, mock_rvu):
+        """Provider with fractional RVUs should have total_rvus floored (not rounded)."""
+        # 1 week of data, provider RVU = 0.9; floor(0.9) = 0, round(0.9,1) would be 0.9
+        df = pd.DataFrame({
+            'Date Of Service': pd.to_datetime(['2026-01-07']),
+            'Provider': ['EHRIN IRVIN'],
+            'RVU': [0.9],
+            'Category': ['Primary Care Visit'],
+            'Week': pd.to_datetime(['2026-01-10']),
+        })
+        mock_rvu.get_rvu_dataset.return_value = df
+        report = qba.get_quarterly_bonus_report(2026, 1)
+
+        providers = {p['name']: p for p in report['providers']}
+        ehrin = providers['Ehrin Irvin']
+        # floor(0.9) == 0, NOT round(0.9) == 0.9
+        self.assertEqual(ehrin['total_rvus'], 0)
+
+    @patch('quarterly_bonus_analytics.rvu_analytics')
+    def test_floor_changes_bonus_at_threshold_boundary(self, mock_rvu):
+        """Bonus must be zero when floored total equals threshold exactly."""
+        # 13 weeks → threshold = 13 * 49 = 637
+        # Provider has 637.9 raw RVUs → floor = 637 → bonus = 0
+        # Without floor, round would give 638.0 → bonus = (638 - 637) * 10 = 10
+        weeks = pd.date_range('2026-01-02', periods=13, freq='7D')
+        rvus_per_week = 637.9 / 13  # distributes to 637.9 total
+        df = pd.DataFrame({
+            'Date Of Service': weeks,
+            'Provider': ['EHRIN IRVIN'] * 13,
+            'RVU': [rvus_per_week] * 13,
+            'Category': ['Primary Care Visit'] * 13,
+            'Week': pd.date_range('2026-01-03', periods=13, freq='7D'),
+        })
+        mock_rvu.get_rvu_dataset.return_value = df
+        report = qba.get_quarterly_bonus_report(2026, 1)
+
+        providers = {p['name']: p for p in report['providers']}
+        ehrin = providers['Ehrin Irvin']
+        self.assertEqual(ehrin['total_rvus'], 637)
+        self.assertEqual(ehrin['bonus_earned'], 0.0)
 
     @patch('quarterly_bonus_analytics.rvu_analytics')
     def test_anne_jenks_adjustment_added_in_q4_2025(self, mock_rvu):
