@@ -177,11 +177,11 @@ class TestQuarterlyBonusReport(unittest.TestCase):
 
     @patch('quarterly_bonus_analytics.rvu_analytics')
     def test_bonus_positive_above_threshold(self, mock_rvu):
-        # 1 week with 200 RVUs total → threshold = 1 * 49 = 49
+        # 10 rows × 80 RVUs = 800 total RVUs → Tier 2 bonus
         df = pd.DataFrame({
             'Date Of Service': pd.to_datetime(['2026-01-07'] * 10),
             'Provider': ['EHRIN IRVIN'] * 10,
-            'RVU': [20.0] * 10,
+            'RVU': [80.0] * 10,
             'Category': ['VA Exam'] * 10,
             'Week': pd.to_datetime(['2026-01-10'] * 10),
         })
@@ -191,12 +191,12 @@ class TestQuarterlyBonusReport(unittest.TestCase):
         providers = {p['name']: p for p in report['providers']}
         ehrin = providers['Ehrin Irvin']
         self.assertGreater(ehrin['bonus_earned'], 0.0)
-        expected_bonus = (200.0 - 49) * qba.BONUS_RATE_PER_RVU
-        self.assertAlmostEqual(ehrin['bonus_earned'], expected_bonus, delta=1.0)
+        # 800 RVUs: Tier 1 (690–735) = 46×$25=$1,150 + Tier 2 (736–800) = 65×$30=$1,950 = $3,100
+        self.assertAlmostEqual(ehrin['bonus_earned'], 3100.0, delta=1.0)
 
     @patch('quarterly_bonus_analytics.rvu_analytics')
-    def test_threshold_equals_weeks_times_breakeven(self, mock_rvu):
-        # Q1 2026 data spanning 3 distinct weeks
+    def test_threshold_rvus_is_fixed_base(self, mock_rvu):
+        # threshold_rvus should reflect the fixed base bonus threshold (689)
         df = pd.DataFrame({
             'Date Of Service': pd.to_datetime(['2026-01-07', '2026-01-14', '2026-01-21']),
             'Provider': ['EHRIN IRVIN', 'EHRIN IRVIN', 'EHRIN IRVIN'],
@@ -209,8 +209,7 @@ class TestQuarterlyBonusReport(unittest.TestCase):
 
         providers = {p['name']: p for p in report['providers']}
         ehrin = providers['Ehrin Irvin']
-        expected_threshold = 3 * qba.BREAKEVEN_RVUS_PER_WEEK
-        self.assertEqual(ehrin['threshold_rvus'], expected_threshold)
+        self.assertEqual(ehrin['threshold_rvus'], qba.BONUS_THRESHOLD)
 
     @patch('quarterly_bonus_analytics.rvu_analytics')
     def test_empty_dataset_returns_empty_report(self, mock_rvu):
@@ -246,6 +245,38 @@ class TestQuarterlyBonusReport(unittest.TestCase):
 
         self.assertIn('2025Q4', report['available_quarters'])
         self.assertIn('2026Q1', report['available_quarters'])
+
+
+class TestCalculateTieredBonus(unittest.TestCase):
+    """Unit tests for the tiered bonus formula, validated against spec examples."""
+
+    def _b(self, rvus):
+        return qba.calculate_tiered_bonus(rvus)
+
+    def test_at_threshold_no_bonus(self):
+        self.assertEqual(self._b(689), 0.0)
+
+    def test_below_threshold_no_bonus(self):
+        self.assertEqual(self._b(0), 0.0)
+        self.assertEqual(self._b(688), 0.0)
+
+    def test_tier1_first_rvu(self):
+        self.assertEqual(self._b(690), 25.0)
+
+    def test_tier1_max(self):
+        self.assertEqual(self._b(735), 1150.0)
+
+    def test_tier2_first_rvu(self):
+        self.assertEqual(self._b(736), 1180.0)
+
+    def test_tier2_max(self):
+        self.assertEqual(self._b(827), 3910.0)
+
+    def test_tier3_first_rvu(self):
+        self.assertEqual(self._b(828), 3945.0)
+
+    def test_tier3_extended(self):
+        self.assertEqual(self._b(900), 6465.0)
 
 
 if __name__ == '__main__':

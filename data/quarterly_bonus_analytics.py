@@ -11,9 +11,39 @@ except ImportError:
 # ---------------------------------------------------------------------------
 VALID_PROVIDERS = ['ANNE JENKS', 'EHRIN IRVIN', 'HEATHER MAYO', 'SARAH SUGGS']
 
-BREAKEVEN_RVUS_PER_WEEK = 49    # individual weekly breakeven (matches chart reference line)
-BONUS_RATE_PER_RVU = 10.0       # $ bonus earned per RVU above quarterly threshold
 ANNE_JENKS_ADJUSTMENT = 216     # manual RVU credit added to Anne Jenks
+
+# Tiered bonus thresholds and rates
+BONUS_THRESHOLD = 689   # no bonus at or below this RVU total
+TIER1_CAP = 735         # Tier 1 ends here (inclusive)
+TIER2_CAP = 827         # Tier 2 ends here (inclusive)
+TIER1_RATE = 25.0       # $ per RVU above 689 (up to 735)
+TIER2_RATE = 30.0       # $ per RVU above 735 (up to 827)
+TIER3_RATE = 35.0       # $ per RVU above 827
+
+
+# ---------------------------------------------------------------------------
+# Bonus calculation
+# ---------------------------------------------------------------------------
+
+def calculate_tiered_bonus(total_rvus):
+    """Return the bonus earned for a given quarterly RVU total.
+
+    Tiers:
+        ≤689 RVUs        → $0
+        690–735 RVUs     → $25 per RVU above 689
+        736–827 RVUs     → $30 per RVU above 735, plus Tier 1 max ($1,150)
+        828+   RVUs      → $35 per RVU above 827, plus Tier 1+2 max ($3,910)
+    """
+    if total_rvus <= BONUS_THRESHOLD:
+        return 0.0
+    bonus = min(total_rvus, TIER1_CAP) - BONUS_THRESHOLD
+    bonus *= TIER1_RATE
+    if total_rvus > TIER1_CAP:
+        bonus += (min(total_rvus, TIER2_CAP) - TIER1_CAP) * TIER2_RATE
+    if total_rvus > TIER2_CAP:
+        bonus += (total_rvus - TIER2_CAP) * TIER3_RATE
+    return round(bonus, 2)
 
 
 # ---------------------------------------------------------------------------
@@ -81,9 +111,7 @@ def get_quarterly_bonus_report(year, quarter):
             ],
         }
 
-    Bonus formula:
-        threshold_rvus = (distinct weeks in quarter) * BREAKEVEN_RVUS_PER_WEEK
-        bonus_earned   = max(0, (total_rvus - threshold_rvus) * BONUS_RATE_PER_RVU)
+    Bonus formula: see calculate_tiered_bonus()
     """
     quarter_label = f'Q{quarter} {year}'
     df = rvu_analytics.get_rvu_dataset()
@@ -102,10 +130,6 @@ def get_quarterly_bonus_report(year, quarter):
     start, end = _quarter_date_range(year, quarter)
     quarter_df = df[(df['Date Of Service'] >= start) & (df['Date Of Service'] <= end)].copy()
 
-    # Count weeks that actually appear in that quarter's data for threshold calculation
-    num_weeks = int(quarter_df['Week'].nunique()) if not quarter_df.empty else 0
-    threshold_rvus = num_weeks * BREAKEVEN_RVUS_PER_WEEK
-
     # Aggregate RVUs per provider
     if not quarter_df.empty:
         provider_rvus = quarter_df.groupby('Provider')['RVU'].sum()
@@ -116,12 +140,11 @@ def get_quarterly_bonus_report(year, quarter):
     for p in VALID_PROVIDERS:
         total_rvus_raw = float(provider_rvus.get(p, 0.0))
         total_rvus = math.floor(total_rvus_raw)
-        bonus = max(0.0, (total_rvus - threshold_rvus) * BONUS_RATE_PER_RVU)
         result_providers.append({
             'name': p.title(),
             'total_rvus': total_rvus,
-            'threshold_rvus': threshold_rvus,
-            'bonus_earned': round(bonus, 2),
+            'threshold_rvus': BONUS_THRESHOLD,
+            'bonus_earned': calculate_tiered_bonus(total_rvus),
         })
 
     return {
