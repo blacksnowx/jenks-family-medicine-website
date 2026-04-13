@@ -200,7 +200,7 @@ def create_app():
 
     @app.route('/new-patient')
     def new_patient():
-        return render_template('new-patient.html', page_title='Choose Your Provider')
+        return redirect('https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680', code=301)
 
     @app.route('/summer_flyer')
     def summer_flyer_promo():
