@@ -1,3 +1,4 @@
+import math
 import pandas as pd
 
 try:
@@ -113,11 +114,12 @@ def get_quarterly_bonus_report(year, quarter):
 
     result_providers = []
     for p in VALID_PROVIDERS:
-        total_rvus = float(provider_rvus.get(p, 0.0))
+        total_rvus_raw = float(provider_rvus.get(p, 0.0))
+        total_rvus = math.floor(total_rvus_raw)
         bonus = max(0.0, (total_rvus - threshold_rvus) * BONUS_RATE_PER_RVU)
         result_providers.append({
             'name': p.title(),
-            'total_rvus': round(total_rvus, 1),
+            'total_rvus': total_rvus,
             'threshold_rvus': threshold_rvus,
             'bonus_earned': round(bonus, 2),
         })

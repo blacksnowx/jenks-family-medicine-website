@@ -1,3 +1,4 @@
+import math
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
@@ -367,6 +368,29 @@ def calculate_bonus(rvus):
     return bonus
 
 
+_DRAFT_CONVERSION_RATE_DEFAULT = 0.85
+
+
+def _compute_draft_conversion_rate(df):
+    """Estimate what fraction of draft/pipeline RVUs will become confirmed.
+
+    Uses the ratio of confirmed to total (confirmed + pipeline) RVUs across
+    the full dataset.  Because old quarters are fully confirmed (pipeline≈0
+    after dedup), this ratio is anchored near 1.0 by history and dips only
+    slightly due to the current quarter's pending drafts — giving a realistic
+    empirical conversion estimate.  Falls back to 0.85 when no Source column
+    or insufficient data is available.
+    """
+    if df is None or df.empty or 'Source' not in df.columns:
+        return _DRAFT_CONVERSION_RATE_DEFAULT
+    confirmed = df[df['Source'] == 'confirmed']['RVU'].sum()
+    pipeline = df[df['Source'] == 'pipeline']['RVU'].sum()
+    total = confirmed + pipeline
+    if total == 0:
+        return _DRAFT_CONVERSION_RATE_DEFAULT
+    return max(0.5, min(1.0, confirmed / total))
+
+
 def get_quarterly_bonus_report(today=None, data_source='all', include_pipeline=False):
     """Return per-provider bonus data for the current calendar quarter.
 
@@ -394,8 +418,9 @@ def get_quarterly_bonus_report(today=None, data_source='all', include_pipeline=F
     days_in_quarter = (quarter_end - quarter_start).days
     quarter_label = f"Q{q + 1} {today.year}"
 
-    # Load RVU dataset and filter to current quarter
-    df = get_rvu_dataset(data_source=data_source, include_pipeline=include_pipeline)
+    # Always load pipeline so we can compute draft estimates for the current
+    # quarter regardless of whether the caller requested pipeline columns.
+    df = get_rvu_dataset(data_source=data_source, include_pipeline=True)
     if df.empty:
         return {
             'quarter_label': quarter_label,
@@ -410,24 +435,14 @@ def get_quarterly_bonus_report(today=None, data_source='all', include_pipeline=F
     )
     qdf = df[mask]
 
-    has_source_col = 'Source' in qdf.columns
-
-    # Split confirmed vs pipeline quarters
-    if has_source_col:
-        qdf_confirmed = qdf[qdf['Source'] == 'confirmed']
-        qdf_pipeline = qdf[qdf['Source'] == 'pipeline']
-    else:
-        qdf_confirmed = qdf
-        qdf_pipeline = pd.DataFrame()
+    # Source column is always present because we loaded with include_pipeline=True
+    qdf_confirmed = qdf[qdf['Source'] == 'confirmed'] if 'Source' in qdf.columns else qdf
+    qdf_pipeline  = qdf[qdf['Source'] == 'pipeline']  if 'Source' in qdf.columns else pd.DataFrame()
 
     # Include the Anne Jenks manual 216-RVU adjustment, prorated to this quarter
     # (applied to confirmed data only)
-    if has_source_col:
-        all_weeks = df[df['Source'] == 'confirmed']['Week'].unique()
-        quarter_weeks = qdf_confirmed['Week'].unique()
-    else:
-        all_weeks = df['Week'].unique()
-        quarter_weeks = qdf['Week'].unique()
+    all_weeks     = df[df['Source'] == 'confirmed']['Week'].unique() if 'Source' in df.columns else df['Week'].unique()
+    quarter_weeks = qdf_confirmed['Week'].unique()
     if len(all_weeks) > 0 and len(quarter_weeks) > 0:
         adjustment_this_quarter = 216.0 * len(quarter_weeks) / len(all_weeks)
     else:
@@ -436,41 +451,53 @@ def get_quarterly_bonus_report(today=None, data_source='all', include_pipeline=F
     # Sum confirmed RVUs per provider
     provider_rvus = qdf_confirmed.groupby('Provider')['RVU'].sum()
 
-    # Sum pipeline RVUs per provider (empty if not requested)
+    # Sum pipeline (draft) RVUs per provider — always computed
     provider_pipeline_rvus = (
         qdf_pipeline.groupby('Provider')['RVU'].sum()
         if not qdf_pipeline.empty else pd.Series(dtype=float)
     )
 
+    # Empirical draft-to-confirmed conversion rate from full dataset history
+    draft_conversion_rate = _compute_draft_conversion_rate(df)
+
     providers = []
     for prov in data_loader.VALID_PROVIDERS:
-        rvus_earned = float(provider_rvus.get(prov, 0.0))
+        rvus_raw = float(provider_rvus.get(prov, 0.0))
 
-        # Add Anne Jenks manual adjustment
+        # Add Anne Jenks manual adjustment before flooring
         if prov == 'ANNE JENKS':
-            rvus_earned += adjustment_this_quarter
+            rvus_raw += adjustment_this_quarter
+
+        # Floor to nearest whole number before bonus calculation
+        rvus_earned = math.floor(rvus_raw)
 
         bonus_earned = calculate_bonus(rvus_earned)
 
-        # Extrapolate to full quarter
+        # Extrapolate to full quarter (project from floored base, then floor again)
         if days_elapsed > 0:
             projected_rvus = rvus_earned * days_in_quarter / days_elapsed
         else:
             projected_rvus = 0.0
-        projected_bonus = calculate_bonus(projected_rvus)
+        projected_bonus = calculate_bonus(math.floor(projected_rvus))
+
+        # Draft (pipeline) RVUs for current quarter — always returned
+        draft_rvus_raw = float(provider_pipeline_rvus.get(prov, 0.0))
+        estimated_additional = math.floor(draft_rvus_raw * draft_conversion_rate)
+        estimated_total_rvus = rvus_earned + estimated_additional
 
         entry = {
             'provider': prov.title(),
-            'rvus_earned': round(rvus_earned, 1),
+            'rvus_earned': rvus_earned,
             'bonus_earned': round(bonus_earned, 2),
             'projected_rvus': round(projected_rvus, 1),
             'projected_bonus': round(projected_bonus, 2),
+            'draft_rvus': round(draft_rvus_raw, 1),
+            'estimated_total_rvus': estimated_total_rvus,
         }
 
         if include_pipeline:
-            pipeline_rvus = float(provider_pipeline_rvus.get(prov, 0.0))
-            entry['pipeline_rvus'] = round(pipeline_rvus, 1)
-            entry['total_with_pipeline'] = round(rvus_earned + pipeline_rvus, 1)
+            entry['pipeline_rvus'] = round(draft_rvus_raw, 1)
+            entry['total_with_pipeline'] = rvus_earned + round(draft_rvus_raw, 1)
 
         providers.append(entry)
 
