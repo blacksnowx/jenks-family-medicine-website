@@ -24,7 +24,7 @@
     <meta property="og:url" content="{{ page_url|default(request.base_url) }}">
     <meta property="og:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
     <meta property="og:description"
-        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and functional medicine.">
+        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and DOT physicals.">
     <meta property="og:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
 
     <!-- Twitter -->
@@ -32,7 +32,7 @@
     <meta property="twitter:url" content="{{ page_url|default(request.base_url) }}">
     <meta property="twitter:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
     <meta property="twitter:description"
-        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and functional medicine.">
+        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and DOT physicals.">
     <meta property="twitter:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
     {% block head %}{% endblock %}
 </head>
@@ -61,7 +61,6 @@
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services & Insurance</a></li>
-                    <li><a href="{{ url_for('functional_medicine') }}">Functional Medicine</a></li>
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
@@ -103,7 +102,6 @@
                     <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">About Us</a></li>
                     <li><a href="{{ url_for('services') }}">Services</a></li>
-                    <li><a href="{{ url_for('functional_medicine')}}">Functional Medicine</a></li>
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact</a></li>
