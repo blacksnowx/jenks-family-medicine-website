@@ -95,7 +95,7 @@ class AppointmentRequest(db.Model):
     email = db.Column(db.String(120), nullable=False)
     preferred_time = db.Column(db.String(50))
     reason = db.Column(db.Text)
-    source = db.Column(db.String(50))  # 'primary-care' or 'functional-medicine'
+    source = db.Column(db.String(50))  # e.g. 'primary-care'
     status = db.Column(db.String(20), default="new")  # new / contacted / scheduled
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     notes = db.Column(db.Text)

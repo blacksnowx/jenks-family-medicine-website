@@ -1,8 +1,8 @@
 """
 Tests for Meta Pixel integration on landing pages.
 
-The pixel fires on /welcome/primary-care and /welcome/functional-medicine
-when META_PIXEL_ID is set. Admin pages must never include pixel code.
+The pixel fires on /welcome/primary-care when META_PIXEL_ID is set.
+Admin pages must never include pixel code.
 """
 
 import pytest
@@ -10,7 +10,6 @@ import pytest
 
 LANDING_ROUTES = [
     "/welcome/primary-care",
-    "/welcome/functional-medicine",
 ]
 
 PIXEL_ID = "987654321098765"
@@ -23,13 +22,6 @@ PIXEL_ID = "987654321098765"
 def test_primary_care_includes_fbq_when_pixel_id_set(client, monkeypatch):
     monkeypatch.setenv("META_PIXEL_ID", PIXEL_ID)
     resp = client.get("/welcome/primary-care")
-    assert b"fbq" in resp.data
-    assert PIXEL_ID.encode() in resp.data
-
-
-def test_functional_medicine_includes_fbq_when_pixel_id_set(client, monkeypatch):
-    monkeypatch.setenv("META_PIXEL_ID", PIXEL_ID)
-    resp = client.get("/welcome/functional-medicine")
     assert b"fbq" in resp.data
     assert PIXEL_ID.encode() in resp.data
 
@@ -60,14 +52,6 @@ def test_primary_care_viewcontent_event_fires(client, monkeypatch):
     assert b"Primary Care Landing Page" in resp.data
 
 
-def test_functional_medicine_viewcontent_event_fires(client, monkeypatch):
-    """The ViewContent event must be tracked for the functional-medicine landing page."""
-    monkeypatch.setenv("META_PIXEL_ID", PIXEL_ID)
-    resp = client.get("/welcome/functional-medicine")
-    assert b"ViewContent" in resp.data
-    assert b"Functional Medicine Landing Page" in resp.data
-
-
 # ---------------------------------------------------------------------------
 # Pixel absent when META_PIXEL_ID is not set
 # ---------------------------------------------------------------------------
@@ -75,12 +59,6 @@ def test_functional_medicine_viewcontent_event_fires(client, monkeypatch):
 def test_primary_care_no_fbq_when_pixel_id_unset(client, monkeypatch):
     monkeypatch.delenv("META_PIXEL_ID", raising=False)
     resp = client.get("/welcome/primary-care")
-    assert b"fbq" not in resp.data
-
-
-def test_functional_medicine_no_fbq_when_pixel_id_unset(client, monkeypatch):
-    monkeypatch.delenv("META_PIXEL_ID", raising=False)
-    resp = client.get("/welcome/functional-medicine")
     assert b"fbq" not in resp.data
 
 
