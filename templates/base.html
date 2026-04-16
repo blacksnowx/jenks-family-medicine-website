@@ -38,6 +38,24 @@
 </head>
 
 <body>
+    {# Temporary scheduling transition banner — remove after 2026-04-20 #}
+    {% set today = None %}
+    <div class="site-banner" id="site-banner-temp" style="display:none;">
+        <div class="container site-banner__inner">
+            <p class="site-banner__text">Online scheduling is coming soon! In the meantime, please call <a href="tel:4233735457" style="color:#fff;text-decoration:underline;">(423) 373-5457</a> to schedule an appointment.</p>
+            <button class="site-banner__close" onclick="document.getElementById('site-banner-temp').style.display='none'"
+                aria-label="Dismiss banner">&times;</button>
+        </div>
+    </div>
+    <script>
+    (function(){
+        var cutoff = new Date('2026-04-21T00:00:00');
+        if (new Date() < cutoff) {
+            document.getElementById('site-banner-temp').style.display = '';
+        }
+    })();
+    </script>
+
     {# Homepage announcement banner (admin-controlled) #}
     {% if banner and banner.is_active and banner.message %}
     <div class="site-banner" id="site-banner">
@@ -64,7 +82,7 @@
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
                     <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
                     <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button button-nav" target="_blank" rel="noopener noreferrer">Schedule Appointment</a></li>
+                    <li><a href="{{ url_for('new_patient') }}" class="button button-nav">Schedule Appointment</a></li>
                 </ul>
             </nav>
             <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">

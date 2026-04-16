@@ -27,7 +27,7 @@
         </p>
 
         <div class="hero-actions">
-            <a href="https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680" class="button">
+            <a href="{{ url_for('new_patient') }}" class="button">
                 Schedule Appointment
             </a>
             <a href="tel:4233735457" class="button button-secondary">
@@ -235,7 +235,7 @@
                 <div class="sched-field">
                     <label for="lp-provider">Provider</label>
                     <select id="lp-provider" name="lp-provider">
-                        <option value="SARAH F SUGGS, NP">Sarah Suggs, NP</option>
+                        <option value="EHRIN IRVIN">Ehrin Irvin, NP</option>
                     </select>
                 </div>
             </div>
@@ -296,7 +296,7 @@
     'use strict';
 
     var PREFIX = 'lp';
-    var PROVIDER_DEFAULT = 'SARAH F SUGGS, NP';
+    var PROVIDER_DEFAULT = 'EHRIN IRVIN';
 
     var dateInput     = document.getElementById(PREFIX + '-date');
     var providerSel   = document.getElementById(PREFIX + '-provider');
@@ -324,14 +324,14 @@
             providers.forEach(function (p) {
                 var opt = document.createElement('option');
                 opt.value = p;
-                opt.textContent = p === 'SARAH F SUGGS, NP' ? 'Sarah Suggs, NP' : p;
+                opt.textContent = p;
                 if (p === PROVIDER_DEFAULT) opt.selected = true;
                 providerSel.appendChild(opt);
             });
             if (!providers.length) {
                 var opt = document.createElement('option');
                 opt.value = PROVIDER_DEFAULT;
-                opt.textContent = 'Sarah Suggs, NP';
+                opt.textContent = 'Ehrin Irvin, NP';
                 providerSel.appendChild(opt);
             }
         });

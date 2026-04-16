@@ -196,7 +196,7 @@ def create_app():
 
     @app.route('/new-patient')
     def new_patient():
-        return redirect('https://www.tebra.com/care/provider/ehrin-irvin-fnp-1558838680', code=301)
+        return render_template('new-patient.html', page_title='Schedule Appointment')
 
     @app.route('/summer_flyer')
     def summer_flyer_promo():
@@ -743,7 +743,6 @@ def create_app():
 
     # Provider display name mapping
     PROVIDER_DISPLAY = {
-        'SARAH SUGGS': 'Sarah Suggs, NP',
         'EHRIN IRVIN': 'Ehrin Irvin, NP',
         'ANNE JENKS': 'Anne Jenks, NP',
     }
