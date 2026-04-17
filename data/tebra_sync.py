@@ -706,19 +706,35 @@ def fetch_draft_charges() -> pd.DataFrame:
     return df
 
 
+DRAFT_PROMOTION_LOOKBACK_DAYS = 120
+
+
 def fetch_charges_incremental(last_sync_date: date | None = None) -> pd.DataFrame:
     """
     Convenience wrapper for incremental sync.
 
     Pulls from last_sync_date through yesterday. When last_sync_date is None
-    (initial sync), falls back to TEBRA_LOOKBACK_DAYS env var (default 365)
-    to capture a full year of historical data.
+    (initial sync), falls back to TEBRA_LOOKBACK_DAYS env var (default 1280)
+    to capture multiple years of historical data.
+
+    Also always looks back at least DRAFT_PROMOTION_LOOKBACK_DAYS so charges
+    that were in draft on prior runs and have since been approved (their
+    ServiceStartDate is older than last_sync_date but they only became
+    visible to GetCharges after approval) are pulled and merged.  The
+    Encounter Procedure ID dedup in _merge_charges absorbs the overlap.
     """
     today = date.today()
     end_date = today - timedelta(days=1)  # don't pull today's partial data
 
     if last_sync_date:
-        start_date = last_sync_date
+        overlap_start = today - timedelta(days=DRAFT_PROMOTION_LOOKBACK_DAYS)
+        start_date = min(last_sync_date, overlap_start)
+        if start_date != last_sync_date:
+            logger.info(
+                "Tebra: extending incremental window back to %s (%d-day overlap) "
+                "to capture newly-approved draft charges.",
+                start_date, DRAFT_PROMOTION_LOOKBACK_DAYS,
+            )
     else:
         lookback_days = int(os.environ.get("TEBRA_LOOKBACK_DAYS", "1280"))
         start_date = today - timedelta(days=lookback_days)

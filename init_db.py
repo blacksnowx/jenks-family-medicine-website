@@ -20,9 +20,14 @@ SEED_USERS = [
     {"email": "anne@jenksfamilymedicine.com", "password": "anne123", "role": "Owner"},
     {"email": "tyler@jenksfamilymedicine.com", "password": "tyler123", "role": "Owner"},
     {"email": "brittany@jenksfamilymedicine.com", "password": "brittany123", "role": "Admin"},
-    {"email": "sarah@jenksfamilymedicine.com", "password": "sarah123", "role": "Provider"},
     {"email": "heather@jenksfamilymedicine.com", "password": "heather123", "role": "Provider"},
     {"email": "ehrin@jenksfamilymedicine.com", "password": "ehrin123", "role": "Provider"},
+]
+
+# Users whose credentials should be revoked on seed. Any matching row is
+# deleted idempotently so redeploys cannot reinstate access.
+REVOKED_USER_EMAILS = [
+    "sarah@jenksfamilymedicine.com",
 ]
 
 
@@ -51,6 +56,12 @@ def seed() -> None:
     app = create_app()
     with app.app_context():
         db.create_all()
+
+        for email in REVOKED_USER_EMAILS:
+            existing = User.query.filter_by(email=email).first()
+            if existing:
+                db.session.delete(existing)
+                print(f"  - Revoked and deleted: {email}")
 
         for user_data in SEED_USERS:
             existing = User.query.filter_by(email=user_data["email"]).first()

@@ -251,8 +251,8 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
             ax.plot(pipe_x, weekly_combined.astype(float).tolist(), marker='o', color='#37a4db',
                     linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
 
-        ax.axhline(y=196, color='red', linestyle='--', linewidth=2, label='Company Breakeven (196)')
-        ax.axhline(y=328, color='orange', linestyle='--', linewidth=2, label='Industry Standard (328)')
+        ax.axhline(y=146, color='red', linestyle='--', linewidth=2, label='Company Breakeven (146)')
+        ax.axhline(y=278, color='orange', linestyle='--', linewidth=2, label='Industry Standard (278)')
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
 
     elif view_type == 'Provider Comparison':
@@ -279,8 +279,8 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
                 ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', linewidth=1.5, markersize=5,
                         linestyle='--', alpha=0.55, color=color, label=pipe_label)
 
-        ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
-        ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
+        ax.axhline(y=37, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (37)')
+        ax.axhline(y=70, color='orange', linestyle='--', linewidth=2, label='Industry Standard (70)')
         ax.set_title('Provider Weekly RVU Comparison', fontsize=14, fontweight='bold')
 
     elif view_type in [p.title() for p in valid_providers] or view_type.upper() in valid_providers:
@@ -306,8 +306,8 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
                 ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', color='#2ecc71',
                         linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
 
-        ax.axhline(y=49, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (49)')
-        ax.axhline(y=82, color='orange', linestyle='--', linewidth=2, label='Industry Standard (82)')
+        ax.axhline(y=37, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (37)')
+        ax.axhline(y=70, color='orange', linestyle='--', linewidth=2, label='Industry Standard (70)')
         ax.set_title(f'{display_name} - Weekly RVUs', fontsize=14, fontweight='bold')
 
     else:
