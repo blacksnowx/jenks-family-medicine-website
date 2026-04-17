@@ -1,10 +1,20 @@
 import math
+from datetime import date as _date
+
 import pandas as pd
 
 try:
     from . import rvu_analytics
 except ImportError:
     import rvu_analytics
+
+
+def _current_quarter_label(today=None):
+    """Return current quarter label like '2026Q2'."""
+    if today is None:
+        today = _date.today()
+    quarter = (today.month - 1) // 3 + 1
+    return f'{today.year}Q{quarter}'
 
 # ---------------------------------------------------------------------------
 # Bonus configuration
@@ -81,15 +91,22 @@ def _quarter_date_range(year, quarter):
 # ---------------------------------------------------------------------------
 
 def get_available_quarters(df=None):
-    """Return quarter labels (e.g. '2026Q1') present in the dataset, newest first."""
+    """Return quarter labels (e.g. '2026Q1') present in the dataset, newest first.
+    The current quarter is always included at the top, even with no data yet,
+    so the admin dropdown is never empty mid-quarter."""
     if df is None:
         df = rvu_analytics.get_rvu_dataset()
-    if df is None or df.empty:
-        return []
-    df = df.copy()
-    df['Quarter'] = df['Date Of Service'].dt.to_period('Q')
-    quarters = sorted(df['Quarter'].dropna().unique(), reverse=True)
-    return [str(q) for q in quarters]
+
+    quarters = []
+    if df is not None and not df.empty:
+        df = df.copy()
+        df['Quarter'] = df['Date Of Service'].dt.to_period('Q')
+        quarters = [str(q) for q in sorted(df['Quarter'].dropna().unique(), reverse=True)]
+
+    current = _current_quarter_label()
+    if current not in quarters:
+        quarters = [current] + quarters
+    return quarters
 
 
 def get_quarterly_bonus_report(year, quarter):

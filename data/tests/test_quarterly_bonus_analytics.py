@@ -42,16 +42,15 @@ class TestGetAvailableQuarters(unittest.TestCase):
         self.assertIn('2025Q4', quarters)
         self.assertIn('2026Q1', quarters)
 
-    def test_returns_empty_for_empty_dataframe(self):
+    def test_empty_dataframe_still_includes_current_quarter(self):
         quarters = qba.get_available_quarters(pd.DataFrame())
-        self.assertEqual(quarters, [])
+        self.assertEqual(quarters, [qba._current_quarter_label()])
 
     def test_quarters_sorted_descending(self):
         df = _make_multi_quarter_df()
         quarters = qba.get_available_quarters(df)
-        # Most recent quarter first
-        self.assertEqual(quarters.index('2026Q1'), 0)
-        self.assertEqual(quarters.index('2025Q4'), 1)
+        # Historical quarters appear newest-first (current quarter is prepended).
+        self.assertLess(quarters.index('2026Q1'), quarters.index('2025Q4'))
 
 
 class TestQuarterlyBonusReport(unittest.TestCase):
@@ -216,7 +215,8 @@ class TestQuarterlyBonusReport(unittest.TestCase):
         report = qba.get_quarterly_bonus_report(2026, 1)
 
         self.assertEqual(report['providers'], [])
-        self.assertEqual(report['available_quarters'], [])
+        # Current quarter is always present even without data
+        self.assertEqual(report['available_quarters'], [qba._current_quarter_label()])
         self.assertEqual(report['quarter_label'], 'Q1 2026')
 
     @patch('quarterly_bonus_analytics.rvu_analytics')
