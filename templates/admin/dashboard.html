@@ -410,7 +410,7 @@
                 <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
                     Select a historical quarter to see total RVUs earned and bonus earned per provider.<br>
                     <small>Bonus = max(0, (Total RVUs &minus; Threshold RVUs) &times; ${{ '%.0f'|format(10) }}/RVU) &nbsp;&bull;&nbsp;
-                    Threshold = weeks in quarter &times; 49 RVUs/week (individual breakeven)</small>
+                    Threshold = weeks in quarter &times; 37 RVUs/week (individual breakeven)</small>
                 </p>
 
                 <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
@@ -691,7 +691,7 @@
                 <!-- 3. Breakeven Analysis -->
                 <div id="oa-breakeven" class="admin-panel">
                     <h2>&#x1F3AF; Breakeven Analysis</h2>
-                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Company-Wide Distance from Breakeven (196 RVUs/week)</p>
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Company-Wide Distance from Breakeven (146 RVUs/week)</p>
                     <div style="position: relative; height: 260px;">
                         <canvas id="chart-co-breakeven"></canvas>
                     </div>
@@ -1157,24 +1157,18 @@
 
         function setPipelineMode(enabled) {
             _rvuPipeline = enabled;
-            // Reload chart if one is displayed
             const img = document.getElementById('rvu-chart-img');
             if (img) {
                 const url = new URL(img.src, window.location.href);
                 url.searchParams.set('pipeline', enabled ? 'true' : 'false');
                 img.src = url.toString();
             }
-            // Show/hide pipeline columns in bonus table
-            document.getElementById('bonus-col-pipeline').style.display = enabled ? '' : 'none';
-            document.getElementById('bonus-col-total').style.display = enabled ? '' : 'none';
-            loadBonusReport(_rvuSource);
         }
 
 
         function setRvuSource(src, btn) {
             _rvuSource = src;
 
-            // Update toggle button styles
             document.querySelectorAll('.rvu-src-btn').forEach(b => {
                 b.style.background = '#fff';
                 b.style.color = 'var(--text-color)';
@@ -1182,7 +1176,6 @@
             btn.style.background = 'var(--primary-color)';
             btn.style.color = '#fff';
 
-            // Update chart image src if it exists
             const img = document.getElementById('rvu-chart-img');
             if (img) {
                 const url = new URL(img.src);
@@ -1190,58 +1183,7 @@
                 url.searchParams.set('pipeline', _rvuPipeline ? 'true' : 'false');
                 img.src = url.toString();
             }
-
-            // Reload bonus report with new source
-            loadBonusReport(src);
         }
-
-        // --- Bonus Report (Owner only) ---
-        function loadBonusReport(source) {
-            const tbody = document.getElementById('bonus-tbody');
-            const info = document.getElementById('bonus-quarter-info');
-            if (!tbody) return; // not Owner
-
-            const src = source || _rvuSource || 'all';
-            const colSpan = _rvuPipeline ? 7 : 5;
-            tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:2rem;text-align:center;color:var(--text-light);">Loading...</td></tr>';
-
-            const url = "{{ url_for('bonus_report') }}?source=" + encodeURIComponent(src) + '&pipeline=' + (_rvuPipeline ? 'true' : 'false');
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (data.error) { tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:1rem;text-align:center;color:#ef4444;">Error loading report.</td></tr>'; return; }
-
-                    const pct = Math.round(data.days_elapsed / data.days_in_quarter * 100);
-                    info.textContent = data.quarter_label + ' — Day ' + data.days_elapsed + ' of ' + data.days_in_quarter + ' (' + pct + '% complete)';
-
-                    const fmt = n => '$' + n.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0});
-
-                    let rows = '';
-                    data.providers.forEach(p => {
-                        const earnedColor = p.bonus_earned > 0 ? '#16a34a' : 'inherit';
-                        const projColor = p.projected_bonus > 0 ? '#16a34a' : 'inherit';
-                        rows += '<tr style="border-bottom:1px solid #e5e7eb;">'
-                            + '<td style="padding:0.75rem 1rem;font-weight:500;">' + p.provider + '</td>'
-                            + '<td style="padding:0.75rem 1rem;text-align:right;">' + p.rvus_earned.toFixed(1) + '</td>'
-                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + earnedColor + ';font-weight:600;">' + fmt(p.bonus_earned) + '</td>'
-                            + '<td style="padding:0.75rem 1rem;text-align:right;color:var(--text-light);font-style:italic;">' + p.projected_rvus.toFixed(1) + '</td>'
-                            + '<td style="padding:0.75rem 1rem;text-align:right;color:' + projColor + ';font-style:italic;">' + fmt(p.projected_bonus) + '</td>';
-                        if (_rvuPipeline) {
-                            const pipeRvus = (p.pipeline_rvus != null) ? p.pipeline_rvus : 0;
-                            const totalPipe = (p.total_with_pipeline != null) ? p.total_with_pipeline : p.rvus_earned;
-                            rows += '<td style="padding:0.75rem 1rem;text-align:right;color:#7c3aed;font-style:italic;">+' + pipeRvus.toFixed(1) + '</td>'
-                                + '<td style="padding:0.75rem 1rem;text-align:right;color:#7c3aed;font-weight:600;">' + totalPipe.toFixed(1) + '</td>';
-                        }
-                        rows += '</tr>';
-                    });
-                    tbody.innerHTML = rows;
-                })
-                .catch(() => {
-                    tbody.innerHTML = '<tr><td colspan="' + colSpan + '" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load bonus report.</td></tr>';
-                });
-        }
-
-        loadBonusReport();
 
         // -------------------------------------------------------
         // Revenue per RVU Report (Owner only)
@@ -1490,8 +1432,8 @@
             // Rolling 4-week average
             _destroyChart('chart-rolling4');
             const benchDatasets = [
-                { label: 'Breakeven (49)', data: weeks.map(() => b.ind_breakeven), borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false },
-                { label: 'Industry (82)', data: weeks.map(() => b.ind_industry), borderColor: '#f97316', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false }
+                { label: 'Breakeven (37)', data: weeks.map(() => b.ind_breakeven), borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false },
+                { label: 'Industry (70)', data: weeks.map(() => b.ind_industry), borderColor: '#f97316', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false }
             ];
             _chartInstances['chart-rolling4'] = new Chart(
                 document.getElementById('chart-rolling4').getContext('2d'),
@@ -1557,7 +1499,7 @@
                     data: {
                         labels: weeks,
                         datasets: [{
-                            label: 'RVUs vs Breakeven (196)',
+                            label: 'RVUs vs Breakeven (146)',
                             data: dists,
                             backgroundColor: dists.map(v => v >= 0 ? '#27ae6088' : '#e74c3c88'),
                             borderColor: dists.map(v => v >= 0 ? '#27ae60' : '#e74c3c'),
@@ -1582,7 +1524,7 @@
                     </td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;font-weight:600;">${d.avg_weekly}</td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;">
-                        <span style="color:${d.avg_weekly >= 49 ? '#166534' : '#991b1b'};font-weight:600;">${d.hit_rate}%</span>
+                        <span style="color:${d.avg_weekly >= 37 ? '#166534' : '#991b1b'};font-weight:600;">${d.hit_rate}%</span>
                     </td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;">
                         <span style="color:${d.industry_hit_rate >= 50 ? '#166534' : '#991b1b'};font-weight:600;">${d.industry_hit_rate}%</span>
@@ -1594,8 +1536,8 @@
                         <tr style="border-bottom:2px solid #e5e7eb;">
                             <th style="padding:0.5rem 0.75rem;text-align:left;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Provider</th>
                             <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Avg/Week</th>
-                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Breakeven Rate (&ge;49)</th>
-                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Industry Rate (&ge;82)</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Breakeven Rate (&ge;37)</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Industry Rate (&ge;70)</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>

@@ -244,6 +244,18 @@ def _merge_201s(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.Data
     if dedup_col not in new_data.columns:
         new_data[dedup_col] = ""
 
+    before_existing = len(existing)
+    existing_has_ids = existing[dedup_col].astype(str).str.strip().ne("").any()
+    if existing_has_ids:
+        existing = existing.drop_duplicates(subset=[dedup_col], keep="first")
+    else:
+        existing = existing.drop_duplicates()
+    if len(existing) < before_existing:
+        logger.warning(
+            "201s merge: removed %d duplicate rows from existing blob",
+            before_existing - len(existing),
+        )
+
     existing_ids = set(existing[dedup_col].astype(str))
     new_mask = ~new_data[dedup_col].astype(str).isin(existing_ids)
     truly_new = new_data[new_mask]
@@ -262,6 +274,15 @@ def _merge_201s(existing: pd.DataFrame, new_data: pd.DataFrame) -> tuple[pd.Data
         [existing.reindex(columns=all_cols), truly_new.reindex(columns=all_cols)],
         ignore_index=True,
     )
+
+    if existing_has_ids:
+        dup_count = merged.duplicated(subset=[dedup_col], keep="first").sum()
+        if dup_count > 0:
+            logger.warning(
+                "201s merge: final safety dedup found %d duplicate Case ID(s); keeping first only",
+                dup_count,
+            )
+        merged = merged.drop_duplicates(subset=[dedup_col], keep="first")
 
     logger.info("201s merge: %d new records added (total: %d)", new_count, len(merged))
     return merged, new_count

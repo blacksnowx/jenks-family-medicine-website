@@ -126,9 +126,8 @@ class TestQuarterlyBonusReport(unittest.TestCase):
     @patch('quarterly_bonus_analytics.rvu_analytics')
     def test_floor_changes_bonus_at_threshold_boundary(self, mock_rvu):
         """Bonus must be zero when floored total equals threshold exactly."""
-        # 13 weeks → threshold = 13 * 49 = 637
-        # Provider has 637.9 raw RVUs → floor = 637 → bonus = 0
-        # Without floor, round would give 638.0 → bonus = (638 - 637) * 10 = 10
+        # Provider has 637.9 raw RVUs → floor = 637 → bonus = 0 (under BONUS_THRESHOLD=689)
+        # Without floor, round would promote to 638.0, still under threshold
         weeks = pd.date_range('2026-01-02', periods=13, freq='7D')
         rvus_per_week = 637.9 / 13  # distributes to 637.9 total
         df = pd.DataFrame({
