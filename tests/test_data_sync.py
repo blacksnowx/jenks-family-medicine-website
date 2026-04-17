@@ -197,6 +197,48 @@ def test_merge_charges_existing_data_deduped_internally():
     assert epids.count("epid_001") == 1
 
 
+def test_merge_charges_120_day_overlap_no_duplicates():
+    """Simulates the incremental sync overlap: re-pulling the same 120-day
+    window on every run must not inflate totals."""
+    from data.sync_manager import _merge_charges
+    existing = _charges_df([f"epid_{i:04d}" for i in range(100)])
+    # Re-pull the full 100 + 5 genuinely new (mimics overlap behavior)
+    overlap_pull = _charges_df([f"epid_{i:04d}" for i in range(105)])
+    merged, new_count = _merge_charges(existing, overlap_pull)
+    assert new_count == 5
+    assert len(merged) == 105
+    epids = merged["Encounter Procedure ID"].tolist()
+    assert len(epids) == len(set(epids)), "overlap re-pull produced duplicates"
+
+
+def test_fetch_charges_incremental_extends_window_for_draft_promotions():
+    """The incremental window must reach back at least 120 days so drafts
+    approved after the previous sync are captured."""
+    from datetime import date, timedelta
+    from unittest.mock import patch
+    from data.tebra_sync import fetch_charges_incremental, DRAFT_PROMOTION_LOOKBACK_DAYS
+
+    today = date.today()
+    # Simulate last sync 10 days ago — a draft with service date 60 days ago
+    # approved yesterday would otherwise be missed.
+    last_sync = today - timedelta(days=10)
+
+    captured = {}
+    def fake_fetch(start, end):
+        captured["start"] = start
+        captured["end"] = end
+        return pd.DataFrame(columns=["Encounter Procedure ID"])
+
+    with patch("data.tebra_sync.fetch_charges", side_effect=fake_fetch):
+        fetch_charges_incremental(last_sync_date=last_sync)
+
+    expected_start = today - timedelta(days=DRAFT_PROMOTION_LOOKBACK_DAYS)
+    assert captured["start"] == expected_start, (
+        f"Overlap window must start {DRAFT_PROMOTION_LOOKBACK_DAYS} days back, "
+        f"got {captured['start']}"
+    )
+
+
 # ---------------------------------------------------------------------------
 # Sync manager — _merge_201s
 # ---------------------------------------------------------------------------

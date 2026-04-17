@@ -3,6 +3,7 @@ Owner-only analytics for Jenks Family Medicine admin dashboard.
 Computes Provider Scorecards, Trend Analysis, Breakeven Analysis,
 Monthly Aggregation, and Recommendations Engine.
 """
+import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -18,10 +19,21 @@ PROVIDER_COLORS = {
     'Heather Mayo': '#f39c12',
     'Sarah Suggs': '#9b59b6',
 }
-BREAKEVEN_INDIVIDUAL = 37
-INDUSTRY_INDIVIDUAL = 70
-BREAKEVEN_COMPANY = 146
-INDUSTRY_COMPANY = 278
+
+
+def _threshold_arrays(weeks):
+    """Return per-week threshold arrays for the given weeks.
+
+    Weeks before PROVIDER_CUTOVER_WEEK use 4-provider thresholds;
+    weeks on/after use 3-provider thresholds.
+    """
+    post = pd.DatetimeIndex(weeks) >= rvu_analytics.PROVIDER_CUTOVER_WEEK
+    return {
+        'ind_breakeven': np.where(post, rvu_analytics.BREAKEVEN_INDIVIDUAL_POST, rvu_analytics.BREAKEVEN_INDIVIDUAL_PRE),
+        'ind_industry':  np.where(post, rvu_analytics.INDUSTRY_INDIVIDUAL_POST,  rvu_analytics.INDUSTRY_INDIVIDUAL_PRE),
+        'co_breakeven':  np.where(post, rvu_analytics.BREAKEVEN_COMPANY_POST,    rvu_analytics.BREAKEVEN_COMPANY_PRE),
+        'co_industry':   np.where(post, rvu_analytics.INDUSTRY_COMPANY_POST,     rvu_analytics.INDUSTRY_COMPANY_PRE),
+    }
 
 
 def _get_adjusted_df():
@@ -66,6 +78,9 @@ def get_scorecards():
     if df.empty:
         return {}
     prov_weekly, all_weeks = _weekly_by_provider(df)
+    thresholds = _threshold_arrays(all_weeks)
+    ind_be_arr = thresholds['ind_breakeven']
+    ind_ind_arr = thresholds['ind_industry']
     result = {}
     for p in PROVIDERS:
         arr = prov_weekly[p].values
@@ -80,8 +95,8 @@ def get_scorecards():
         result[display] = {
             'total_rvus': round(float(arr.sum()), 1),
             'avg_weekly': round(float(arr.mean()), 1),
-            'breakeven_hit_rate': round(float((arr >= BREAKEVEN_INDIVIDUAL).mean() * 100), 1),
-            'industry_hit_rate': round(float((arr >= INDUSTRY_INDIVIDUAL).mean() * 100), 1),
+            'breakeven_hit_rate': round(float((arr >= ind_be_arr).mean() * 100), 1),
+            'industry_hit_rate': round(float((arr >= ind_ind_arr).mean() * 100), 1),
             'best_week': round(float(arr.max()), 1),
             'worst_week': round(float(arr.min()), 1),
             'std_dev': round(float(arr.std(ddof=1)), 1) if n > 1 else 0.0,
@@ -113,6 +128,7 @@ def get_trends():
     company.index = pd.DatetimeIndex(company.index)
     company = company.reindex(pd.DatetimeIndex(all_weeks), fill_value=0.0)
     wow = company.pct_change().fillna(0).clip(-2, 2) * 100
+    thresholds = _threshold_arrays(all_weeks)
     return {
         'weeks': weeks_str,
         'providers': providers_out,
@@ -121,10 +137,10 @@ def get_trends():
             'wow_pct': [round(float(v), 1) for v in wow.values],
         },
         'benchmarks': {
-            'ind_breakeven': BREAKEVEN_INDIVIDUAL,
-            'ind_industry': INDUSTRY_INDIVIDUAL,
-            'co_breakeven': BREAKEVEN_COMPANY,
-            'co_industry': INDUSTRY_COMPANY,
+            'ind_breakeven': [int(v) for v in thresholds['ind_breakeven']],
+            'ind_industry':  [int(v) for v in thresholds['ind_industry']],
+            'co_breakeven':  [int(v) for v in thresholds['co_breakeven']],
+            'co_industry':   [int(v) for v in thresholds['co_industry']],
         },
     }
 
@@ -138,16 +154,20 @@ def get_breakeven_analysis():
     company = df.groupby('Week')['RVU'].sum()
     company.index = pd.DatetimeIndex(company.index)
     company = company.reindex(pd.DatetimeIndex(all_weeks), fill_value=0.0)
-    co_dist = [round(float(v - BREAKEVEN_COMPANY), 1) for v in company.values]
+    thresholds = _threshold_arrays(all_weeks)
+    co_be_arr = thresholds['co_breakeven']
+    ind_be_arr = thresholds['ind_breakeven']
+    ind_ind_arr = thresholds['ind_industry']
+    co_dist = [round(float(v - t), 1) for v, t in zip(company.values, co_be_arr)]
     providers_out = {}
     for p in PROVIDERS:
         arr = prov_weekly[p].values
         display = p.title()
-        dist = [round(float(v - BREAKEVEN_INDIVIDUAL), 1) for v in arr]
+        dist = [round(float(v - t), 1) for v, t in zip(arr, ind_be_arr)]
         providers_out[display] = {
             'distances': dist,
-            'hit_rate': round(float((arr >= BREAKEVEN_INDIVIDUAL).mean() * 100), 1),
-            'industry_hit_rate': round(float((arr >= INDUSTRY_INDIVIDUAL).mean() * 100), 1),
+            'hit_rate': round(float((arr >= ind_be_arr).mean() * 100), 1),
+            'industry_hit_rate': round(float((arr >= ind_ind_arr).mean() * 100), 1),
             'avg_weekly': round(float(arr.mean()), 1),
             'color': PROVIDER_COLORS.get(display, '#888'),
         }
@@ -166,7 +186,10 @@ def get_monthly():
     df['Month'] = pd.to_datetime(df['Week']).dt.to_period('M')
     all_months = sorted(df['Month'].unique())
     months_str = [m.strftime('%b %Y') for m in all_months]
-    weeks_per_month = {m: int(df[df['Month'] == m]['Week'].nunique()) for m in all_months}
+    month_weeks = {
+        m: sorted(pd.DatetimeIndex(df[df['Month'] == m]['Week'].unique()))
+        for m in all_months
+    }
     company = df.groupby('Month')['RVU'].sum().reindex(all_months, fill_value=0.0)
     providers_out = {}
     for p in PROVIDERS:
@@ -176,12 +199,26 @@ def get_monthly():
             'values': [round(float(v), 1) for v in s.values],
             'color': PROVIDER_COLORS.get(display, '#888'),
         }
+
+    def _sum_monthly(pre_value, post_value):
+        totals = []
+        for m in all_months:
+            weeks_in_month = month_weeks.get(m, [])
+            if not weeks_in_month:
+                totals.append(4 * post_value)
+                continue
+            totals.append(sum(
+                post_value if w >= rvu_analytics.PROVIDER_CUTOVER_WEEK else pre_value
+                for w in weeks_in_month
+            ))
+        return totals
+
     return {
         'months': months_str,
         'providers': providers_out,
         'company_total': [round(float(v), 1) for v in company.values],
-        'company_breakeven': [weeks_per_month.get(m, 4) * BREAKEVEN_COMPANY for m in all_months],
-        'company_industry': [weeks_per_month.get(m, 4) * INDUSTRY_COMPANY for m in all_months],
+        'company_breakeven': _sum_monthly(rvu_analytics.BREAKEVEN_COMPANY_PRE, rvu_analytics.BREAKEVEN_COMPANY_POST),
+        'company_industry':  _sum_monthly(rvu_analytics.INDUSTRY_COMPANY_PRE,  rvu_analytics.INDUSTRY_COMPANY_POST),
     }
 
 
@@ -197,14 +234,19 @@ def get_recommendations():
     insights = []
     co_avg = float(company.mean())
 
+    # Use current (post-cutover) thresholds for go-forward recommendations.
+    co_breakeven_current = rvu_analytics.BREAKEVEN_COMPANY_POST
+    ind_breakeven_current = rvu_analytics.BREAKEVEN_INDIVIDUAL_POST
+    ind_industry_current = rvu_analytics.INDUSTRY_INDIVIDUAL_POST
+
     # Company status
-    if co_avg >= BREAKEVEN_COMPANY:
+    if co_avg >= co_breakeven_current:
         insights.append({'type': 'success',
-                         'text': f"Company-wide production is on target at {co_avg:.1f} avg RVUs/week (breakeven: {BREAKEVEN_COMPANY})."})
+                         'text': f"Company-wide production is on target at {co_avg:.1f} avg RVUs/week (breakeven: {co_breakeven_current})."})
     else:
-        gap = BREAKEVEN_COMPANY - co_avg
+        gap = co_breakeven_current - co_avg
         insights.append({'type': 'warning',
-                         'text': f"Company-wide average of {co_avg:.1f} RVUs/week is {gap:.1f} below the {BREAKEVEN_COMPANY} breakeven target."})
+                         'text': f"Company-wide average of {co_avg:.1f} RVUs/week is {gap:.1f} below the {co_breakeven_current} breakeven target."})
 
     prov_avgs = {}
     for p in PROVIDERS:
@@ -214,13 +256,13 @@ def get_recommendations():
         avg = float(arr.mean())
         prov_avgs[display] = avg
 
-        if avg < BREAKEVEN_INDIVIDUAL:
-            gap = BREAKEVEN_INDIVIDUAL - avg
+        if avg < ind_breakeven_current:
+            gap = ind_breakeven_current - avg
             insights.append({'type': 'alert',
-                             'text': f"{display} is averaging {avg:.1f} RVUs/week — {gap:.1f} below the individual breakeven ({BREAKEVEN_INDIVIDUAL})."})
-        elif avg >= INDUSTRY_INDIVIDUAL:
+                             'text': f"{display} is averaging {avg:.1f} RVUs/week — {gap:.1f} below the individual breakeven ({ind_breakeven_current})."})
+        elif avg >= ind_industry_current:
             insights.append({'type': 'success',
-                             'text': f"{display} is at or above the industry standard ({INDUSTRY_INDIVIDUAL} RVUs/week), averaging {avg:.1f}."})
+                             'text': f"{display} is at or above the industry standard ({ind_industry_current} RVUs/week), averaging {avg:.1f}."})
 
         if n >= 8:
             recent = float(arr[-4:].mean())

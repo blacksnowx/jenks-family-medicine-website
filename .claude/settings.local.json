@@ -13,7 +13,13 @@
       "Bash(python -m pytest data/tests/test_quarterly_bonus_analytics.py tests/test_quarterly_bonus_route.py -v)",
       "Bash(python -m pytest data/tests -x -q)",
       "Bash(python3 -m pytest data/tests -x -q)",
-      "Bash(python3 -c \"import ast; [ast.parse\\(open\\(p\\).read\\(\\)\\) for p in ['data/tebra_sync.py','data/sync_manager.py','data/rvu_analytics.py','data/owner_analytics.py','init_db.py']]; print\\('OK'\\)\")"
+      "Bash(python3 -c \"import ast; [ast.parse\\(open\\(p\\).read\\(\\)\\) for p in ['data/tebra_sync.py','data/sync_manager.py','data/rvu_analytics.py','data/owner_analytics.py','init_db.py']]; print\\('OK'\\)\")",
+      "Bash(python3 -m pytest tests/test_data_sync.py -x -q)",
+      "Bash(python3 -m pytest tests/test_data_sync.py data/tests -x -q)",
+      "Bash(python3 -c \"import ast; [ast.parse\\(open\\(p\\).read\\(\\)\\) for p in ['data/rvu_analytics.py','data/owner_analytics.py']]; print\\('OK'\\)\")",
+      "Bash(python3 -m pytest tests/ data/tests/ -x -q)",
+      "Bash(python3 -m pytest tests/ data/tests/ --deselect tests/test_new_patient_redirect.py -q)",
+      "Bash(python3 -m pytest tests/test_data_sync.py tests/test_reports.py tests/test_data_integrity.py tests/test_auth_and_roles.py tests/test_rbac.py data/tests/ -q)"
     ]
   }
 }

@@ -12,6 +12,29 @@ try:
 except ImportError:
     import data_loader
 
+# Provider-count cutover. Week ending 2026-04-24 and later runs with 3
+# providers; earlier weeks ran with 4. Thresholds before/after reflect that.
+PROVIDER_CUTOVER_WEEK = pd.Timestamp('2026-04-24')
+
+BREAKEVEN_COMPANY_PRE = 196
+INDUSTRY_COMPANY_PRE = 328
+BREAKEVEN_INDIVIDUAL_PRE = 49   # 196 / 4
+INDUSTRY_INDIVIDUAL_PRE = 82    # 328 / 4
+
+BREAKEVEN_COMPANY_POST = 146
+INDUSTRY_COMPANY_POST = 278
+BREAKEVEN_INDIVIDUAL_POST = 49  # round(146 / 3)
+INDUSTRY_INDIVIDUAL_POST = 93   # round(278 / 3)
+
+
+def _threshold_series(weeks, pre_value, post_value):
+    """Return per-week threshold values, pre-cutover on earlier weeks."""
+    return [
+        pre_value if pd.Timestamp(w) < PROVIDER_CUTOVER_WEEK else post_value
+        for w in weeks
+    ]
+
+
 def _get_clinical_rvu_val(row):
     _svc_raw = row.get('Procedure Codes with Modifiers', row.get('Procedure Code'))
     # row.get() can return a Series if the DataFrame has duplicate column names;
@@ -251,8 +274,12 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
             ax.plot(pipe_x, weekly_combined.astype(float).tolist(), marker='o', color='#37a4db',
                     linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
 
-        ax.axhline(y=146, color='red', linestyle='--', linewidth=2, label='Company Breakeven (146)')
-        ax.axhline(y=278, color='orange', linestyle='--', linewidth=2, label='Industry Standard (278)')
+        be_vals = _threshold_series(weekly['Week'], BREAKEVEN_COMPANY_PRE, BREAKEVEN_COMPANY_POST)
+        tg_vals = _threshold_series(weekly['Week'], INDUSTRY_COMPANY_PRE, INDUSTRY_COMPANY_POST)
+        ax.plot(x_labels, be_vals, color='red', linestyle='--', linewidth=2,
+                label='Company Breakeven', drawstyle='steps-post')
+        ax.plot(x_labels, tg_vals, color='orange', linestyle='--', linewidth=2,
+                label='Industry Standard', drawstyle='steps-post')
         ax.set_title('Company-Wide Weekly RVUs', fontsize=14, fontweight='bold')
 
     elif view_type == 'Provider Comparison':
@@ -279,8 +306,12 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
                 ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', linewidth=1.5, markersize=5,
                         linestyle='--', alpha=0.55, color=color, label=pipe_label)
 
-        ax.axhline(y=37, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (37)')
-        ax.axhline(y=70, color='orange', linestyle='--', linewidth=2, label='Industry Standard (70)')
+        be_vals = _threshold_series(pivot_df.index, BREAKEVEN_INDIVIDUAL_PRE, BREAKEVEN_INDIVIDUAL_POST)
+        tg_vals = _threshold_series(pivot_df.index, INDUSTRY_INDIVIDUAL_PRE, INDUSTRY_INDIVIDUAL_POST)
+        ax.plot(x_labels, be_vals, color='red', linestyle='--', linewidth=2,
+                label='Individual Breakeven', drawstyle='steps-post')
+        ax.plot(x_labels, tg_vals, color='orange', linestyle='--', linewidth=2,
+                label='Industry Standard', drawstyle='steps-post')
         ax.set_title('Provider Weekly RVU Comparison', fontsize=14, fontweight='bold')
 
     elif view_type in [p.title() for p in valid_providers] or view_type.upper() in valid_providers:
@@ -306,8 +337,12 @@ def generate_rvu_chart(view_type, data_source='all', include_pipeline=False, exc
                 ax.plot(pipe_x, combined.astype(float).tolist(), marker='o', color='#2ecc71',
                         linewidth=1.5, markersize=6, linestyle='--', alpha=0.55, label='Pipeline (draft charges)')
 
-        ax.axhline(y=37, color='red', linestyle='--', linewidth=2, label='Individual Breakeven (37)')
-        ax.axhline(y=70, color='orange', linestyle='--', linewidth=2, label='Industry Standard (70)')
+        be_vals = _threshold_series(prov_data['Week'], BREAKEVEN_INDIVIDUAL_PRE, BREAKEVEN_INDIVIDUAL_POST)
+        tg_vals = _threshold_series(prov_data['Week'], INDUSTRY_INDIVIDUAL_PRE, INDUSTRY_INDIVIDUAL_POST)
+        ax.plot(x_labels, be_vals, color='red', linestyle='--', linewidth=2,
+                label='Individual Breakeven', drawstyle='steps-post')
+        ax.plot(x_labels, tg_vals, color='orange', linestyle='--', linewidth=2,
+                label='Industry Standard', drawstyle='steps-post')
         ax.set_title(f'{display_name} - Weekly RVUs', fontsize=14, fontweight='bold')
 
     else:
