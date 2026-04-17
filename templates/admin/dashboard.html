@@ -410,7 +410,7 @@
                 <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
                     Select a historical quarter to see total RVUs earned and bonus earned per provider.<br>
                     <small>Bonus = max(0, (Total RVUs &minus; Threshold RVUs) &times; ${{ '%.0f'|format(10) }}/RVU) &nbsp;&bull;&nbsp;
-                    Threshold = weeks in quarter &times; 37 RVUs/week (individual breakeven)</small>
+                    Threshold = weeks in quarter &times; 49 RVUs/week (individual breakeven)</small>
                 </p>
 
                 <form method="POST" action="{{ url_for('admin_dashboard') }}" style="margin-bottom: 2rem;">
@@ -691,7 +691,7 @@
                 <!-- 3. Breakeven Analysis -->
                 <div id="oa-breakeven" class="admin-panel">
                     <h2>&#x1F3AF; Breakeven Analysis</h2>
-                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Company-Wide Distance from Breakeven (146 RVUs/week)</p>
+                    <p style="font-weight: 600; font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em;">Company-Wide Distance from Weekly Breakeven (196 pre-4/24, 146 after)</p>
                     <div style="position: relative; height: 260px;">
                         <canvas id="chart-co-breakeven"></canvas>
                     </div>
@@ -1432,8 +1432,8 @@
             // Rolling 4-week average
             _destroyChart('chart-rolling4');
             const benchDatasets = [
-                { label: 'Breakeven (37)', data: weeks.map(() => b.ind_breakeven), borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false },
-                { label: 'Industry (70)', data: weeks.map(() => b.ind_industry), borderColor: '#f97316', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false }
+                { label: 'Breakeven', data: b.ind_breakeven, stepped: 'after', borderColor: '#ef4444', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false },
+                { label: 'Industry', data: b.ind_industry, stepped: 'after', borderColor: '#f97316', borderDash: [6, 3], borderWidth: 1.5, pointRadius: 0, fill: false }
             ];
             _chartInstances['chart-rolling4'] = new Chart(
                 document.getElementById('chart-rolling4').getContext('2d'),
@@ -1499,7 +1499,7 @@
                     data: {
                         labels: weeks,
                         datasets: [{
-                            label: 'RVUs vs Breakeven (146)',
+                            label: 'RVUs vs Weekly Breakeven',
                             data: dists,
                             backgroundColor: dists.map(v => v >= 0 ? '#27ae6088' : '#e74c3c88'),
                             borderColor: dists.map(v => v >= 0 ? '#27ae60' : '#e74c3c'),
@@ -1524,7 +1524,7 @@
                     </td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;font-weight:600;">${d.avg_weekly}</td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;">
-                        <span style="color:${d.avg_weekly >= 37 ? '#166534' : '#991b1b'};font-weight:600;">${d.hit_rate}%</span>
+                        <span style="color:${d.avg_weekly >= 49 ? '#166534' : '#991b1b'};font-weight:600;">${d.hit_rate}%</span>
                     </td>
                     <td style="padding:0.5rem 0.75rem;text-align:center;">
                         <span style="color:${d.industry_hit_rate >= 50 ? '#166534' : '#991b1b'};font-weight:600;">${d.industry_hit_rate}%</span>
@@ -1536,8 +1536,8 @@
                         <tr style="border-bottom:2px solid #e5e7eb;">
                             <th style="padding:0.5rem 0.75rem;text-align:left;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Provider</th>
                             <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Avg/Week</th>
-                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Breakeven Rate (&ge;37)</th>
-                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Industry Rate (&ge;70)</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Breakeven Rate</th>
+                            <th style="padding:0.5rem 0.75rem;text-align:center;font-size:0.75rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.05em;">Industry Rate</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>

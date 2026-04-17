@@ -515,9 +515,19 @@ def create_app():
         except Exception:
             available_quarters = []
 
+        default_quarter = available_quarters[0] if available_quarters else ''
+        bonus_report = None
+        if default_quarter and not needs_password_change:
+            try:
+                year = int(default_quarter[:4])
+                quarter = int(default_quarter[5])
+                bonus_report = quarterly_bonus_analytics.get_quarterly_bonus_report(year, quarter)
+            except Exception as exc:
+                app.logger.warning("Default bonus report failed for %s: %s", default_quarter, exc)
+
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
                                needs_password_change=needs_password_change, appt_requests=appt_requests,
-                               bonus_report=None, selected_quarter='',
+                               bonus_report=bonus_report, selected_quarter=default_quarter,
                                available_quarters=available_quarters)
 
     @app.route('/admin/reports/rvu_image')
