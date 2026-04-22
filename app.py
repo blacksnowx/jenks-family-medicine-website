@@ -634,6 +634,18 @@ def create_app():
             app.logger.error("Error generating owner analytics: %s", e, exc_info=True)
             return jsonify({'error': 'Failed to generate analytics data'}), 500
 
+    @app.route('/admin/reports/total_patients')
+    @login_required
+    def total_patients_report():
+        if current_user.role != 'Owner':
+            return jsonify({'error': 'Owner access required'}), 403
+        try:
+            data = new_patients_analytics.get_total_patients_with_encounter()
+            return jsonify(data)
+        except Exception as e:
+            app.logger.error("Error generating total patients report: %s", e, exc_info=True)
+            return jsonify({'error': 'Failed to generate report'}), 500
+
     # -------------------------------------------------------------------
     #  Sync Routes
     # -------------------------------------------------------------------

@@ -66,6 +66,17 @@ def _load_all_charges():
     return combined
 
 
+def get_total_patients_with_encounter():
+    """
+    Count unique patients with at least one encounter (confirmed or draft charge)
+    over all time. Returns a dict: {'total_patients': N}.
+    """
+    df = _load_all_charges()
+    if df.empty:
+        return {'total_patients': 0}
+    return {'total_patients': int(df['PatientID'].nunique())}
+
+
 def get_new_patients_dataset():
     """
     Return a DataFrame of new-patient events since DATA_START.

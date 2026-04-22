@@ -328,6 +328,16 @@
         <!-- Reports Section -->
         <div id="section-reports" class="tab-content" {% if active_tab=='section-reports' or not active_tab
             %}style="display: block;" {% else %}style="display: none;" {% endif %}>
+            {% if current_user.role == 'Owner' %}
+            <!-- Total Patients (Owner only) -->
+            <div class="admin-panel" style="margin-bottom: 2rem;">
+                <div style="background:#f1f5f9;border-radius:8px;padding:1.25rem;text-align:center;">
+                    <div style="font-size:0.8rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;">Total Patients Ever Seen at JFM</div>
+                    <div id="tp-total" style="font-size:2rem;font-weight:700;color:#111827;">—</div>
+                    <div style="font-size:0.75rem;color:var(--text-light);margin-top:.35rem;">Unique patients with at least 1 encounter</div>
+                </div>
+            </div>
+            {% endif %}
             <div class="admin-panel">
                 <h2>📊 Weekly RVU Reports</h2>
                 <p style="color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem;">
@@ -1253,6 +1263,24 @@
                 .catch(() => {
                     provTbody.innerHTML = '<tr><td colspan="4" style="padding:1rem;text-align:center;color:#ef4444;">Failed to load report.</td></tr>';
                 });
+        })();
+
+        // -------------------------------------------------------
+        // Total Patients Ever (Owner only)
+        // -------------------------------------------------------
+        (function loadTotalPatients() {
+            const tpEl = document.getElementById('tp-total');
+            if (!tpEl) return; // not Owner
+            fetch("{{ url_for('total_patients_report') }}")
+                .then(r => r.json())
+                .then(data => {
+                    if (data && typeof data.total_patients === 'number') {
+                        tpEl.textContent = data.total_patients.toLocaleString();
+                    } else {
+                        tpEl.textContent = 'N/A';
+                    }
+                })
+                .catch(() => { tpEl.textContent = 'N/A'; });
         })();
 
         // -------------------------------------------------------
