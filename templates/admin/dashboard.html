@@ -308,9 +308,8 @@
         </div>
         {% endif %}
 
-        {% if not needs_password_change %}
-
         <div class="admin-tabs">
+            {% if not needs_password_change %}
             <button class="tab-button active" onclick="openTab('section-reports', this)">Reports</button>
             {% if current_user.role == 'Owner' %}
             <button class="tab-button" onclick="openTab('section-owner-analytics', this); initOwnerAnalytics();">Owner Analytics</button>
@@ -318,12 +317,17 @@
             <button class="tab-button" onclick="openTab('section-sync', this); initSyncStatus();">Data Sync</button>
             <button class="tab-button" onclick="openTab('section-schedule', this); initSchedule();">Scheduling</button>
             {% endif %}
+            {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
             <button class="tab-button" onclick="openTab('section-banner', this)">Site Banner</button>
+            {% if not needs_password_change %}
             <button class="tab-button" onclick="openTab('section-appt-requests', this); loadApptRequests();">Appointment Requests</button>
             {% endif %}
-            <button class="tab-button" onclick="openTab('section-password', this)">Change Password</button>
+            {% endif %}
+            <button class="tab-button{% if needs_password_change %} active{% endif %}" onclick="openTab('section-password', this)">Change Password</button>
         </div>
+
+        {% if not needs_password_change %}
 
         <!-- Reports Section -->
         <div id="section-reports" class="tab-content" {% if active_tab=='section-reports' or not active_tab
@@ -730,47 +734,6 @@
         </div>
         {% endif %}
 
-        <!-- Conditional Banner Management -->
-        {% if current_user.role in ['Owner', 'Admin'] %}
-        <div id="section-banner" class="tab-content" style="display: none;">
-            <div class="admin-panel">
-                <h2>📢 Homepage Banner</h2>
-                <form method="POST" action="{{ url_for('admin_dashboard') }}">
-                    <input type="hidden" name="action" value="update_banner">
-
-                    <div class="toggle-row">
-                        <label class="toggle-switch">
-                            <input type="checkbox" name="is_active" id="banner-toggle" {{ 'checked' if banner.is_active
-                                else '' }} onchange="updatePreview()">
-                            <span class="toggle-slider"></span>
-                        </label>
-                        <span class="toggle-label">Show banner on homepage</span>
-                    </div>
-
-                    <div class="admin-form-group">
-                        <label for="banner-message">Banner Message</label>
-                        <textarea id="banner-message" name="message"
-                            placeholder="e.g. We are now accepting new patients!"
-                            oninput="updatePreview()">{{ banner.message }}</textarea>
-                    </div>
-
-                    <p class="banner-preview-label">Preview</p>
-                    <div class="banner-preview" id="banner-preview">
-                        <span id="preview-text">{{ banner.message }}</span>
-                    </div>
-
-                    <button type="submit" class="button">Save Banner</button>
-                </form>
-            </div>
-
-            <div class="admin-panel">
-                <h2>🛠️ Admin Features</h2>
-                <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
-                    feedback, and update site content.</p>
-            </div>
-        </div>
-        {% endif %}
-
         <!-- Conditional Owner Functionality -->
         {% if current_user.role == 'Owner' %}
         <div id="section-upload" class="tab-content" style="display: none;">
@@ -872,6 +835,47 @@
         {% endif %}
 
         {% endif %} <!-- End not needs_password_change -->
+
+        <!-- Banner Management (accessible even when password is expired) -->
+        {% if current_user.role in ['Owner', 'Admin'] %}
+        <div id="section-banner" class="tab-content" style="display: none;">
+            <div class="admin-panel">
+                <h2>📢 Homepage Banner</h2>
+                <form method="POST" action="{{ url_for('admin_dashboard') }}">
+                    <input type="hidden" name="action" value="update_banner">
+
+                    <div class="toggle-row">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="is_active" id="banner-toggle" {{ 'checked' if banner.is_active
+                                else '' }} onchange="updatePreview()">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-label">Show banner on homepage</span>
+                    </div>
+
+                    <div class="admin-form-group">
+                        <label for="banner-message">Banner Message</label>
+                        <textarea id="banner-message" name="message"
+                            placeholder="e.g. We are now accepting new patients!"
+                            oninput="updatePreview()">{{ banner.message }}</textarea>
+                    </div>
+
+                    <p class="banner-preview-label">Preview</p>
+                    <div class="banner-preview" id="banner-preview">
+                        <span id="preview-text">{{ banner.message }}</span>
+                    </div>
+
+                    <button type="submit" class="button">Save Banner</button>
+                </form>
+            </div>
+
+            <div class="admin-panel">
+                <h2>🛠️ Admin Features</h2>
+                <p style="color: var(--text-light); font-size: 0.95rem;">Coming soon: Manage schedules, view patient
+                    feedback, and update site content.</p>
+            </div>
+        </div>
+        {% endif %}
 
         <!-- Appointment Requests -->
         {% if current_user.role in ['Owner', 'Admin'] %}

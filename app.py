@@ -373,9 +373,7 @@ def create_app():
             action = request.form.get('action')
 
             if action == 'update_banner':
-                if needs_password_change:
-                     flash('You must change your password before performing any actions.', 'error')
-                elif current_user.role not in ['Owner', 'Admin']:
+                if current_user.role not in ['Owner', 'Admin']:
                      flash('You do not have permission to perform this action.', 'error')
                 else:
                     banner.is_active = request.form.get('is_active') == 'on'
