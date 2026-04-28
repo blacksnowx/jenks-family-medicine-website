@@ -140,6 +140,23 @@ def test_admin_cannot_trigger_sync(admin_client):
     assert resp.status_code == 403
 
 
+def test_expired_password_blocks_direct_admin_json_actions(client):
+    client.post(
+        "/admin",
+        data={"email": "expired@test.com", "password": "Expiredpw1!"},
+        follow_redirects=True,
+    )
+
+    report_resp = client.get("/admin/reports/new_patients")
+    sync_resp = client.post("/admin/sync", json={"sync_type": "all"})
+    schedule_resp = client.get("/admin/schedule/templates")
+
+    assert report_resp.status_code == 403
+    assert sync_resp.status_code == 403
+    assert schedule_resp.status_code == 403
+    assert report_resp.get_json()["error"] == "Password change required"
+
+
 # ---------------------------------------------------------------------------
 # Provider access
 # ---------------------------------------------------------------------------

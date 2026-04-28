@@ -16,7 +16,7 @@ from unittest.mock import patch
 import pytest
 
 from conftest import TEST_DATE, TEST_PROVIDER, TEST_START_TIME, TEST_END_TIME
-from models import AppointmentRequest, TebraBooking
+from models import AppointmentRequest, ProviderSchedule, TebraBooking
 
 
 # ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ def test_providers_returns_json_list(client):
 def test_providers_includes_seeded_provider(client):
     resp = client.get("/api/schedule/providers")
     providers = resp.get_json()["providers"]
-    assert TEST_PROVIDER in providers
+    assert any(p["name"] == TEST_PROVIDER for p in providers)
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +219,63 @@ def test_book_sets_status_pending_when_tebra_unavailable(client, db):
 
 
 # ---------------------------------------------------------------------------
-# Unit tests — calculate_available_slots() slot logic
+# Admin schedule management
+# ---------------------------------------------------------------------------
+
+def test_admin_schedule_templates_returns_enveloped_list(owner_client):
+    resp = owner_client.get("/admin/schedule/templates")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "templates" in data
+    assert isinstance(data["templates"], list)
+    assert data["templates"]
+
+
+def test_admin_schedule_update_accepts_direct_payload(owner_client, db):
+    tmpl = ProviderSchedule.query.first()
+    resp = owner_client.post(
+        f"/admin/schedule/templates/{tmpl.id}",
+        json={"provider_tebra_id": "abc-123", "is_active": False},
+    )
+    assert resp.status_code == 200
+    db.session.refresh(tmpl)
+    assert tmpl.provider_tebra_id == "abc-123"
+    assert tmpl.is_active is False
+
+
+def test_admin_schedule_update_accepts_legacy_field_value_payload(owner_client, db):
+    tmpl = ProviderSchedule.query.first()
+    resp = owner_client.post(
+        f"/admin/schedule/templates/{tmpl.id}",
+        json={"field": "provider_tebra_id", "value": "legacy-456"},
+    )
+    assert resp.status_code == 200
+    db.session.refresh(tmpl)
+    assert tmpl.provider_tebra_id == "legacy-456"
+
+
+def test_admin_schedule_bookings_returns_enveloped_list(owner_client, db):
+    booking = TebraBooking(
+        provider_name=TEST_PROVIDER,
+        start_time=datetime.fromisoformat(TEST_START_TIME),
+        end_time=datetime.fromisoformat(TEST_END_TIME),
+        patient_name="Schedule Admin",
+        patient_phone="423-555-0100",
+        patient_email="schedule@example.com",
+        status="pending",
+    )
+    db.session.add(booking)
+    db.session.commit()
+
+    resp = owner_client.get("/admin/schedule/bookings")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert "bookings" in data
+    assert data["bookings"][0]["patient_name"] == "Schedule Admin"
+
+
+# ---------------------------------------------------------------------------
+# Unit tests - calculate_available_slots() slot logic
 # ---------------------------------------------------------------------------
 
 def test_calculate_slots_empty_schedule_returns_all_slots():

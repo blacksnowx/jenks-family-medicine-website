@@ -53,9 +53,63 @@ def create_app():
     def get_current_year():
         return datetime.datetime.now().year
 
+    def user_needs_password_change(user) -> bool:
+        """Return True when the user's password is missing or older than 30 days."""
+        if not user.password_changed_at:
+            return True
+
+        pwd_changed = user.password_changed_at
+        if pwd_changed.tzinfo is None:
+            pwd_changed = pwd_changed.replace(tzinfo=timezone.utc)
+
+        now = datetime.datetime.now(timezone.utc)
+        return (now - pwd_changed).days >= 30
+
+    def get_banner_settings(create: bool = False):
+        """Fetch the singleton banner row in a deterministic order."""
+        banner = BannerSettings.query.order_by(BannerSettings.id.asc()).first()
+        if not banner and create:
+            banner = BannerSettings(is_active=False, message="")
+            db.session.add(banner)
+            db.session.commit()
+        return banner
+
+    def get_active_admin_tab(needs_password_change: bool) -> str:
+        requested_tab = request.args.get("tab", "").strip()
+        allowed_tabs = {
+            "section-reports",
+            "section-password",
+        }
+        if current_user.role == "Owner":
+            allowed_tabs.update({
+                "section-owner-analytics",
+                "section-upload",
+                "section-sync",
+                "section-schedule",
+            })
+        if current_user.role in ("Owner", "Admin"):
+            allowed_tabs.update({
+                "section-banner",
+                "section-appt-requests",
+            })
+
+        if requested_tab not in allowed_tabs:
+            requested_tab = ""
+
+        if needs_password_change:
+            password_reset_tabs = {
+                "section-password",
+                "section-banner",
+            }
+            if requested_tab in password_reset_tabs and requested_tab in allowed_tabs:
+                return requested_tab
+            return "section-password"
+
+        return requested_tab or "section-reports"
+
     @app.context_processor
     def inject_globals():
-        banner = BannerSettings.query.first()
+        banner = get_banner_settings()
         return {
             "current_year": get_current_year(),
             "page_url": request.base_url,
@@ -67,6 +121,28 @@ def create_app():
         """Keep the session alive on each request (rolling expiry)."""
         from flask import session
         session.permanent = True
+
+    @app.before_request
+    def enforce_password_rotation():
+        """Block admin actions for expired passwords except reset and banner edits."""
+        if not current_user.is_authenticated:
+            return None
+        if request.endpoint in {"admin_dashboard", "admin_logout"}:
+            return None
+        if not user_needs_password_change(current_user):
+            return None
+
+        protected_prefixes = (
+            "/admin/reports",
+            "/admin/sync",
+            "/admin/schedule",
+            "/api/appointment-requests",
+            "/api/appointment-request",
+        )
+        if not request.path.startswith(protected_prefixes):
+            return None
+
+        return jsonify({"error": "Password change required"}), 403
 
     # -------------------------------------------------------------------
     #  Google Reviews cache (unchanged)
@@ -348,26 +424,9 @@ def create_app():
     @app.route('/admin/dashboard', methods=['GET', 'POST'])
     @login_required
     def admin_dashboard():
-        # Check if password needs to be changed (older than 30 days)
-        now = datetime.datetime.now(timezone.utc)
-        needs_password_change = False
-        if current_user.password_changed_at:
-            pwd_changed = current_user.password_changed_at
-            # Make sure pwd_changed is timezone aware before subtracting
-            if pwd_changed.tzinfo is None:
-                pwd_changed = pwd_changed.replace(tzinfo=timezone.utc)
-            password_age = now - pwd_changed
-            if password_age.days >= 30:
-                needs_password_change = True
-        else:
-             # Just in case there is no timestamp
-             needs_password_change = True
-
-        banner = BannerSettings.query.first()
-        if not banner:
-            banner = BannerSettings(is_active=False, message="")
-            db.session.add(banner)
-            db.session.commit()
+        needs_password_change = user_needs_password_change(current_user)
+        active_tab = get_active_admin_tab(needs_password_change)
+        banner = get_banner_settings(create=True)
 
         if request.method == 'POST':
             action = request.form.get('action')
@@ -376,10 +435,16 @@ def create_app():
                 if current_user.role not in ['Owner', 'Admin']:
                      flash('You do not have permission to perform this action.', 'error')
                 else:
-                    banner.is_active = request.form.get('is_active') == 'on'
-                    banner.message = request.form.get('message', '').strip()
-                    db.session.commit()
-                    flash('Banner updated successfully.', 'success')
+                    is_active = request.form.get('is_active') == 'on'
+                    message = request.form.get('message', '').strip()
+                    if is_active and not message:
+                        flash('Enter a banner message before showing it on the homepage.', 'error')
+                    else:
+                        banner.is_active = is_active
+                        banner.message = message
+                        db.session.commit()
+                        flash('Banner updated successfully.', 'success')
+                return redirect(url_for('admin_dashboard', tab='section-banner'))
 
             elif action == 'upload_reference_data':
                 if needs_password_change:
@@ -524,7 +589,7 @@ def create_app():
                 app.logger.warning("Default bonus report failed for %s: %s", default_quarter, exc)
 
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
-                               needs_password_change=needs_password_change, appt_requests=appt_requests,
+                               needs_password_change=needs_password_change, active_tab=active_tab, appt_requests=appt_requests,
                                bonus_report=bonus_report, selected_quarter=default_quarter,
                                available_quarters=available_quarters)
 
@@ -833,6 +898,14 @@ def create_app():
             .filter_by(provider_name=provider, day_of_week=dow, is_active=True)
             .first()
         )
+        if not schedule and raw_provider and raw_provider != provider:
+            schedule = (
+                ProviderSchedule.query
+                .filter_by(provider_name=raw_provider, day_of_week=dow, is_active=True)
+                .first()
+            )
+            if schedule:
+                provider = raw_provider
 
         if not schedule:
             # Provider not scheduled on this day
@@ -977,15 +1050,49 @@ def create_app():
         if not tmpl:
             return jsonify({'error': 'Not found'}), 404
         data = request.get_json(silent=True) or {}
+
+        # Accept the current direct payload and the older field/value shape.
+        if 'field' in data and 'value' in data:
+            data = {str(data.get('field')): data.get('value')}
+
+        numeric_ranges = {
+            'start_hour': (0, 23),
+            'start_minute': (0, 59),
+            'end_hour': (0, 23),
+            'end_minute': (0, 59),
+            'slot_duration': (5, 240),
+            'break_start_hour': (0, 23),
+            'break_end_hour': (0, 23),
+        }
+
         for field in ('start_hour', 'start_minute', 'end_hour', 'end_minute',
                       'slot_duration', 'break_start_hour', 'break_end_hour'):
             if field in data:
                 val = data[field]
-                setattr(tmpl, field, int(val) if val is not None else None)
+                if val in (None, ''):
+                    setattr(tmpl, field, None)
+                    continue
+                try:
+                    parsed = int(val)
+                except (TypeError, ValueError):
+                    return jsonify({'error': f'{field} must be an integer'}), 400
+                low, high = numeric_ranges[field]
+                if parsed < low or parsed > high:
+                    return jsonify({'error': f'{field} must be between {low} and {high}'}), 400
+                setattr(tmpl, field, parsed)
         if 'is_active' in data:
             tmpl.is_active = bool(data['is_active'])
         if 'provider_tebra_id' in data:
             tmpl.provider_tebra_id = str(data['provider_tebra_id']).strip() or None
+
+        start_minutes = (tmpl.start_hour or 0) * 60 + (tmpl.start_minute or 0)
+        end_minutes = (tmpl.end_hour or 0) * 60 + (tmpl.end_minute or 0)
+        if end_minutes <= start_minutes:
+            return jsonify({'error': 'end time must be after start time'}), 400
+        if tmpl.break_start_hour is not None and tmpl.break_end_hour is not None:
+            if tmpl.break_end_hour <= tmpl.break_start_hour:
+                return jsonify({'error': 'break end must be after break start'}), 400
+
         db.session.commit()
         return jsonify({'success': True})
 

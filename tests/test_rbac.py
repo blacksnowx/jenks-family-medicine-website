@@ -88,16 +88,17 @@ class RBACTestCase(unittest.TestCase):
         banner = BannerSettings.query.first()
         self.assertFalse(banner.is_active)
 
-    def test_expired_password_blocks_banner_update(self):
+    def test_expired_password_allows_banner_update(self):
         self.login('expired@test.com', 'Expiredpw1!')
         response = self.client.post('/admin/dashboard', data=dict(
             action='update_banner',
             is_active='on',
             message='Test Banner Expired'
         ), follow_redirects=True)
-        self.assertIn(b'You must change your password before performing any actions', response.data)
+        self.assertIn(b'Banner updated successfully', response.data)
         banner = BannerSettings.query.first()
-        self.assertFalse(banner.is_active)
+        self.assertTrue(banner.is_active)
+        self.assertEqual(banner.message, 'Test Banner Expired')
 
     def test_password_validation_complexity(self):
         # Too short
@@ -143,7 +144,8 @@ class RBACTestCase(unittest.TestCase):
         self.login('expired@test.com', 'Expiredpw1!')
         response = self.client.get('/admin/dashboard')
         self.assertIn(b'Your password has expired', response.data)
-        self.assertNotIn(b'Homepage Banner', response.data)
+        self.assertIn(b'Homepage Banner', response.data)
+        self.assertIn(b'Site banner controls remain available', response.data)
         self.logout()
 
 if __name__ == '__main__':

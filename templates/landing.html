@@ -322,10 +322,13 @@
             var providers = data.providers || [PROVIDER_DEFAULT];
             providerSel.innerHTML = '';
             providers.forEach(function (p) {
+                var providerName = typeof p === 'string' ? p : p.name;
+                var providerLabel = typeof p === 'string' ? p : (p.display || p.name);
+                if (!providerName) return;
                 var opt = document.createElement('option');
-                opt.value = p;
-                opt.textContent = p;
-                if (p === PROVIDER_DEFAULT) opt.selected = true;
+                opt.value = providerName;
+                opt.textContent = providerLabel;
+                if (providerName === PROVIDER_DEFAULT) opt.selected = true;
                 providerSel.appendChild(opt);
             });
             if (!providers.length) {
