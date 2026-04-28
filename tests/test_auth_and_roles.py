@@ -140,6 +140,68 @@ def test_admin_cannot_trigger_sync(admin_client):
     assert resp.status_code == 403
 
 
+def test_login_page_links_to_password_recovery(client):
+    resp = client.get("/admin")
+    assert resp.status_code == 200
+    assert b"Forgot password" in resp.data
+
+    recovery = client.get("/admin/forgot-password")
+    assert recovery.status_code == 200
+    assert b"User Access" in recovery.data
+
+
+def test_owner_can_reset_staff_password(owner_client, client, db):
+    from datetime import datetime, timezone
+
+    from models import User
+
+    admin = User.query.filter_by(email="admin@test.com").first()
+    resp = owner_client.post(
+        "/admin/dashboard",
+        data={
+            "action": "reset_user_password",
+            "user_id": admin.id,
+            "new_password": "TempReset1!",
+            "confirm_password": "TempReset1!",
+        },
+        follow_redirects=True,
+    )
+    assert resp.status_code == 200
+    assert b"Temporary password set" in resp.data
+
+    db.session.refresh(admin)
+    changed_at = admin.password_changed_at
+    if changed_at.tzinfo is None:
+        changed_at = changed_at.replace(tzinfo=timezone.utc)
+    assert (datetime.now(timezone.utc) - changed_at).days >= 30
+
+    owner_client.get("/admin/logout", follow_redirects=True)
+    login_resp = client.post(
+        "/admin",
+        data={"email": "admin@test.com", "password": "TempReset1!"},
+        follow_redirects=True,
+    )
+    assert login_resp.status_code == 200
+    assert b"Your password has expired" in login_resp.data
+
+
+def test_admin_cannot_reset_staff_password(admin_client, db):
+    from models import User
+
+    provider = User.query.filter_by(email="provider@test.com").first()
+    resp = admin_client.post(
+        "/admin/dashboard",
+        data={
+            "action": "reset_user_password",
+            "user_id": provider.id,
+            "new_password": "TempReset1!",
+            "confirm_password": "TempReset1!",
+        },
+        follow_redirects=True,
+    )
+    assert b"Only Owners can reset staff passwords" in resp.data
+
+
 def test_expired_password_blocks_direct_admin_json_actions(client):
     client.post(
         "/admin",

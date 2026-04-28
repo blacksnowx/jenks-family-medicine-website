@@ -316,6 +316,7 @@
             <button class="tab-button{% if active_tab == 'section-upload' %} active{% endif %}" onclick="openTab('section-upload', this)">Upload Data</button>
             <button class="tab-button{% if active_tab == 'section-sync' %} active{% endif %}" onclick="openTab('section-sync', this); initSyncStatus();">Data Sync</button>
             <button class="tab-button{% if active_tab == 'section-schedule' %} active{% endif %}" onclick="openTab('section-schedule', this); initSchedule();">Scheduling</button>
+            <button class="tab-button{% if active_tab == 'section-user-access' %} active{% endif %}" onclick="openTab('section-user-access', this)">User Access</button>
             {% endif %}
             {% endif %}
             {% if current_user.role in ['Owner', 'Admin'] %}
@@ -965,6 +966,56 @@
                             </tr>
                         </thead>
                         <tbody id="bookings-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- User Access -->
+        {% if not needs_password_change and current_user.role == 'Owner' %}
+        <div id="section-user-access" class="tab-content" {% if active_tab=='section-user-access'
+            %}style="display: block;" {% else %}style="display: none;" {% endif %}>
+            <div class="admin-panel">
+                <h2>Staff Password Resets</h2>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+                        <thead>
+                            <tr style="border-bottom:2px solid #e5e7eb;text-align:left;">
+                                <th style="padding:0.7rem 0.6rem;">Email</th>
+                                <th style="padding:0.7rem 0.6rem;">Role</th>
+                                <th style="padding:0.7rem 0.6rem;">Last Changed</th>
+                                <th style="padding:0.7rem 0.6rem;">Temporary Password</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in admin_users|default([]) %}
+                            <tr style="border-bottom:1px solid #f3f4f6;">
+                                <td style="padding:0.8rem 0.6rem;font-weight:600;">{{ user.email }}</td>
+                                <td style="padding:0.8rem 0.6rem;">{{ user.role }}</td>
+                                <td style="padding:0.8rem 0.6rem;color:var(--text-light);white-space:nowrap;">
+                                    {{ user.password_changed_at.strftime('%Y-%m-%d') if user.password_changed_at else 'Never' }}
+                                </td>
+                                <td style="padding:0.8rem 0.6rem;min-width:260px;">
+                                    {% if user.id == current_user.id %}
+                                    <span style="color:var(--text-light);">Use Change Password</span>
+                                    {% else %}
+                                    <form method="POST" action="{{ url_for('admin_dashboard') }}" style="display:grid;grid-template-columns:1fr 1fr auto;gap:0.5rem;align-items:center;">
+                                        <input type="hidden" name="action" value="reset_user_password">
+                                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                                        <input type="password" name="new_password" required minlength="10" maxlength="18"
+                                            autocomplete="new-password" placeholder="New temporary password"
+                                            style="padding:0.55rem 0.7rem;border:1px solid #d1d5db;border-radius:var(--radius-md);font-size:0.85rem;">
+                                        <input type="password" name="confirm_password" required minlength="10" maxlength="18"
+                                            autocomplete="new-password" placeholder="Confirm"
+                                            style="padding:0.55rem 0.7rem;border:1px solid #d1d5db;border-radius:var(--radius-md);font-size:0.85rem;">
+                                        <button type="submit" class="button" style="margin-top:0;padding:0.55rem 0.8rem;font-size:0.85rem;">Reset</button>
+                                    </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
                     </table>
                 </div>
             </div>

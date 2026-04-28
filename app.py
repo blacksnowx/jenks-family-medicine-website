@@ -86,6 +86,7 @@ def create_app():
                 "section-upload",
                 "section-sync",
                 "section-schedule",
+                "section-user-access",
             })
         if current_user.role in ("Owner", "Admin"):
             allowed_tabs.update({
@@ -106,6 +107,11 @@ def create_app():
             return "section-password"
 
         return requested_tab or "section-reports"
+
+    def get_admin_users():
+        if current_user.role != "Owner":
+            return []
+        return User.query.order_by(User.email.asc()).all()
 
     @app.context_processor
     def inject_globals():
@@ -421,12 +427,19 @@ def create_app():
 
         return render_template('admin/login.html', page_title='Admin Login')
 
+    @app.route('/admin/forgot-password')
+    def admin_forgot_password():
+        if current_user.is_authenticated:
+            return redirect(url_for('admin_dashboard', tab='section-password'))
+        return render_template('admin/forgot_password.html', page_title='Forgot Password')
+
     @app.route('/admin/dashboard', methods=['GET', 'POST'])
     @login_required
     def admin_dashboard():
         needs_password_change = user_needs_password_change(current_user)
         active_tab = get_active_admin_tab(needs_password_change)
         banner = get_banner_settings(create=True)
+        admin_users = get_admin_users()
 
         if request.method == 'POST':
             action = request.form.get('action')
@@ -497,6 +510,34 @@ def create_app():
                         db.session.commit()
                         flash(f'Successfully uploaded and replaced {file_type}.', 'success')
 
+            elif action == 'reset_user_password':
+                if needs_password_change:
+                    flash('You must change your password before performing any actions.', 'error')
+                elif current_user.role != 'Owner':
+                    flash('Only Owners can reset staff passwords.', 'error')
+                else:
+                    user_id = request.form.get('user_id', type=int)
+                    new_password = request.form.get('new_password', '')
+                    confirm_password = request.form.get('confirm_password', '')
+                    target_user = db.session.get(User, user_id) if user_id else None
+
+                    if not target_user:
+                        flash('User not found.', 'error')
+                    elif target_user.id == current_user.id:
+                        flash('Use the Change Password tab to update your own password.', 'error')
+                    elif new_password != confirm_password:
+                        flash('Temporary passwords do not match.', 'error')
+                    else:
+                        is_valid, error_msg = User.validate_password(new_password)
+                        if not is_valid:
+                            flash(error_msg, 'error')
+                        else:
+                            target_user.set_password(new_password)
+                            target_user.password_changed_at = datetime.datetime.now(timezone.utc) - datetime.timedelta(days=31)
+                            db.session.commit()
+                            flash(f"Temporary password set for {target_user.email}. They must change it after signing in.", 'success')
+                return redirect(url_for('admin_dashboard', tab='section-user-access'))
+
             elif action == 'change_password':
                 current_password = request.form.get('current_password', '')
                 new_password = request.form.get('new_password', '')
@@ -538,7 +579,8 @@ def create_app():
                                            needs_password_change=needs_password_change,
                                            active_tab='section-reports',
                                            rvu_view=selected_view,
-                                           appt_requests=appt_requests_early)
+                                           appt_requests=appt_requests_early,
+                                           admin_users=admin_users)
 
             elif action == 'generate_quarterly_bonus':
                 if needs_password_change:
@@ -560,7 +602,8 @@ def create_app():
                                            needs_password_change=needs_password_change,
                                            active_tab='section-reports',
                                            bonus_report=bonus_report,
-                                           selected_quarter=raw_quarter)
+                                           selected_quarter=raw_quarter,
+                                           admin_users=admin_users)
 
             return redirect(url_for('admin_dashboard'))
 
@@ -591,7 +634,7 @@ def create_app():
         return render_template('admin/dashboard.html', page_title='Admin Dashboard', banner=banner,
                                needs_password_change=needs_password_change, active_tab=active_tab, appt_requests=appt_requests,
                                bonus_report=bonus_report, selected_quarter=default_quarter,
-                               available_quarters=available_quarters)
+                               available_quarters=available_quarters, admin_users=admin_users)
 
     @app.route('/admin/reports/rvu_image')
     @login_required

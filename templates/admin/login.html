@@ -82,6 +82,21 @@
             margin-top: 0.5rem;
         }
 
+        .login-help {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .login-help a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-help a:hover {
+            text-decoration: underline;
+        }
+
         .flash-messages {
             margin-bottom: 1rem;
         }
@@ -137,6 +152,9 @@
                 </div>
                 <button type="submit" class="button">Sign In</button>
             </form>
+            <p class="login-help">
+                <a href="{{ url_for('admin_forgot_password') }}">Forgot password?</a>
+            </p>
         </div>
     </div>
 </body>
