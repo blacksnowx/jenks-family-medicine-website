@@ -1,85 +1,93 @@
 {% extends "base.html" %}
-
-{% block head %}
-<meta name="description"
-    content="Schedule an appointment with a provider at Jenks Family Medicine in Chattanooga, TN.">
-<style>
-    .provider-select-header { background-color:#f8f8f8; padding:2.5em 0; text-align:center; }
-    .provider-select-header h1 { margin-bottom:.25em; }
-    .provider-select-header p { max-width:600px; margin:0 auto; color:var(--text-light); font-size:1.1rem; }
-    .provider-select-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:2.5rem; max-width:900px; margin:0 auto; }
-    .provider-select-card { background:#fff; border-radius:var(--radius-lg,12px); overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,.07); border:1px solid rgba(0,0,0,.04); transition:transform .3s ease,box-shadow .3s ease; display:flex; flex-direction:column; }
-    .provider-select-card:hover { transform:translateY(-6px); box-shadow:0 12px 32px rgba(0,0,0,.12); }
-    .provider-select-card__image { width:100%; height:340px; object-fit:cover; object-position:center top; }
-    .provider-select-card__body { padding:2rem 2rem 2.5rem; flex:1; display:flex; flex-direction:column; }
-    .provider-select-card__body h3 { font-size:1.6rem; color:var(--primary-color); margin-bottom:.2em; }
-    .provider-select-card__title { font-size:1rem; color:var(--text-light,#64748b); font-style:italic; margin-bottom:1em; }
-    .provider-select-card__highlights { list-style:none; padding:0; margin-bottom:1.5em; flex:1; }
-    .provider-select-card__highlights li { position:relative; padding-left:1.5em; margin-bottom:.55em; font-size:.95rem; color:var(--text-color,#1e293b); line-height:1.5; }
-    .provider-select-card__highlights li::before { content:"\2713"; color:var(--primary-color); font-weight:bold; position:absolute; left:0; top:1px; }
-    .provider-select-card__cta { text-align:center; }
-    .provider-select-card__cta .button { width:100%; }
-    .or-call { text-align:center; margin-top:2.5rem; padding:1.5rem; background:#f8fafc; border-radius:10px; border:1.5px solid #e2e8f0; }
-    .or-call p { margin:0; color:var(--text-color,#1e293b); font-size:1rem; }
-    .or-call a { font-weight:600; }
-    .location-link { text-align:center; margin-top:1.5rem; }
-    .location-link a { color:var(--primary-color); font-weight:500; font-size:.95rem; }
-    @media (max-width:740px) { .provider-select-grid { grid-template-columns:1fr; max-width:420px; } }
-</style>
-{% endblock %}
+{% from "_components.html" import provider_card %}
 
 {% block content %}
-<section class="provider-select-header">
+<section class="page-hero page-hero--compact" aria-labelledby="scheduling-title">
     <div class="container">
-        <h1>Schedule an Appointment</h1>
-        <p>Select a provider below to book your visit online through our patient scheduling portal.</p>
+        <div class="page-hero__content">
+            <p class="eyebrow">Appointments</p>
+            <h1 id="scheduling-title">Choose the care and timing that work for you.</h1>
+            <p class="page-hero__lede">Book online with Ehrin Irvin, NP, or Anne Jenks, NP. Amanda Rice, NP, begins seeing patients in September 2026; call our office to ask about her upcoming availability.</p>
+            <div class="page-hero__actions">
+                <a class="button button--dark" href="#choose-provider">Choose a provider</a>
+                <a class="button button--outline" href="tel:4233735457">Call (423) 373-5457</a>
+            </div>
+        </div>
     </div>
 </section>
 
-<section class="section">
+<section class="section section--tight" aria-label="How online scheduling works">
     <div class="container">
-        <div class="provider-select-grid">
-            <!-- Ehrin Irvin -->
-            <div class="provider-select-card reveal">
-                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Ehrin.jpg') }}" alt="Ehrin Irvin, NP">
-                <div class="provider-select-card__body">
-                    <h3>Ehrin Irvin, NP</h3>
-                    <p class="provider-select-card__title">AANP Board Certified Family Nurse Practitioner</p>
-                    <ul class="provider-select-card__highlights">
-                        <li>Certified Compensation &amp; Pension Examiner</li>
-                        <li>Certified FMCSA DOT Examiner</li>
-                        <li>MSN, University of Tennessee at Chattanooga</li>
-                    </ul>
-                    <div class="provider-select-card__cta">
-                        <a href="https://consumer.scheduling.athena.io/?locationId=34992-1&practitionerId=34992-4" class="button" target="_blank" rel="noopener noreferrer">Schedule with Ehrin</a>
-                    </div>
-                </div>
-            </div>
+        <div class="journey-strip">
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">01</span>
+                <h3>Choose a provider</h3>
+                <p>Review the care team below and select the best fit for your visit.</p>
+            </article>
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">02</span>
+                <h3>Pick a time</h3>
+                <p>Athena scheduling opens in a new tab with current appointment options.</p>
+            </article>
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">03</span>
+                <h3>Need help?</h3>
+                <p>Call us during business hours and our team will help you schedule.</p>
+            </article>
+        </div>
+    </div>
+</section>
 
-            <!-- Anne Jenks -->
-            <div class="provider-select-card reveal">
-                <img class="provider-select-card__image" src="{{ url_for('static', filename='images/Anne.jpg') }}" alt="Anne Jenks, NP">
-                <div class="provider-select-card__body">
-                    <h3>Anne Jenks, NP</h3>
-                    <p class="provider-select-card__title">ANCC Board Certified Family Nurse Practitioner</p>
-                    <ul class="provider-select-card__highlights">
-                        <li>Certified Compensation &amp; Pension Examiner</li>
-                        <li>Certified FMCSA DOT Examiner</li>
-                        <li>MSN, University of Maryland, Baltimore</li>
-                    </ul>
-                    <div class="provider-select-card__cta">
-                        <a href="https://consumer.scheduling.athena.io/?locationId=34992-1&practitionerId=34992-5" class="button" target="_blank" rel="noopener noreferrer">Schedule with Anne</a>
-                    </div>
-                </div>
+<section class="section section--soft" id="choose-provider" aria-labelledby="provider-choice-title">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Choose your provider</p>
+            <h2 id="provider-choice-title">Start with the person you would like to see.</h2>
+            <p>Available appointment types and times are shown in Athena after you select an online scheduling link.</p>
+        </div>
+
+        <div class="notice notice--info" role="note">
+            <div class="notice__body">
+                <h3>Online scheduling opens in a new tab.</h3>
+                <p>Athena handles the clinic's online appointment calendar. If you do not see the visit type or time you need, call us at <a href="tel:4233735457">(423) 373-5457</a>.</p>
             </div>
         </div>
 
-        <div class="or-call">
-            <p>Prefer to call? Reach us at <a href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
+        <div class="provider-grid provider-grid--booking">
+            {% for member in booking_providers %}
+                {{ provider_card(member, booking=true) }}
+            {% endfor %}
         </div>
+    </div>
+</section>
 
-        <div class="location-link">
-            <a href="https://consumer.scheduling.athena.io/?locationId=34992-1" target="_blank" rel="noopener noreferrer">Or view all available appointments at our location &rarr;</a>
+<section class="section" aria-labelledby="patient-tools-title">
+    <div class="container">
+        <aside class="notice notice--portal">
+            <div class="notice__body">
+                <p class="eyebrow">Already a patient?</p>
+                <h2 id="patient-tools-title">Use the secure patient portal for ongoing care.</h2>
+                <p>View health information, request prescription refills, and send secure messages to the clinic through Athena's patient portal.</p>
+            </div>
+            <div class="notice__actions">
+                <a class="button button--outline" href="{{ url_for('patient_portal') }}">Go to patient portal</a>
+            </div>
+        </aside>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container">
+        <div class="cta-band">
+            <div class="cta-band__copy">
+                <p class="eyebrow">More appointment options</p>
+                <h2>See the full clinic calendar.</h2>
+                <p>View all currently available appointments at our Tennessee Avenue location, or call us for personal scheduling help.</p>
+            </div>
+            <div class="cta-band__actions">
+                <a class="button button--dark" href="{{ athena_location_url }}" target="_blank" rel="noopener noreferrer">View all appointments</a>
+                <a class="button button--outline" href="tel:4233735457">Call the clinic</a>
+            </div>
         </div>
     </div>
 </section>

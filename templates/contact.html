@@ -1,124 +1,92 @@
 {% extends "base.html" %}
 
-{% block head %}
-    <meta name="description" content="Contact Jenks Family Medicine in Chattanooga. Find our address, phone number, hours, map, and parking information.">
-    <style>
-        .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2em;
-            margin-top: 1.5em;
-        }
-        .contact-info h3, .map-area h3 { /* Removed .form-area h3 */
-            margin-bottom: 1em;
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.3em;
-            color: var(--primary-color);
-        }
-        .contact-info p { margin-bottom: 0.8em; line-height: 1.6;}
-        .map-placeholder {
-            /* Styles for placeholder text removed or adjusted for iframe */
-            /* background-color: #eee; */ /* No longer needed */
-            /* height: 300px; */ /* Removed to allow iframe to set its own height */
-            /* display: flex; */ /* No longer needed */
-            /* align-items: center; */ /* No longer needed */
-            /* justify-content: center; */ /* No longer needed */
-            /* text-align: center; */ /* No longer needed */
-            /* color: #666; */ /* No longer needed */
-            border: 1px solid #ddd; /* Optional: keep a subtle border */
-            border-radius: 4px; /* Optional: keep rounded corners */
-            overflow: hidden; /* Ensures iframe respects border-radius */
-        }
-        /* Basic Form Styling (Adjust as needed) - Removed as form is removed */
-        /*
-        .contact-form label { display: block; margin-bottom: 0.3em; font-weight: bold; }
-        .contact-form input[type="text"],
-        .contact-form input[type="email"],
-        .contact-form textarea {
-            width: 100%;
-            padding: 0.7em;
-            margin-bottom: 1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-        .contact-form textarea { min-height: 120px; }
-        .contact-form button { margin-top: 0.5em; }
-         .form-disclaimer {
-             font-size: 0.85rem;
-             color: #e74c3c; // Reddish warning color
-             margin-top: 1em;
-             font-style: italic;
-        }
-        */
-    </style>
-{% endblock %}
-
 {% block content %}
-<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+<section class="page-hero">
     <div class="container">
-        <h1>Get In Touch</h1>
+        <p class="eyebrow">Contact &amp; directions</p>
+        <h1>Get in touch</h1>
+        <p>Call, visit, or use our secure patient portal when you need our care team.</p>
     </div>
 </section>
 
-<section class="contact-content reveal">
+<section class="section reveal">
     <div class="container">
-        <div class="team-photo-container" style="text-align: center; margin-bottom: 2em;">
-            <img src="{{ url_for('static', filename='images/Team.jpg') }}" alt="The Jenks Family Medicine Team" style="max-width: 100%; height: auto; border-radius: 8px;">
+        <div class="split-layout contact-layout">
+            <div class="content-panel">
+                <img src="{{ url_for('static', filename='images/Team.jpg') }}" alt="The Jenks Family Medicine team">
+
+                <div class="contact-card">
+                    <p class="eyebrow">Contact information</p>
+                    <h2>Reach our office</h2>
+                    <address class="contact-list">
+                        <p>
+                            <strong>Address</strong><br>
+                            3908 Tennessee Avenue, Suite 110<br>
+                            Chattanooga, TN 37409
+                        </p>
+                        <p>
+                            <strong>Phone</strong><br>
+                            <a class="text-link" href="tel:4233735457">(423) 373-5457</a>
+                        </p>
+                        <p>
+                            <strong>Fax</strong><br>
+                            (423) 380-7154
+                        </p>
+                        <p>
+                            <strong>Email</strong><br>
+                            <a class="text-link" href="mailto:office@jenksfamilymedicine.com">office@jenksfamilymedicine.com</a>
+                        </p>
+                    </address>
+                    <div class="notice">
+                        <p>For general inquiries only. Please do not send sensitive health information via email. Use the <a class="text-link" href="{{ url_for('patient_portal') }}">Patient Portal</a> for secure communication.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-panel">
+                <div class="contact-card">
+                    <p class="eyebrow">Office hours</p>
+                    <h2>When we are open</h2>
+                    <dl class="hours-list">
+                        <div><dt>Monday</dt><dd>8:00 AM - 4:00 PM</dd></div>
+                        <div><dt>Tuesday</dt><dd>8:00 AM - 4:00 PM</dd></div>
+                        <div><dt>Wednesday</dt><dd>8:00 AM - 4:00 PM</dd></div>
+                        <div><dt>Thursday</dt><dd>8:00 AM - 4:00 PM</dd></div>
+                        <div><dt>Friday</dt><dd>8:00 AM - 4:00 PM</dd></div>
+                        <div><dt>Saturday &amp; Sunday</dt><dd>Closed</dd></div>
+                    </dl>
+                </div>
+
+                <div class="contact-card">
+                    <p class="eyebrow">Parking</p>
+                    <h2>Arriving for your visit</h2>
+                    <p>Free parking is available. Please scan the QR code upon arrival, and our office will provide the validation code. Alternatively, we can validate using your license plate number in the office.</p>
+                </div>
+            </div>
         </div>
-        <div class="contact-grid">
-            <div class="contact-info">
-                <h3>Contact Information</h3>
-                <p>
-                    <strong>Address:</strong><br>
-                    3908 Tennessee Avenue, Suite 110<br>
-                    Chattanooga, TN 37409
-                </p>
-                 <p>
-                    <strong>Phone:</strong> <a href="tel:4233735457">(423) 373-5457</a><br>
-                    <strong>Fax:</strong> (423) 380-7154
-                 </p>
-                 <p>
-                    <strong>Email:</strong> <a href="mailto:office@jenksfamilymedicine.com">office@jenksfamilymedicine.com</a><br>
-                    <em>(For general inquiries only. Please do not send sensitive health information via email. Use the <a href="{{ url_for('patient_portal')}}">Patient Portal</a> for secure communication.)</em>
-                 </p>
 
-                 <h3>Hours of Operation</h3>
-                 <p>
-                    Monday: 8:00 AM - 4:00 PM<br>
-                    Tuesday: 8:00 AM - 4:00 PM<br>
-                    Wednesday: 8:00 AM - 4:00 PM<br>
-                    Thursday: 8:00 AM - 4:00 PM<br>
-                    Friday: 8:00 AM - 4:00 PM<br>
-                    Saturday & Sunday: Closed
-                 </p>
-
-                 <h3>Parking</h3>
-                 <p>Free parking is available. Please scan the QR code upon arrival, and our office will provide the validation code. Alternatively, we can validate using your license plate number in the office.</p>
-
-                 <h3>Request an Appointment</h3>
-                 <!-- Update '#' with actual scheduling link -->
-                 <a href="{{ url_for('new_patient') }}" class="button" style="margin-top: 0.5em;">Schedule Appointment Online</a>
-                 <p style="margin-top: 0.5em;">Or call us at <a href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
-
+        <div class="content-panel">
+            <p class="eyebrow">Find us</p>
+            <h2>Location map</h2>
+            <div class="map-frame">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2747.9332455899803!2d-85.32976680020562!3d35.01016529725879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88605c46975dc4d3%3A0x83651eee25e9187b!2s3908%20Tennessee%20Ave%2C%20Chattanooga%2C%20TN%2037409!5e0!3m2!1sen!2sus!4v1747843961849!5m2!1sen!2sus" width="600" height="450" title="Map showing Jenks Family Medicine at 3908 Tennessee Avenue in Chattanooga" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
+        </div>
 
-            <div class="map-area">
-                <h3>Location Map</h3>
-                <div class="map-placeholder">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2747.9332455899803!2d-85.32976680020562!3d35.01016529725879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88605c46975dc4d3%3A0x83651eee25e9187b!2s3908%20Tennessee%20Ave%2C%20Chattanooga%2C%20TN%2037409!5e0!3m2!1sen!2sus!4v1747843961849!5m2!1sen!2sus" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-                </div>
+        <div class="notice">
+            <h2>Secure communication</h2>
+            <p>For general inquiries, please feel free to contact us via phone or email using the information provided on this page.</p>
+            <p>For medical-related matters, appointment requests, or to share personal health information, please use our secure <a class="text-link" href="{{ url_for('patient_portal') }}">Patient Portal</a> to ensure your privacy and the security of your information.</p>
+        </div>
 
-                <!-- New Secure Communication Section -->
-                <div style="margin-top: 2em;">
-                    <h3>Secure Communication</h3>
-                    <p>For general inquiries, please feel free to contact us via phone or email using the information provided on this page.</p>
-                    <p>For medical-related matters, appointment requests, or to share personal health information, please use our secure <a href="/patient-portal">Patient Portal</a> to ensure your privacy and the security of your information.</p>
-                </div>
-
+        <div class="cta-band">
+            <div>
+                <p class="eyebrow">Request an appointment</p>
+                <h2>Ready to schedule?</h2>
+                <p>Or call us at <a class="text-link" href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
             </div>
-        </div> <!-- /.contact-grid -->
-    </div><!-- /.container -->
+            <a href="{{ url_for('new_patient') }}" class="button button--dark">Schedule Appointment Online</a>
+        </div>
+    </div>
 </section>
 {% endblock %}

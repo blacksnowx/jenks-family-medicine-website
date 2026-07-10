@@ -1,198 +1,182 @@
 {% extends "base.html" %}
 
-{% block head %}
-    <meta name="description" content="Find local VA clinic info, VSO contacts, and online resources for U.S. Veterans in the Chattanooga area, provided by Jenks Family Medicine.">
-     <style>
-        .resource-section { margin-bottom: 1.5em; }
-        .resource-section h3 {
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.3em;
-            margin-bottom: 1em;
-            color: var(--primary-color);
-        }
-        .resource-list { list-style: none; padding-left: 0; }
-        .resource-list li { margin-bottom: 1em; line-height: 1.5; }
-        .resource-list strong { display: block; margin-bottom: 0.2em; font-family: var(--heading-font);}
-        .resource-list a { text-decoration: underline; }
-
-        #video-player-container {
-            margin-bottom: 1em;
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-            background: #000;
-        }
-        #video-player-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        #video-selector-container {
-            margin-top: 1.5em;
-        }
-        #video-selector-container label {
-            display: block;
-            margin-bottom: 0.5em;
-            font-weight: bold;
-            color: var(--text-color);
-        }
-        #video-select {
-            width: 100%;
-            padding: 0.8em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-family: var(--body-font);
-            font-size: 1em;
-            background-color: #fff;
-        }
-
-        /* New styles for two-column layout */
-        .top-content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Two equal columns */
-            gap: 2em; /* Space between columns */
-            align-items: flex-start; /* Align items to the top of their grid area */
-            margin-bottom: 2em; /* Space below the grid */
-        }
-
-        .left-column, .right-column {
-            /* Basic styling, can be adjusted */
-        }
-
-        .right-column .resource-section h3 {
-             margin-top: 0; /* Adjust if h2 from left column and h3 from right column are misaligned */
-        }
-
-        /* Responsive adjustments for the grid */
-        @media (max-width: 992px) { /* Tablet and below */
-            .top-content-grid {
-                grid-template-columns: 1fr; /* Stack columns */
-            }
-            .right-column {
-                margin-top: 2em; /* Add space when stacked */
-            }
-        }
-         @media (max-width: 768px) { /* Mobile */
-            #video-player-container {
-                /* Adjust video player size or aspect ratio for mobile if needed */
-            }
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+<section class="page-hero page-hero--compact">
     <div class="container">
+        <p class="eyebrow">Veteran resources</p>
         <h1>Resources for Our Valued Veterans</h1>
+        <p>Local contacts, facilities, and online resources to help Veterans navigate care and benefits.</p>
     </div>
 </section>
 
-<section class="resources-content reveal">
+<section class="section" id="veteran-exam-information">
     <div class="container">
-        <div class="top-content-grid">
-            <div class="left-column">
-                <h2>Our Commitment</h2>
-                <p>Jenks Family Medicine is proud to serve those who have served our country. We offer specialized Compensation & Pension (C&P) examinations and are committed to helping Veterans navigate healthcare resources.</p>
-            </div>
-            <div class="right-column">
-                <div class="resource-section"> <!-- Keep resource-section for consistent styling if needed -->
-                    <h3>VA C&P Exam Information</h3>
-                    <div id="video-player-container">
-                        <iframe id="youtube-video-player" width="560" height="315" src="https://www.youtube.com/embed/x7ZIBojruR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                    </div>
-                    <div id="video-selector-container">
-                        <label for="video-select">Select a video:</label>
-                        <select id="video-select" name="video-select">
-                            <option value="x7ZIBojruR0">Video 1: Why You Might Require Additional Testing</option>
-                            <option value="tScHtQrqqoY">Video 2: Why to Work with a Veterans Services Officer</option>
-                            <option value="DQ_5nDfVt2k">Video 3: Which Documents Should You Provide to the VA</option>
-                            <option value="CNAKVLF5k0M">Video 4: What's a Compensation & Pension Exam?</option>
-                            <option value="UKOyhkrQTNw">Video 5: Nexus Letters and Lay Statements</option>
-                            <option value="1THx0khpCXg">Video 6: How to Tell Your Story</option>
-                        </select>
-                    </div>
+        <div class="content-grid">
+            <article class="content-panel">
+                <p class="eyebrow">Our commitment</p>
+                <h2>Proud to Serve Those Who Served</h2>
+                <p>Jenks Family Medicine is proud to serve those who have served our country. We offer specialized Compensation &amp; Pension (C&amp;P) examinations and are committed to helping Veterans navigate healthcare resources.</p>
+                <a class="text-link" href="{{ url_for('services') }}#exams">View Veteran examination services <span aria-hidden="true">&rarr;</span></a>
+            </article>
+
+            <article class="media-panel">
+                <header class="section-heading">
+                    <p class="eyebrow">VA C&amp;P exam information</p>
+                    <h2>Watch and Learn</h2>
+                </header>
+
+                <div id="video-player-container">
+                    <iframe id="youtube-video-player" width="560" height="315"
+                        src="https://www.youtube.com/embed/x7ZIBojruR0"
+                        title="VA Compensation and Pension exam information"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen></iframe>
                 </div>
-            </div>
-        </div>
 
-        <div class="resource-section">
-            <h3>Local & State VSO Contacts</h3>
-             <ul class="resource-list">
-                 <li>
-                     <strong>Hamilton County VSO: Chuck Alsobrook</strong>
-                     Phone: <a href="tel:4232097884">(423) 209-7884</a><br>
-                     Address: 455 N Highland Park Ave., Room 204, Chattanooga, TN 37404<br>
-                     Hours: M-F, 8:00 AM - 4:00 PM<br>
-                     <!-- Website: <a href="#" target="_blank" rel="noopener">[Link to Hamilton County VSO page if available]</a> -->
-                 </li>
-                 <li>
-                     <strong>Tennessee State VSO (Chattanooga): George Davis</strong>
-                     Phone: <a href="tel:6153393796">(615) 339-3796</a><br>
-                     Address: 5726 Marlin Road, Suite 513, Chattanooga, TN 37411
-                 </li>
-                 <li>
-                    <strong>Tennessee VSO (State HQ):</strong> <a href="tel:6157411863">(615) 741-1863</a>
-                 </li>
-                 <li>
-                    <strong>Georgia VSO:</strong> <a href="tel:4046562300">(404) 656-2300</a>
-                 </li>
-                 <li>
-                     <strong>Alabama VSO:</strong> <a href="tel:3342425077">(334) 242-5077</a>
-                 </li>
-            </ul>
+                <div id="video-selector-container">
+                    <label for="video-select">Select a video:</label>
+                    <select class="form-select" id="video-select" name="video-select">
+                        <option value="x7ZIBojruR0">Video 1: Why You Might Require Additional Testing</option>
+                        <option value="tScHtQrqqoY">Video 2: Why to Work with a Veterans Services Officer</option>
+                        <option value="DQ_5nDfVt2k">Video 3: Which Documents Should You Provide to the VA</option>
+                        <option value="CNAKVLF5k0M">Video 4: What's a Compensation &amp; Pension Exam?</option>
+                        <option value="UKOyhkrQTNw">Video 5: Nexus Letters and Lay Statements</option>
+                        <option value="1THx0khpCXg">Video 6: How to Tell Your Story</option>
+                    </select>
+                </div>
+            </article>
         </div>
-
-         <div class="resource-section">
-            <h3>Local VA Facilities & Support</h3>
-             <ul class="resource-list">
-                <li>
-                    <strong>Chattanooga VA Clinic</strong>
-                    Phone: <a href="tel:4238936500">(423) 893-6500</a><br>
-                    Address: 6401 Shallowford Road, Chattanooga, TN 37421
-                 </li>
-                 <li>
-                    <strong>Chattanooga Vet Center</strong> (Readjustment Counseling & Support)
-                    Phone: <a href="tel:4238556570">(423) 855-6570</a><br>
-                    Address: 1300 Premier Drive, Suite 180, Chattanooga, TN 37421
-                 </li>
-                 <li>
-                     <strong>Peer Support Specialist (Chattanooga VA Clinic): John Perry</strong>
-                     Phone: <a href="tel:4238936500p26050">(423) 893-6500 ext. 26050</a>
-                 </li>
-             </ul>
-        </div>
-
-         <div class="resource-section">
-            <h3>Online Resources</h3>
-             <ul class="resource-list">
-                <li>
-                    <strong>Chattanooga Unite Veterans Resource Center</strong><br> Comprehensive local resources.<br>
-                    Website: <a href="https://chattanoogaunite.com/" target="_blank" rel="noopener noreferrer">https://chattanoogaunite.com/</a>
-                 </li>
-                 <li>
-                    <strong>Department of Veteran Affairs (VA)</strong><br>
-                    Apply for VA Healthcare: <a href="https://www.va.gov/health-care/apply/application/introduction" target="_blank" rel="noopener noreferrer">VA Health Care Application</a><br>
-                    VA Main Information Line (MyVA411): <a href="tel:8006982411">800-698-2411</a> (TTY: 711) - 24/7<br>
-                    VA Health Eligibility Center: <a href="tel:8772228387">877-222-8387</a> (TTY: 711) - M-F, 8 AM - 8 PM ET
-                 </li>
-            </ul>
-        </div>
-
-    </div><!-- /.container -->
+    </div>
 </section>
 
+<section class="section section--soft" id="vso-contacts">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Local &amp; state support</p>
+            <h2>Veterans Service Officer Contacts</h2>
+        </header>
+
+        <div class="resource-grid">
+            <article class="resource-card">
+                <p class="eyebrow">Hamilton County</p>
+                <h3>Hamilton County VSO: Chuck Alsobrook</h3>
+                <ul class="detail-list">
+                    <li><strong>Phone</strong> <a href="tel:4232097884">(423) 209-7884</a></li>
+                    <li><strong>Address</strong> 455 N Highland Park Ave., Room 204, Chattanooga, TN 37404</li>
+                    <li><strong>Hours</strong> M-F, 8:00 AM - 4:00 PM</li>
+                </ul>
+            </article>
+
+            <article class="resource-card">
+                <p class="eyebrow">Chattanooga</p>
+                <h3>Tennessee State VSO: George Davis</h3>
+                <ul class="detail-list">
+                    <li><strong>Phone</strong> <a href="tel:6153393796">(615) 339-3796</a></li>
+                    <li><strong>Address</strong> 5726 Marlin Road, Suite 513, Chattanooga, TN 37411</li>
+                </ul>
+            </article>
+
+            <article class="resource-card">
+                <p class="eyebrow">Regional contacts</p>
+                <h3>State VSO Phone Lines</h3>
+                <ul class="detail-list">
+                    <li><strong>Tennessee VSO (State HQ)</strong> <a href="tel:6157411863">(615) 741-1863</a></li>
+                    <li><strong>Georgia VSO</strong> <a href="tel:4046562300">(404) 656-2300</a></li>
+                    <li><strong>Alabama VSO</strong> <a href="tel:3342425077">(334) 242-5077</a></li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="local-va-support">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Nearby support</p>
+            <h2>Local VA Facilities &amp; Support</h2>
+        </header>
+
+        <div class="resource-grid">
+            <article class="resource-card">
+                <h3>Chattanooga VA Clinic</h3>
+                <ul class="detail-list">
+                    <li><strong>Phone</strong> <a href="tel:4238936500">(423) 893-6500</a></li>
+                    <li><strong>Address</strong> 6401 Shallowford Road, Chattanooga, TN 37421</li>
+                </ul>
+            </article>
+
+            <article class="resource-card">
+                <h3>Chattanooga Vet Center</h3>
+                <p>Readjustment Counseling &amp; Support</p>
+                <ul class="detail-list">
+                    <li><strong>Phone</strong> <a href="tel:4238556570">(423) 855-6570</a></li>
+                    <li><strong>Address</strong> 1300 Premier Drive, Suite 180, Chattanooga, TN 37421</li>
+                </ul>
+            </article>
+
+            <article class="resource-card">
+                <h3>Peer Support Specialist</h3>
+                <p>John Perry, Chattanooga VA Clinic</p>
+                <ul class="detail-list">
+                    <li><strong>Phone</strong> <a href="tel:4238936500p26050">(423) 893-6500 ext. 26050</a></li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section section--soft" id="online-veteran-resources">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Continue online</p>
+            <h2>Online Resources</h2>
+        </header>
+
+        <div class="resource-grid">
+            <article class="resource-card">
+                <h3>Chattanooga Unite Veterans Resource Center</h3>
+                <p>Comprehensive local resources.</p>
+                <a class="text-link" href="https://chattanoogaunite.com/" target="_blank" rel="noopener noreferrer">Visit chattanoogaunite.com <span aria-hidden="true">&nearr;</span></a>
+            </article>
+
+            <article class="resource-card">
+                <h3>Department of Veteran Affairs (VA)</h3>
+                <ul class="detail-list">
+                    <li><strong>Apply for VA Healthcare</strong> <a href="https://www.va.gov/health-care/apply/application/introduction" target="_blank" rel="noopener noreferrer">VA Health Care Application</a></li>
+                    <li><strong>VA Main Information Line (MyVA411)</strong> <a href="tel:8006982411">800-698-2411</a> (TTY: 711) - 24/7</li>
+                    <li><strong>VA Health Eligibility Center</strong> <a href="tel:8772228387">877-222-8387</a> (TTY: 711) - M-F, 8 AM - 8 PM ET</li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section section--dark">
+    <div class="container">
+        <div class="cta-band">
+            <div>
+                <p class="eyebrow">Veteran services at Jenks</p>
+                <h2>Learn More About Our Examination Services</h2>
+            </div>
+            <div class="cta-band__actions">
+                <a class="button" href="{{ url_for('services') }}#exams">View examination services</a>
+                <a class="text-link" href="{{ url_for('contact') }}">Contact us <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const videoPlayer = document.getElementById('youtube-video-player');
     const videoSelect = document.getElementById('video-select');
 
     if (videoPlayer && videoSelect) {
-        videoSelect.addEventListener('change', function() {
+        videoSelect.addEventListener('change', function () {
             const selectedVideoId = this.value;
             if (selectedVideoId) {
                 videoPlayer.src = `https://www.youtube.com/embed/${selectedVideoId}`;
@@ -201,5 +185,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
 {% endblock %}

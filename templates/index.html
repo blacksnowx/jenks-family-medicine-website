@@ -1,119 +1,190 @@
 {% extends "base.html" %}
-
-{% block title %}Primary Care & Veteran Services - Jenks Family Medicine{% endblock %}
+{% import "_components.html" as ui %}
 
 {% block head %}
-{{ super() }}
-<meta name="description"
-    content="Jenks Family Medicine offers compassionate primary care in Chattanooga, TN, specializing in family health, veteran exams, and DOT physicals.">
 <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "MedicalBusiness",
-      "name": "Jenks Family Medicine",
-      "image": "{{ url_for('static', filename='images/logo.png', _external=True) }}",
-      "@id": "{{ url_for('index', _external=True) }}",
-      "url": "{{ url_for('index', _external=True) }}",
-      "telephone": "+14233735457",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "3908 Tennessee Avenue, Suite 110",
-        "addressLocality": "Chattanooga",
-        "addressRegion": "TN",
-        "postalCode": "37409",
-        "addressCountry": "US"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 35.0066,
-        "longitude": -85.3228
-      },
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": [
-            "Monday",
-            "Tuesday",
-            "Wednesday",
-            "Friday"
-          ],
-          "opens": "08:00",
-          "closes": "16:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Thursday",
-          "opens": "08:00",
-          "closes": "23:00"
-        }
-      ],
-      "sameAs": [
-        "https://www.facebook.com/JenksFamilyMedicine"
-      ]
-    }
-    </script>
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalClinic",
+  "name": "Jenks Family Medicine",
+  "image": "{{ url_for('static', filename='images/Team.jpg', _external=True) }}",
+  "url": "{{ url_for('index', _external=True) }}",
+  "telephone": "+1-423-373-5457",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "3908 Tennessee Avenue, Suite 110",
+    "addressLocality": "Chattanooga",
+    "addressRegion": "TN",
+    "postalCode": "37409",
+    "addressCountry": "US"
+  },
+  "openingHoursSpecification": [{
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    "opens": "08:00",
+    "closes": "16:00"
+  }],
+  "sameAs": ["https://www.facebook.com/JenksFamilyMedicine"]
+}
+</script>
 {% endblock %}
 
 {% block content %}
-<section class="hero">
-    <div class="container reveal">
-        <h1>Compassionate Primary Care in Chattanooga</h1>
-        <p class="subheadline">
-            Jenks Family Medicine: Your partners in health, led by experienced Nurse Practitioners. Specializing in
-            family wellness, sick visits, physicals, and dedicated care for U.S. Veterans and Servicemembers.
-        </p>
-        <div class="hero-actions">
-            <a href="{{ url_for('new_patient') }}" class="button">Schedule Appointment</a>
-            <a href="{{ url_for('services') }}" class="button button-secondary">Explore Our Services</a>
+<section class="home-hero">
+    <div class="container home-hero__grid">
+        <div class="home-hero__copy reveal">
+            <p class="eyebrow">Independent primary care in Chattanooga</p>
+            <h1>Care that knows your name.</h1>
+            <p class="home-hero__lead">Thoughtful, relationship-based healthcare for everyday illness, lifelong wellness, physicals, and the people who served our country.</p>
+            <div class="button-group">
+                <a href="{{ url_for('new_patient') }}" class="button button--dark">Book a Visit {{ ui.arrow_icon() }}</a>
+                <a href="{{ url_for('patient_portal') }}" class="button button--outline">I'm an Existing Patient</a>
+            </div>
+            <ul class="trust-list" aria-label="Clinic highlights">
+                <li><strong>NP-led</strong><span>Personal, attentive care</span></li>
+                <li><strong>Ages 2+</strong><span>Sick visits available</span></li>
+                <li><strong>Veteran-focused</strong><span>Exams and primary care</span></li>
+            </ul>
+        </div>
+
+        <div class="home-hero__visual reveal">
+            <div class="hero-photo-frame">
+                <img src="{{ url_for('static', filename='images/Team.jpg') }}"
+                    alt="The Jenks Family Medicine team in the Chattanooga clinic" width="1051" height="701">
+                <span class="hero-photo-frame__mark" aria-hidden="true"></span>
+            </div>
+            <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
+                <span class="new-provider-note__initials" aria-hidden="true">AR</span>
+                <span><small>Joining the team</small><strong>Amanda Rice, NP</strong><em>Appointments begin September 2026</em></span>
+                {{ ui.arrow_icon() }}
+            </a>
         </div>
     </div>
 </section>
 
-<section class="section section-bg reveal">
-    <div class="container text-center">
-        <h2>Dedicated Care for Our Community</h2>
-        <p style="max-width: 800px; margin: 0 auto;">Located conveniently in Chattanooga, TN, Jenks Family Medicine is a
-            Nurse Practitioner-led clinic committed
-            to providing accessible, high-quality healthcare. We serve the St. Elmo and Alton Park communities, offering
-            personalized care for families and individuals, with a special focus on supporting our Veterans.</p>
+<nav class="care-shortcuts" aria-label="Quick care links">
+    <div class="container care-shortcuts__inner">
+        <span class="care-shortcuts__label">I need help with</span>
+        <a href="{{ url_for('services') }}#primary-care">A sick visit</a>
+        <a href="{{ url_for('services') }}#primary-care">Annual wellness</a>
+        <a href="{{ url_for('services') }}#exams">A physical</a>
+        <a href="{{ url_for('veteran_resources') }}">Veteran services</a>
     </div>
-</section>
+</nav>
 
-<section class="section reveal">
+<section class="section" aria-labelledby="care-heading">
     <div class="container">
-        <div class="text-center mb-3">
-            <h2>How We Can Help You</h2>
+        <div class="section-heading section-heading--split reveal">
+            <div>
+                <p class="eyebrow">Care for real life</p>
+                <h2 id="care-heading">One clinic. More ways to care for you.</h2>
+            </div>
+            <p>From a sore throat to a DOT physical, our team keeps care clear, personal, and close to home.</p>
         </div>
 
-        <div class="services-grid">
-            <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Primary Care Img.png') }}" alt="Primary Care Icon">
-                <h3>Primary Care</h3>
-                <ul>
-                    <li>Sick visits (ages 2+)</li>
-                    <li>Annual physicals (ages 5+)</li>
-                    <li>Chronic disease management (ages 8+)</li>
-                </ul>
+        <div class="pathway-grid">
+            <a class="pathway-card pathway-card--primary reveal" href="{{ url_for('services') }}#primary-care">
+                <span class="pathway-card__number">01</span>
+                <span class="pathway-card__icon" aria-hidden="true">
+                    <svg viewBox="0 0 56 56"><path d="M28 49S8 37 8 20.5C8 12.5 18 8 28 18c10-10 20-5.5 20 2.5C48 37 28 49 28 49Z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M21 28h14M28 21v14" stroke="currentColor" stroke-width="2.2"/></svg>
+                </span>
+                <span class="pathway-card__content">
+                    <small>Everyday & preventive</small>
+                    <strong>Primary Care</strong>
+                    <span>Sick visits, annual physicals, wellness, and chronic care management.</span>
+                </span>
+                <span class="pathway-card__link">Explore primary care {{ ui.arrow_icon() }}</span>
+            </a>
+
+            <a class="pathway-card pathway-card--dark reveal" href="{{ url_for('veteran_resources') }}">
+                <span class="pathway-card__number">02</span>
+                <span class="pathway-card__icon" aria-hidden="true">
+                    <svg viewBox="0 0 56 56"><path d="m28 7 6 12 13 2-9.5 9.5L40 44l-12-6.5L16 44l2.5-13.5L9 21l13-2 6-12Z" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+                </span>
+                <span class="pathway-card__content">
+                    <small>Honoring those who served</small>
+                    <strong>Veteran Services</strong>
+                    <span>Compensation & Pension exams and primary care through VA Community Care.</span>
+                </span>
+                <span class="pathway-card__link">Veteran care & resources {{ ui.arrow_icon() }}</span>
+            </a>
+
+            <a class="pathway-card pathway-card--outline reveal" href="{{ url_for('services') }}#exams">
+                <span class="pathway-card__number">03</span>
+                <span class="pathway-card__icon" aria-hidden="true">
+                    <svg viewBox="0 0 56 56"><rect x="13" y="9" width="30" height="39" rx="2" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M22 9V6h12v3M20 23h16M20 31h16M20 39h10" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+                </span>
+                <span class="pathway-card__content">
+                    <small>Ready for what's next</small>
+                    <strong>Specialty Exams</strong>
+                    <span>DOT, pre-employment, college, sports, and camp physicals.</span>
+                </span>
+                <span class="pathway-card__link">View exams & pricing {{ ui.arrow_icon() }}</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="section section--soft" aria-labelledby="amanda-heading">
+    <div class="container">
+        <div class="amanda-feature reveal">
+            <div class="amanda-feature__portrait" aria-label="Photo of Amanda Rice coming soon">
+                <span class="amanda-feature__cross" aria-hidden="true"></span>
+                <span class="amanda-feature__initials" aria-hidden="true">AR</span>
+                <small>Photo coming soon</small>
             </div>
-            <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Veteran Services Img.png') }}"
-                    alt="Veteran Services Icon">
-                <h3>Veteran Services</h3>
-                <ul>
-                    <li>Expert Compensation & Pension Disability Examinations</li>
-                    <li>Primary Care through VACCN</li>
-                </ul>
+            <div class="amanda-feature__copy">
+                <p class="eyebrow">Our team is growing</p>
+                <h2 id="amanda-heading">Meet Amanda Rice, NP</h2>
+                <p class="amanda-feature__lead">Amanda is joining the Jenks Family Medicine primary care team, bringing another caring set of hands to our Chattanooga community.</p>
+                <div class="availability-line">
+                    <span aria-hidden="true"></span>
+                    <strong>Appointments beginning September 2026</strong>
+                </div>
+                <div class="button-group">
+                    <a href="{{ url_for('about') }}#amanda-rice" class="button button--dark">Meet Amanda {{ ui.arrow_icon() }}</a>
+                    <a href="tel:4233735457" class="text-link">Call about September availability</a>
+                </div>
             </div>
-            <div class="service-card">
-                <img src="{{ url_for('static', filename='images/Specialty Exams Img.png') }}"
-                    alt="Specialty Exams Icon">
-                <h3>Specialty Exams</h3>
-                <ul>
-                    <li>DOT physicals</li>
-                    <li>Pre-employment physicals</li>
-                    <li>Sports & camp physicals</li>
-                </ul>
-            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" aria-labelledby="experience-heading">
+    <div class="container experience-grid">
+        <div class="section-heading reveal">
+            <p class="eyebrow">A simpler patient experience</p>
+            <h2 id="experience-heading">Care without the runaround.</h2>
+            <p>Clear next steps, familiar faces, and secure follow-up help you spend less time navigating and more time feeling better.</p>
+            <a href="{{ url_for('about') }}" class="text-link">Why patients choose Jenks {{ ui.arrow_icon() }}</a>
+        </div>
+        <ol class="experience-steps">
+            <li class="reveal">
+                <span>1</span>
+                <div><h3>Choose your visit</h3><p>Book online with an available provider or call us for help finding the right appointment.</p></div>
+            </li>
+            <li class="reveal">
+                <span>2</span>
+                <div><h3>Meet with your care team</h3><p>Get thoughtful, evidence-informed care built around your needs and goals.</p></div>
+            </li>
+            <li class="reveal">
+                <span>3</span>
+                <div><h3>Stay connected</h3><p>Use the secure patient portal for records, messages, results, and refill requests.</p></div>
+            </li>
+        </ol>
+    </div>
+</section>
+
+<section class="veteran-band" aria-labelledby="veteran-heading">
+    <div class="container veteran-band__grid">
+        <div class="veteran-band__mark" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="veteran-band__copy reveal">
+            <p class="eyebrow">Veteran-centered care</p>
+            <h2 id="veteran-heading">You served. We're here to help.</h2>
+            <p>Our team provides specialized C&P examinations and connects Chattanooga-area Veterans with useful local and federal resources.</p>
+            <a href="{{ url_for('veteran_resources') }}" class="button button--blue">Explore Veteran Resources {{ ui.arrow_icon() }}</a>
         </div>
     </div>
 </section>
@@ -121,49 +192,60 @@
 <section class="reviews-section reveal" aria-labelledby="google-reviews-title" data-reviews-section>
     <div class="container">
         <div class="reviews-header">
-            <div class="reviews-badge is-hidden" data-reviews-summary>
-                <div class="reviews-badge__stars" aria-hidden="true">
-                    <span class="reviews-badge__star">★</span>
-                    <span class="reviews-badge__star">★</span>
-                    <span class="reviews-badge__star">★</span>
-                    <span class="reviews-badge__star">★</span>
-                    <span class="reviews-badge__star">★</span>
-                </div>
-                <div class="reviews-badge__details">
-                    <span class="reviews-badge__rating"><span data-reviews-rating>—</span><span
-                            class="reviews-badge__out-of">/5</span></span>
-                    <span class="reviews-badge__count"><span data-reviews-count>—</span> Google reviews</span>
-                </div>
+            <div>
+                <p class="eyebrow">From our patients</p>
+                <h2 id="google-reviews-title">Care people remember.</h2>
             </div>
-            <h2 id="google-reviews-title">Loved by Patients Across Chattanooga</h2>
-            <p class="reviews-subtitle">Real 5-star stories pulled directly from our Google Reviews listing.</p>
+            <div class="reviews-badge is-hidden" data-reviews-summary>
+                <span class="reviews-badge__stars" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+                <span><strong data-reviews-rating>--</strong>/5 from <span data-reviews-count>--</span> Google reviews</span>
+            </div>
         </div>
         <div class="reviews-carousel" data-reviews-carousel>
-            <button class="carousel-control carousel-control--prev" type="button" aria-label="Show previous review"
-                data-reviews-prev>
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                        d="M15.5 19a1 1 0 0 1-.7-.29l-6-6a1 1 0 0 1 0-1.42l6-6a1 1 0 0 1 1.41 1.42L10.91 12l5.3 5.29A1 1 0 0 1 15.5 19z" />
-                </svg>
+            <button class="carousel-control carousel-control--prev" type="button" aria-label="Show previous review" data-reviews-prev>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" /></svg>
             </button>
             <div class="reviews-window" data-reviews-window>
                 <div class="reviews-track" data-reviews-track>
                     <article class="review-card review-card--loading" data-reviews-loader>
                         <div class="review-card__spinner" aria-hidden="true"></div>
-                        <p>Loading Google reviews…</p>
+                        <p>Loading recent Google reviews...</p>
                     </article>
                 </div>
             </div>
-            <button class="carousel-control carousel-control--next" type="button" aria-label="Show next review"
-                data-reviews-next>
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                        d="M8.5 19a1 1 0 0 1-.71-1.71L13.09 12l-5.3-5.29a1 1 0 1 1 1.41-1.42l6 6a1 1 0 0 1 0 1.42l-6 6A1 1 0 0 1 8.5 19z" />
-                </svg>
+            <button class="carousel-control carousel-control--next" type="button" aria-label="Show next review" data-reviews-next>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" /></svg>
             </button>
         </div>
-        <p class="reviews-status" data-reviews-status aria-live="polite">Fetching the latest Google feedback…</p>
+        <div class="reviews-meta">
+            <p class="reviews-status" data-reviews-status aria-live="polite">Fetching the latest Google feedback...</p>
+            <button class="reviews-toggle" type="button" data-reviews-toggle aria-pressed="false">Pause reviews</button>
+        </div>
     </div>
 </section>
 
+<section class="section section--soft location-preview" aria-labelledby="location-heading">
+    <div class="container location-preview__grid">
+        <div class="location-preview__copy reveal">
+            <p class="eyebrow">Right here in Chattanooga</p>
+            <h2 id="location-heading">Local care. Easy to find.</h2>
+            <p>Visit us in Suite 110 at 3908 Tennessee Avenue, close to the St. Elmo and Alton Park communities.</p>
+            <dl class="location-facts">
+                <div><dt>Hours</dt><dd>Monday-Friday<br>8 AM-4 PM</dd></div>
+                <div><dt>Phone</dt><dd><a href="tel:4233735457">(423) 373-5457</a></dd></div>
+                <div><dt>Parking</dt><dd>Free with validation</dd></div>
+            </dl>
+            <div class="button-group">
+                <a href="https://maps.google.com/?q=3908+Tennessee+Avenue+Suite+110+Chattanooga+TN+37409" class="button button--dark" target="_blank" rel="noopener noreferrer">Get Directions {{ ui.arrow_icon() }}</a>
+                <a href="{{ url_for('contact') }}" class="text-link">Contact details</a>
+            </div>
+        </div>
+        <div class="location-preview__art" aria-hidden="true">
+            <span class="location-preview__route"></span>
+            <span class="location-preview__pin">JFM</span>
+            <span class="location-preview__street">Tennessee Avenue</span>
+            <span class="location-preview__cross"></span>
+        </div>
+    </div>
+</section>
 {% endblock %}

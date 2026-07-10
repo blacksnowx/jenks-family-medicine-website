@@ -1,0 +1,58 @@
+{% macro arrow_icon() -%}
+<svg class="icon icon-arrow" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+    <path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
+{%- endmacro %}
+
+{% macro provider_card(member, booking=false) -%}
+<article class="provider-card{% if member.is_new %} provider-card--new{% endif %}" id="{{ member.slug }}">
+    <div class="provider-card__media">
+        {% if member.image %}
+        <img src="{{ url_for('static', filename=member.image) }}"
+            alt="{{ member.image_alt }}" width="640" height="800" loading="lazy">
+        {% else %}
+        <div class="provider-placeholder" aria-label="Photo of Amanda Rice coming soon">
+            <span class="provider-placeholder__cross" aria-hidden="true"></span>
+            <span class="provider-placeholder__initials" aria-hidden="true">{{ member.initials }}</span>
+            <span class="provider-placeholder__caption">Photo coming soon</span>
+        </div>
+        {% endif %}
+        {% if member.is_new %}<span class="provider-card__flag">New to Jenks</span>{% endif %}
+    </div>
+    <div class="provider-card__body">
+        {% if member.availability %}<p class="availability-badge">{{ member.availability }}</p>{% endif %}
+        <h3>{{ member.name }}</h3>
+        <p class="provider-card__role">{{ member.credential }} <span aria-hidden="true">·</span> {{ member.role }}</p>
+        {% if member.highlights %}
+        <ul class="check-list">
+            {% for highlight in member.highlights %}<li>{{ highlight }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+        {% if booking %}
+        <div class="provider-card__actions">
+            {% if member.booking_url %}
+            <a class="button button--dark button--full" href="{{ member.booking_url }}" target="_blank" rel="noopener noreferrer">
+                {{ member.booking_label }} {{ arrow_icon() }}
+            </a>
+            {% else %}
+            <a class="button button--outline button--full" href="tel:4233735457">{{ member.booking_label }}</a>
+            <p class="provider-card__note">Call our office for Amanda's September appointment availability.</p>
+            {% endif %}
+        </div>
+        {% elif member.profile_url %}
+        <a class="text-link" href="{{ member.profile_url }}" target="_blank" rel="noopener noreferrer">Visit QuikSurg {{ arrow_icon() }}</a>
+        {% endif %}
+    </div>
+</article>
+{%- endmacro %}
+
+{% macro staff_card(member) -%}
+<article class="staff-card" id="{{ member.slug }}">
+    <img src="{{ url_for('static', filename=member.image) }}" alt="{{ member.image_alt }}"
+        width="480" height="600" loading="lazy">
+    <div class="staff-card__body">
+        <h3>{{ member.name }}</h3>
+        <p>{{ member.role }}</p>
+    </div>
+</article>
+{%- endmacro %}

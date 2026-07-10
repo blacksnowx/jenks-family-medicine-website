@@ -1,133 +1,53 @@
 {% extends "base.html" %}
 
-{% block head %}
-    <meta name="description" content="Access the secure patient portal for Jenks Family Medicine. View records, message staff, and manage appointments.">
-    <style>
-        .portal-hero {
-            background-color: var(--primary-color);
-            color: #fff;
-            padding: 2.5em 0;
-            text-align: center;
-        }
-        .portal-hero h1 {
-            color: #fff;
-            margin-bottom: 0.3em;
-        }
-        .portal-hero p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin: 0 auto 1.5em;
-        }
-        .portal-hero .button {
-            background-color: #fff;
-            color: var(--primary-color);
-            font-size: 1rem;
-            padding: 1em 2.5em;
-        }
-        .portal-hero .button:hover {
-            background-color: var(--primary-light);
-            color: var(--primary-dark);
-        }
-        .portal-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2.5rem;
-            margin-top: 2rem;
-        }
-        .portal-card {
-            background: #fff;
-            border: 1px solid #e8e8e8;
-            border-radius: 10px;
-            padding: 2rem;
-        }
-        .portal-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.75em;
-            color: var(--primary-color);
-        }
-        .portal-steps {
-            list-style: decimal;
-            margin-left: 20px;
-            margin-bottom: 0;
-        }
-        .portal-steps li {
-            margin-bottom: 0.6em;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-        .portal-features {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .portal-features li {
-            position: relative;
-            padding-left: 1.5em;
-            margin-bottom: 0.6em;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-        .portal-features li::before {
-            content: "\2713";
-            color: var(--primary-color);
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-        .portal-help {
-            text-align: center;
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: var(--bg-surface);
-            border-radius: 10px;
-        }
-        .portal-help p { margin: 0; }
-        @media (max-width: 768px) {
-            .portal-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<section class="portal-hero">
+<section class="page-hero">
     <div class="container">
-        <h1>Your Patient Portal</h1>
+        <p class="eyebrow">Secure online access</p>
+        <h1>Your patient portal</h1>
         <p>View records, message our staff, request refills, and manage your health information securely.</p>
-        <a href="https://34992.portal.athenahealth.com" class="button" target="_blank" rel="noopener noreferrer">Log In to Patient Portal</a>
+        <a href="https://34992.portal.athenahealth.com" class="button button--dark" target="_blank" rel="noopener noreferrer">Log In to Patient Portal</a>
     </div>
 </section>
 
-<section class="section">
+<section class="section reveal">
     <div class="container">
         <div class="portal-grid">
-            <div class="portal-card">
-                <h3>First Time? Activate Your Account</h3>
-                <ol class="portal-steps">
-                    <li><strong>Receive Invitation</strong> — Check your email (and spam folder) for an activation invite from our office.</li>
-                    <li><strong>Activate</strong> — Click "Get Started" in the email to create your password and verify your identity.</li>
-                    <li><strong>Complete Setup</strong> — Follow the on-screen instructions to finish your account.</li>
-                    <li><strong>Log In</strong> — Once activated, use the button above or visit <a href="https://34992.portal.athenahealth.com" target="_blank" rel="noopener noreferrer">34992.portal.athenahealth.com</a>.</li>
+            <article class="content-panel">
+                <p class="eyebrow">New portal users</p>
+                <h2>First time? Activate your account</h2>
+                <ol class="step-list">
+                    <li><strong>Receive Invitation</strong> &mdash; Check your email (and spam folder) for an activation invite from our office.</li>
+                    <li><strong>Activate</strong> &mdash; Click "Get Started" in the email to create your password and verify your identity.</li>
+                    <li><strong>Complete Setup</strong> &mdash; Follow the on-screen instructions to finish your account.</li>
+                    <li><strong>Log In</strong> &mdash; Once activated, use the button above or visit <a class="text-link" href="https://34992.portal.athenahealth.com" target="_blank" rel="noopener noreferrer">34992.portal.athenahealth.com</a>.</li>
                 </ol>
-            </div>
+            </article>
 
-            <div class="portal-card">
-                <h3>What You Can Do</h3>
-                <ul class="portal-features">
+            <article class="content-panel">
+                <p class="eyebrow">Portal features</p>
+                <h2>What you can do</h2>
+                <ul class="check-list">
                     <li>View lab results, medication lists, and visit summaries</li>
                     <li>Communicate securely with our clinical staff</li>
                     <li>Request prescription refills</li>
                     <li>View upcoming appointments</li>
                     <li>Update your personal information</li>
                 </ul>
-            </div>
+            </article>
         </div>
 
-        <div class="portal-help">
-            <p>Need help activating your account or logging in? Call us at <a href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
+        <div class="notice">
+            <h2>Need help?</h2>
+            <p>Need help activating your account or logging in? Call us at <a class="text-link" href="tel:4233735457">(423) 373-5457</a> during business hours.</p>
+        </div>
+
+        <div class="cta-band">
+            <div>
+                <p class="eyebrow">Athenahealth portal</p>
+                <h2>Your health information, in one secure place</h2>
+            </div>
+            <a href="https://34992.portal.athenahealth.com" class="button button--outline" target="_blank" rel="noopener noreferrer">Open Patient Portal</a>
         </div>
     </div>
 </section>

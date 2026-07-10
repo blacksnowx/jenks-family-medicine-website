@@ -1,114 +1,141 @@
 {% extends "base.html" %}
 
-{% block head %}
-<meta name="description"
-    content="Explore primary care services, veteran C&P exams, DOT physicals, and accepted insurance plans at Jenks Family Medicine in Chattanooga.">
-<style>
-    .service-list {
-        list-style: disc;
-        margin-left: 20px;
-        margin-bottom: 1.5em;
-    }
-
-    .service-list li {
-        margin-bottom: 0.5em;
-    }
-
-    .disclaimer {
-        font-size: 0.9rem;
-        color: #555;
-        border-left: 3px solid var(--primary-color);
-        padding-left: 1em;
-        margin-top: 1em;
-        margin-bottom: 1.5em;
-        font-style: italic;
-    }
-
-    .insurance-list {
-        column-count: 2;
-        /* Make list two columns on wider screens */
-        column-gap: 2em;
-        list-style: none;
-        padding: 0;
-    }
-
-    .insurance-list li {
-        margin-bottom: 0.4em;
-    }
-
-    @media (max-width: 600px) {
-        .insurance-list {
-            column-count: 1;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+<section class="page-hero page-hero--compact">
     <div class="container">
+        <p class="eyebrow">Services &amp; insurance</p>
         <h1>Comprehensive Care for Your Needs</h1>
+        <p>Explore our primary care services, specialty examinations, telehealth options, accepted insurance plans, and important office policies.</p>
     </div>
 </section>
 
-<section class="services-content reveal">
+<nav class="section section--soft" aria-label="Services on this page">
     <div class="container">
-        <h2>Primary Care Services</h2>
-        <p>We offer a wide range of primary care services to keep you and your family healthy.</p>
-        <ul class="service-list">
-            <li>Annual Physicals & Wellness Exams (Ages 5+)</li>
-            <li>Chronic Care Management (Hypertension, Diabetes Type II, Hypothyroidism, Asthma, etc. - <em>Established
-                    Patients</em>)</li>
-            <li>Sick Visits (Ages 2+) for conditions like: Conjunctivitis (Pink Eye), Ear Infections, Sinus Infections,
-                Strep Throat, Flu, COVID-19 (Testing & Treatment), Upper Respiratory Infections, Gastroenteritis, UTIs,
-                Vaginal Yeast Infections, Dental Infections (Initial Assessment/Antibiotics), Constipation</li>
-            <li>Skin Conditions (Rashes, Eczema, Fungal, Poison Ivy/Oak, Scabies, Shingles, Styes, Head Lice)</li>
-            <li>Minor Laceration Care (Assessment & Simple Repair)</li>
-            <li>Simple Skin Tag Removal & Wart Removal (Cryotherapy)</li>
-            <li>Cerumen (Earwax) Removal</li>
-            <li>Birth Control Management (Incl. Depo-Provera Injections)</li>
-            <li>Pregnancy Evaluation</li>
-            <li>Vitamin B-12 Injections</li>
-            <li>Smoking Cessation Support</li>
-            <li>Blood Titers (MMR, Varicella, Hep B, etc.)</li>
-            <li>Tuberculosis (TB) Skin Testing</li>
-            <li>Bloodwork (Ordered & drawn during in-office visits) <a href="#lab-fees">*See Lab Fees Note</a></li>
-        </ul>
-        <p class="disclaimer">This list is not exhaustive. Please call us at (423) 373-5457 if you have questions about
-            a specific condition or service.</p>
+        <div class="service-jump-grid">
+            <a class="service-jump-card" href="#primary-care">
+                <span class="eyebrow">Everyday care</span>
+                <strong>Primary Care</strong>
+                <span class="text-link">View services <span aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="service-jump-card" href="#exams">
+                <span class="eyebrow">Focused visits</span>
+                <strong>Specialty Exams</strong>
+                <span class="text-link">View examinations <span aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="service-jump-card" href="#telehealth">
+                <span class="eyebrow">Established patients</span>
+                <strong>Telehealth</strong>
+                <span class="text-link">See availability <span aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="service-jump-card" href="#insurance">
+                <span class="eyebrow">Coverage &amp; payment</span>
+                <strong>Insurance</strong>
+                <span class="text-link">Review plans <span aria-hidden="true">&rarr;</span></span>
+            </a>
+            <a class="service-jump-card" href="#policies">
+                <span class="eyebrow">Before your visit</span>
+                <strong>Office Policies</strong>
+                <span class="text-link">Read policies <span aria-hidden="true">&rarr;</span></span>
+            </a>
+        </div>
+    </div>
+</nav>
 
-        <hr style="margin: 1.5em 0;">
+<section class="section" id="primary-care">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Primary care</p>
+            <h2>Care for Your Ongoing and Everyday Health</h2>
+            <p>We offer a wide range of primary care services to keep you and your family healthy.</p>
+        </header>
 
-        <h2>Specialty Examinations</h2>
-        <ul class="service-list">
-            <li><strong>Veteran Compensation & Pension (C&P) Exams:</strong> Expert examinations for VA disability
-                claims.</li>
-            <li><strong>RHRP Exams:</strong> For U.S. Service Members.</li>
-            <li><strong>DOT Physicals:</strong> Certified FMCSA exams ($120*), Follow-ups ($35*).</li>
-            <li><strong>Pre-Employment / College Physicals:</strong> ($100*).</li>
-            <li><strong>Sports & Camp Physicals:</strong> ($60*).</li>
-        </ul>
-        <p class="disclaimer">*Insurance typically does not cover these specific physicals. Payment is due at the time
-            of service. Most HSA cards are accepted.</p>
+        <div class="content-panel">
+            <ul class="check-list check-list--columns">
+                <li>Annual Physicals &amp; Wellness Exams (Ages 5+)</li>
+                <li>Chronic Care Management (Hypertension, Diabetes Type II, Hypothyroidism, Asthma, etc. - <em>Established Patients</em>)</li>
+                <li>Sick Visits (Ages 2+) for conditions like: Conjunctivitis (Pink Eye), Ear Infections, Sinus Infections, Strep Throat, Flu, COVID-19 (Testing &amp; Treatment), Upper Respiratory Infections, Gastroenteritis, UTIs, Vaginal Yeast Infections, Dental Infections (Initial Assessment/Antibiotics), Constipation</li>
+                <li>Skin Conditions (Rashes, Eczema, Fungal, Poison Ivy/Oak, Scabies, Shingles, Styes, Head Lice)</li>
+                <li>Minor Laceration Care (Assessment &amp; Simple Repair)</li>
+                <li>Simple Skin Tag Removal &amp; Wart Removal (Cryotherapy)</li>
+                <li>Cerumen (Earwax) Removal</li>
+                <li>Birth Control Management (Incl. Depo-Provera Injections)</li>
+                <li>Pregnancy Evaluation</li>
+                <li>Vitamin B-12 Injections</li>
+                <li>Smoking Cessation Support</li>
+                <li>Blood Titers (MMR, Varicella, Hep B, etc.)</li>
+                <li>Tuberculosis (TB) Skin Testing</li>
+                <li>Bloodwork (Ordered &amp; drawn during in-office visits) <a class="text-link" href="#lab-fees">See Lab Fees Note</a></li>
+            </ul>
+        </div>
 
-        <hr style="margin: 1.5em 0;">
+        <aside class="notice" aria-label="Primary care service note">
+            <strong>Have a question about a specific need?</strong>
+            <p>This list is not exhaustive. Please call us at <a href="tel:4233735457">(423) 373-5457</a> if you have questions about a specific condition or service.</p>
+        </aside>
+    </div>
+</section>
 
-        <h2>Telehealth Services</h2>
-        <p>Convenient telehealth appointments are available for <em>select services</em> for <em>established
-                patients</em> during our normal business hours. New patients require an initial in-office visit. Please
-            call to inquire if telehealth is suitable for your needs.</p>
+<section class="section section--soft" id="exams">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Specialty examinations</p>
+            <h2>Clear, Focused Exams</h2>
+        </header>
 
-        <hr style="margin: 1.5em 0;">
+        <div class="content-grid">
+            <article class="content-panel">
+                <h3>Veteran &amp; Servicemember Exams</h3>
+                <ul class="detail-list">
+                    <li><strong>Veteran Compensation &amp; Pension (C&amp;P) Exams:</strong> Expert examinations for VA disability claims.</li>
+                    <li><strong>RHRP Exams:</strong> For U.S. Service Members.</li>
+                </ul>
+            </article>
 
-        <h2>Insurance & Payment</h2>
-        <p>We strive to make care accessible and accept self-pay patients and a wide range of insurance plans,
-            including:</p>
-        <ul class="insurance-list">
+            <article class="content-panel">
+                <h3>Physicals</h3>
+                <ul class="detail-list">
+                    <li><strong>DOT Physicals:</strong> Certified FMCSA exams ($120*), Follow-ups ($35*).</li>
+                    <li><strong>Pre-Employment / College Physicals:</strong> ($100*).</li>
+                    <li><strong>Sports &amp; Camp Physicals:</strong> ($60*).</li>
+                </ul>
+            </article>
+        </div>
+
+        <aside class="notice" aria-label="Specialty examination payment note">
+            <p>*Insurance typically does not cover these specific physicals. Payment is due at the time of service. Most HSA cards are accepted.</p>
+        </aside>
+    </div>
+</section>
+
+<section class="section" id="telehealth">
+    <div class="container">
+        <div class="content-grid">
+            <header class="section-heading">
+                <p class="eyebrow">Telehealth services</p>
+                <h2>Care When an Office Visit Is Not Needed</h2>
+            </header>
+            <div class="content-panel">
+                <p>Convenient telehealth appointments are available for <em>select services</em> for <em>established patients</em> during our normal business hours. New patients require an initial in-office visit. Please call to inquire if telehealth is suitable for your needs.</p>
+                <a class="text-link" href="tel:4233735457">Call (423) 373-5457 <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section--soft" id="insurance">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Insurance &amp; payment</p>
+            <h2>Plans We Accept</h2>
+            <p>We strive to make care accessible and accept self-pay patients and a wide range of insurance plans, including:</p>
+        </header>
+
+        <ul class="insurance-grid" aria-label="Accepted insurance plans">
             <li>Aetna</li>
             <li>Alliant</li>
             <li>Allied</li>
             <li>BlueCare (effective 04/01/2026)</li>
-            <li>Blue Cross Blue Shield (Networks P & S)</li>
+            <li>Blue Cross Blue Shield (Networks P &amp; S)</li>
             <li>ChampVA</li>
             <li>Cigna</li>
             <li>Humana</li>
@@ -118,28 +145,58 @@
             <li>VA Community Care</li>
             <li>Wellpoint (formerly Amerigroup)</li>
         </ul>
-        <p style="margin-top: 1em;"><strong>Please Note:</strong> We are not in network with Georgia Medicaid.</p>
-        <p class="disclaimer" style="margin-top: 1.5em;">
-            <strong>Verification Required:</strong> Insurance networks can change. It is the patient's responsibility to
-            verify with their insurance provider that Jenks Family Medicine is in-network with their specific plan
-            before scheduling.
-        </p>
+
+        <div class="content-grid">
+            <aside class="notice">
+                <strong>Please Note</strong>
+                <p>We are not in network with Georgia Medicaid.</p>
+            </aside>
+            <aside class="notice">
+                <strong>Verification Required</strong>
+                <p>Insurance networks can change. It is the patient's responsibility to verify with their insurance provider that Jenks Family Medicine is in-network with their specific plan before scheduling.</p>
+            </aside>
+        </div>
+
         <p><strong>Self-Pay:</strong> Our self-pay fee schedule is available upon request. Please call for details.</p>
+    </div>
+</section>
 
-        <hr style="margin: 1.5em 0;">
+<section class="section" id="policies">
+    <div class="container">
+        <header class="section-heading">
+            <p class="eyebrow">Before your visit</p>
+            <h2>Important Policies</h2>
+        </header>
 
-        <h2 id="important-policies">Important Policies</h2>
-        <ul class="service-list">
-            <li><strong>Late Arrivals:</strong> Arriving more than 15 minutes late may require rescheduling. We
-                appreciate your understanding.</li>
-            <li id="lab-fees"><strong>Lab Fees:</strong> Additional fees from external labs (Quest, LabCorp) may apply
-                for bloodwork. Jenks Family Medicine is not responsible for determining insurance coverage for these
-                external lab costs.</li>
-            <li><strong>Narcotic Prescriptions:</strong> For patient safety, we do not prescribe narcotic medications.
-                We are happy to provide referrals to appropriate specialists for pain management or other specific
-                needs.</li>
-        </ul>
+        <dl class="detail-list">
+            <div class="content-panel">
+                <dt>Late Arrivals</dt>
+                <dd>Arriving more than 15 minutes late may require rescheduling. We appreciate your understanding.</dd>
+            </div>
+            <div class="content-panel" id="lab-fees">
+                <dt>Lab Fees</dt>
+                <dd>Additional fees from external labs (Quest, LabCorp) may apply for bloodwork. Jenks Family Medicine is not responsible for determining insurance coverage for these external lab costs.</dd>
+            </div>
+            <div class="content-panel">
+                <dt>Narcotic Prescriptions</dt>
+                <dd>For patient safety, we do not prescribe narcotic medications. We are happy to provide referrals to appropriate specialists for pain management or other specific needs.</dd>
+            </div>
+        </dl>
+    </div>
+</section>
 
-    </div><!-- /.container -->
+<section class="section section--dark">
+    <div class="container">
+        <div class="cta-band">
+            <div>
+                <p class="eyebrow">Questions before you schedule?</p>
+                <h2>Let Our Team Help You Find the Right Visit</h2>
+            </div>
+            <div class="cta-band__actions">
+                <a class="button" href="tel:4233735457">Call (423) 373-5457</a>
+                <a class="text-link" href="{{ url_for('contact') }}">Contact us <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </div>
+    </div>
 </section>
 {% endblock %}

@@ -2,155 +2,166 @@
 <html lang="en">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="{{ page_meta.description if page_meta and page_meta.description else 'Compassionate primary care, veteran services, and specialty exams in Chattanooga, Tennessee.' }}">
+    <title>{% block title %}{{ page_meta.title if page_meta and page_meta.title else page_title|default('Jenks Family Medicine') }}{% if (page_meta and page_meta.title) or page_title %} | Jenks Family Medicine{% endif %}{% endblock %}</title>
+
+    <link rel="canonical" href="{{ page_url|default(request.base_url) }}">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/Montserrat-Bold.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ url_for('static', filename='fonts/ClashGrotesk-Regular.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ page_url|default(request.base_url) }}">
+    <meta property="og:site_name" content="Jenks Family Medicine">
+    <meta property="og:title" content="{{ page_meta.title if page_meta and page_meta.title else page_title|default('Jenks Family Medicine') }}">
+    <meta property="og:description" content="{{ page_meta.description if page_meta and page_meta.description else 'Compassionate primary care, veteran services, and specialty exams in Chattanooga, Tennessee.' }}">
+    <meta property="og:image" content="{{ url_for('static', filename='images/Team.jpg', _external=True) }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ page_meta.title if page_meta and page_meta.title else page_title|default('Jenks Family Medicine') }}">
+    <meta name="twitter:description" content="{{ page_meta.description if page_meta and page_meta.description else 'Compassionate primary care in Chattanooga, Tennessee.' }}">
+    <meta name="twitter:image" content="{{ url_for('static', filename='images/Team.jpg', _external=True) }}">
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17838591179"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'AW-17838591179');
     </script>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}" type="image/png">
-    <link rel="canonical" href="{{ page_url|default(request.base_url) }}">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="business.business">
-    <meta property="og:url" content="{{ page_url|default(request.base_url) }}">
-    <meta property="og:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
-    <meta property="og:description"
-        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and DOT physicals.">
-    <meta property="og:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary">
-    <meta property="twitter:url" content="{{ page_url|default(request.base_url) }}">
-    <meta property="twitter:title" content="{% if page_title %}{{ page_title }} - {% endif %}Jenks Family Medicine">
-    <meta property="twitter:description"
-        content="Jenks Family Medicine: Compassionate primary care in Chattanooga, TN. Specializing in family health, veterans exams, and DOT physicals.">
-    <meta property="twitter:image" content="{{ url_for('static', filename='images/logo.png', _external=True) }}">
     {% block head %}{% endblock %}
 </head>
 
-<body>
-    {# Temporary scheduling transition banner — remove after 2026-04-20 #}
-    {% set today = None %}
-    <div class="site-banner" id="site-banner-temp" style="display:none;">
-        <div class="container site-banner__inner">
-            <p class="site-banner__text">Online scheduling is coming soon! In the meantime, please call <a href="tel:4233735457" style="color:#fff;text-decoration:underline;">(423) 373-5457</a> to schedule an appointment.</p>
-            <button class="site-banner__close" onclick="document.getElementById('site-banner-temp').style.display='none'"
-                aria-label="Dismiss banner">&times;</button>
-        </div>
-    </div>
-    <script>
-    (function(){
-        var cutoff = new Date('2026-04-21T00:00:00');
-        if (new Date() < cutoff) {
-            document.getElementById('site-banner-temp').style.display = '';
-        }
-    })();
-    </script>
+<body class="page-{{ active_endpoint|default('public') }}">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
 
-    {# Homepage announcement banner (admin-controlled) #}
-    {% if banner and banner.is_active and banner.message %}
-    <div class="site-banner" id="site-banner">
+    {% if banner and banner.is_active and banner.message and active_endpoint == 'index' %}
+    <aside class="site-banner" id="site-banner" aria-label="Clinic announcement">
         <div class="container site-banner__inner">
             <p class="site-banner__text">{{ banner.message }}</p>
-            <button class="site-banner__close" onclick="document.getElementById('site-banner').style.display='none'"
-                aria-label="Dismiss banner">&times;</button>
-        </div>
-    </div>
-    {% endif %}
-
-    {# Add id="main-header" #}
-    {% block header %}
-    <header class="main-header" id="main-header">
-        <div class="container">
-            <a href="{{ url_for('index') }}" class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine Logo">
-            </a>
-            <nav class="main-nav" id="main-nav">
-                <ul>
-                    <li><a href="{{ url_for('index') }}">Home</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('services') }}">Services & Insurance</a></li>
-                    <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
-                    <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact Us</a></li>
-                    <li><a href="{{ url_for('new_patient') }}" class="button button-nav">Schedule Appointment</a></li>
-                </ul>
-            </nav>
-            <button class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
+            <button class="site-banner__close" type="button" data-dismiss-banner aria-label="Dismiss announcement">
+                <span aria-hidden="true">&times;</span>
             </button>
         </div>
+    </aside>
+    {% endif %}
+
+    {% block header %}
+    <div class="utility-bar" aria-label="Clinic quick information">
+        <div class="container utility-bar__inner">
+            <div class="utility-bar__group">
+                <a href="tel:4233735457">
+                    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.2 2.5 8 6.9 6.4 8.5c1.1 2.2 2.9 4 5.1 5.1L13.1 12l4.4 2.8-1 2.2c-.3.7-1 1.1-1.8 1-6.7-.9-11.8-6-12.7-12.7-.1-.8.3-1.5 1-1.8l2.2-1Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" /></svg>
+                    (423) 373-5457
+                </a>
+                <span class="utility-bar__detail">Monday-Friday, 8 AM-4 PM</span>
+            </div>
+            <div class="utility-bar__group utility-bar__group--end">
+                <a href="https://maps.google.com/?q=3908+Tennessee+Avenue+Suite+110+Chattanooga+TN+37409" target="_blank" rel="noopener noreferrer">Directions</a>
+                <a href="{{ url_for('patient_portal') }}">Patient Portal</a>
+            </div>
+        </div>
+    </div>
+
+    <header class="main-header" id="main-header" data-site-header>
+        <div class="container header-inner">
+            <a href="{{ url_for('index') }}" class="logo" aria-label="Jenks Family Medicine home">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine" width="302" height="56">
+            </a>
+
+            <button class="mobile-nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false"
+                aria-controls="main-nav" data-nav-toggle>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+
+            <nav class="main-nav" id="main-nav" aria-label="Primary navigation" data-main-nav>
+                <ul>
+                    <li><a href="{{ url_for('index') }}"{% if active_endpoint == 'index' %} aria-current="page"{% endif %}>Home</a></li>
+                    <li><a href="{{ url_for('services') }}"{% if active_endpoint == 'services' %} aria-current="page"{% endif %}>Care & Services</a></li>
+                    <li><a href="{{ url_for('about') }}"{% if active_endpoint == 'about' %} aria-current="page"{% endif %}>Our Team</a></li>
+                    <li><a href="{{ url_for('veteran_resources') }}"{% if active_endpoint == 'veteran_resources' %} aria-current="page"{% endif %}>Veterans</a></li>
+                    <li><a href="{{ url_for('contact') }}"{% if active_endpoint == 'contact' %} aria-current="page"{% endif %}>Contact</a></li>
+                    <li class="main-nav__mobile-link"><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
+                    <li class="main-nav__action"><a href="{{ url_for('new_patient') }}" class="button button--dark button--small"{% if active_endpoint == 'new_patient' %} aria-current="page"{% endif %}>Book a Visit</a></li>
+                </ul>
+                <div class="main-nav__contact">
+                    <span>Need help choosing?</span>
+                    <a href="tel:4233735457">Call (423) 373-5457</a>
+                </div>
+            </nav>
+        </div>
+        <button class="nav-scrim" type="button" data-nav-scrim aria-label="Close navigation" aria-hidden="true" tabindex="-1"></button>
     </header>
     {% endblock %}
 
-    <main>
-        {% block content %}
-        <!-- Page specific content goes here -->
-        {% endblock %}
+    <main id="main-content" tabindex="-1">
+        {% block content %}{% endblock %}
     </main>
 
     {% block footer %}
     <footer class="main-footer">
-        <div class="container">
-            <div class="footer-col">
-                <h4>Jenks Family Medicine</h4>
-                <p>3908 Tennessee Avenue<br>
-                    Suite 110<br>
-                    Chattanooga, TN 37409</p>
-                <p>
-                    Phone: (423) 373-5457<br>
-                    Fax: (423) 380-7154<br>
-                    Email: office@jenksfamilymedicine.com
-                </p>
+        <div class="footer-callout">
+            <div class="container footer-callout__inner">
+                <div>
+                    <p class="eyebrow">Primary care, made personal</p>
+                    <h2>Ready to feel heard?</h2>
+                </div>
+                <div class="footer-callout__actions">
+                    <a href="{{ url_for('new_patient') }}" class="button button--dark">Book a Visit</a>
+                    <a href="tel:4233735457" class="button button--ghost">Call the Clinic</a>
+                </div>
+            </div>
+        </div>
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="{{ url_for('index') }}" aria-label="Jenks Family Medicine home">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Jenks Family Medicine" width="302" height="56" loading="lazy">
+                </a>
+                <p>Independent, nurse practitioner-led primary care for Chattanooga families, Veterans, and Servicemembers.</p>
+                <a class="text-link" href="https://maps.google.com/?q=3908+Tennessee+Avenue+Suite+110+Chattanooga+TN+37409" target="_blank" rel="noopener noreferrer">3908 Tennessee Avenue, Suite 110<br>Chattanooga, TN 37409</a>
             </div>
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h3>Explore</h3>
                 <ul>
-                    <li><a href="{{ url_for('index') }}">Home</a></li>
-                    <li><a href="{{ url_for('about') }}">About Us</a></li>
-                    <li><a href="{{ url_for('services') }}">Services</a></li>
+                    <li><a href="{{ url_for('services') }}">Care & Services</a></li>
+                    <li><a href="{{ url_for('about') }}">Our Team</a></li>
                     <li><a href="{{ url_for('veteran_resources') }}">Veteran Resources</a></li>
-                    <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
-                    <li><a href="{{ url_for('contact') }}">Contact</a></li>
-                    <li><a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></li>
+                    <li><a href="{{ url_for('contact') }}">Contact & Directions</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Hours</h4>
-                <p>
-                    Monday: 8:00 AM - 4:00 PM<br>
-                    Tuesday: 8:00 AM - 4:00 PM<br>
-                    Wednesday: 8:00 AM - 4:00 PM<br>
-                    Thursday: 8:00 AM - 4:00 PM<br>
-                    Friday: 8:00 AM - 4:00 PM<br>
-                    Sat/Sun: Closed
-                </p>
+                <h3>Patients</h3>
+                <ul>
+                    <li><a href="{{ url_for('new_patient') }}">Schedule an Appointment</a></li>
+                    <li><a href="{{ url_for('patient_portal') }}">Patient Portal</a></li>
+                    <li><a href="{{ url_for('privacy_policy') }}">Privacy Practices</a></li>
+                    <li><a href="mailto:office@jenksfamilymedicine.com">office@jenksfamilymedicine.com</a></li>
+                </ul>
             </div>
-            <div class="footer-col">
-                <h4>Connect</h4>
-                <!-- Add Actual Social Media Links Here -->
-                <p><a href="https://www.facebook.com/JenksFamilyMedicine" target="_blank"
-                        rel="noopener noreferrer">Facebook</a></p>
+            <div class="footer-col footer-hours">
+                <h3>Clinic Hours</h3>
+                <dl>
+                    <div><dt>Monday-Friday</dt><dd>8 AM-4 PM</dd></div>
+                    <div><dt>Saturday-Sunday</dt><dd>Closed</dd></div>
+                </dl>
+                <p><a href="tel:4233735457">(423) 373-5457</a><br>Fax (423) 380-7154</p>
             </div>
         </div>
         <div class="footer-bottom">
-            © {{ current_year }} Jenks Family Medicine. All Rights Reserved.
+            <div class="container footer-bottom__inner">
+                <p>&copy; {{ current_year }} Jenks Family Medicine, PLLC</p>
+                <a href="https://www.facebook.com/JenksFamilyMedicine" target="_blank" rel="noopener noreferrer">Facebook</a>
+            </div>
         </div>
     </footer>
     {% endblock %}
 
-    {# Link the JavaScript file #}
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>

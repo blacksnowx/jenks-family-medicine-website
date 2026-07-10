@@ -18,6 +18,14 @@ from data import new_patients_analytics
 from data.data_loader import get_database_url, normalize_provider
 from data import owner_analytics
 from data.pii_utils import hash_pii_columns
+from clinic_content import (
+    AMANDA_RICE,
+    ATHENA_LOCATION_URL,
+    BOOKING_PROVIDERS,
+    CLINICAL_TEAM,
+    PAGE_META,
+    SUPPORT_TEAM,
+)
 
 def create_app():
     app = Flask(__name__)
@@ -116,10 +124,18 @@ def create_app():
     @app.context_processor
     def inject_globals():
         banner = get_banner_settings()
+        page_meta = PAGE_META.get(request.endpoint, {})
         return {
             "current_year": get_current_year(),
             "page_url": request.base_url,
             "banner": banner,
+            "page_meta": page_meta,
+            "active_endpoint": request.endpoint,
+            "clinical_team": CLINICAL_TEAM,
+            "support_team": SUPPORT_TEAM,
+            "booking_providers": BOOKING_PROVIDERS,
+            "amanda_rice": AMANDA_RICE,
+            "athena_location_url": ATHENA_LOCATION_URL,
         }
 
     @app.before_request
@@ -873,6 +889,7 @@ def create_app():
     PROVIDER_DISPLAY = {
         'EHRIN IRVIN': 'Ehrin Irvin, NP',
         'ANNE JENKS': 'Anne Jenks, NP',
+        'AMANDA RICE': 'Amanda Rice, NP',
     }
     DISPLAY_TO_CANONICAL = {v: k for k, v in PROVIDER_DISPLAY.items()}
 

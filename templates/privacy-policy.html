@@ -1,50 +1,16 @@
 {% extends "base.html" %}
 
-{% block head %}
-    {{ super() }}
-    <title>Privacy Policy - Jenks Family Medicine</title>
-    <meta name="description" content="Review the Notice of Privacy Practices for Jenks Family Medicine, PLLC. Learn how your medical information may be used and disclosed and how you can access this information.">
-    <style>
-        .privacy-policy-content h1 {
-            margin-bottom: 1em;
-            text-align: center;
-        }
-        .privacy-policy-content h2 {
-            margin-top: 1.5em;
-            margin-bottom: 0.75em;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 0.3em;
-        }
-        .privacy-policy-content h3 {
-            margin-top: 1em;
-            margin-bottom: 0.5em;
-            color: var(--secondary-color);
-        }
-        .privacy-policy-content p, .privacy-policy-content ul {
-            margin-bottom: 1em;
-            line-height: 1.7;
-        }
-        .privacy-policy-content ul {
-            list-style: disc;
-            padding-left: 2em;
-        }
-        .privacy-policy-content li {
-            margin-bottom: 0.5em;
-        }
-        .privacy-policy-contact-info {
-            margin-top: 1.5em;
-            padding: 1.5em;
-            background-color: #f9f9f9;
-            border-left: 5px solid var(--primary-color);
-        }
-    </style>
-{% endblock %}
-
 {% block content %}
-<section class="privacy-policy-content reveal" style="padding-top: 2em; padding-bottom: 2em;">
+<section class="page-hero page-hero--compact">
     <div class="container">
+        <p class="eyebrow">Patient privacy</p>
         <h1>Privacy Policy</h1>
+    </div>
+</section>
+
+<section class="section legal-page reveal">
+    <div class="container legal-layout">
+        <article class="legal-article">
 
         <p><strong>Jenks Family Medicine, PLLC</strong><br>
         3908 Tennessee Avenue, Suite 110<br>
@@ -145,7 +111,7 @@
 
         <h2>Questions or Complaints</h2>
         <p>If you have questions about this notice or believe your privacy rights have been violated, you may contact:</p>
-        <div class="privacy-policy-contact-info">
+        <div class="notice">
             <p><strong>Jenks Family Medicine Privacy Officer:</strong><br>
             Name: Anne Jenks, NP<br>
             Phone: <a href="tel:4233735457">423-373-5457</a><br>
@@ -154,14 +120,14 @@
         </div>
 
         <p>You can also file a complaint with:</p>
-        <div class="privacy-policy-contact-info">
+        <div class="notice">
             <p><strong>The U.S. Department of Health and Human Services Office for Civil Rights:</strong><br>
             Online: <a href="https://www.hhs.gov/ocr/privacy/hipaa/complaints/" target="_blank" rel="noopener noreferrer">www.hhs.gov/ocr/privacy/hipaa/complaints/</a><br>
             Mail: 200 Independence Avenue, S.W., Washington, D.C. 20201<br>
             Phone: <a href="tel:18776966775">1-877-696-6775</a></p>
         </div>
 
-        <div class="privacy-policy-contact-info">
+        <div class="notice">
             <p><strong>Tennessee Department of Health Privacy Officer:</strong><br>
             Email: <a href="mailto:privacy.health@tn.gov">privacy.health@tn.gov</a><br>
             TDH HIPAA Hotline: <a href="tel:6152535637">(615) 253-5637</a> or <a href="tel:18772800054">1-877-280-0054</a> (toll-free)</p>
@@ -169,6 +135,7 @@
 
         <p>We will not retaliate against you for filing a complaint.</p>
 
-    </div><!-- /.container -->
+        </article>
+    </div>
 </section>
 {% endblock %}

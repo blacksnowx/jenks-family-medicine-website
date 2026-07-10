@@ -1,245 +1,95 @@
 {% extends "base.html" %}
-
-{% block head %}
-    <meta name="description" content="Meet the dedicated team of Nurse Practitioners at Jenks Family Medicine in Chattanooga, TN. Learn about our commitment to quality healthcare.">
-    <style>
-        .page-header h1 {
-            margin-bottom: 0;
-        }
-
-        /* New container for the single-column list of team members */
-        .team-listing-container {
-            max-width: 900px; /* Adjust max-width as desired for the content block */
-            margin: 2.5em auto 0 auto; /* Centering and top margin */
-        }
-
-        .team-member-profile {
-            display: flex;
-            align-items: flex-start; /* Align top edges */
-            margin-bottom: 2em;
-            background-color: #fdfdfd;
-            border: 1px solid #e8e8e8;
-            border-radius: 12px;
-            overflow: hidden; /* Important for border-radius on image */
-            box-shadow: 0 6px 18px rgba(0,0,0,0.07);
-        }
-
-        .team-member-image-wrapper {
-            flex: 0 0 350px; /* Fixed width for the image column. Adjust as needed. */
-            /* Consider aspect ratio for height, or fixed height: */
-            /* height: 400px; */ /* Example fixed height */
-            background-color: #f0f0f0; /* Placeholder background */
-        }
-
-        .team-member-image-wrapper img {
-            width: 100%;
-            height: 100%; /* Make image fill the wrapper height if wrapper has fixed height */
-            /* If wrapper has no fixed height, use 'height: auto;' to maintain aspect ratio */
-            /* For this example, assuming you might want to control wrapper height: */
-            height: 350px;
-            object-fit: cover; /* Fills the area, crops if aspect ratio differs. */
-            object-position: center top; /* Good for portraits */
-            display: block;
-            border: none;
-        }
-
-        .team-member-details {
-            flex: 1;
-            padding: 1.5em 2em;
-        }
-
-        .team-member-details h3 {
-            font-size: 2rem; /* Prominent name */
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 0.25em;
-        }
-
-        .team-member-details .title {
-            font-size: 1.15rem;
-            color: #444; /* Slightly darker for better contrast */
-            margin-bottom: 1.5em;
-            font-style: italic;
-            font-weight: 500; /* Make title a bit more substantial */
-        }
-
-        .team-member-details ul {
-            list-style: none;
-            padding: 0;
-            font-size: 0.95rem;
-            color: #333;
-        }
-
-        .team-member-details li {
-            margin-bottom: 0.7em; /* More spacing for list items */
-            line-height: 1.6;
-            padding-left: 1.5em; /* Space for custom bullet */
-            position: relative;
-        }
-
-        .team-member-details li::before {
-            content: "✓"; /* Checkmark or other preferred icon */
-            color: var(--primary-color);
-            font-weight: bold;
-            font-size: 1.1em;
-            position: absolute;
-            left: 0;
-            top: 1px; /* Adjust for vertical alignment */
-        }
-        .team-member-details li a {
-            font-weight: 500;
-        }
-
-        /* Responsive adjustments for smaller screens */
-        @media (max-width: 820px) { /* Adjust breakpoint as needed */
-            .team-member-profile {
-                flex-direction: column; /* Stack image on top of details */
-                align-items: stretch; /* Make children full width */
-            }
-
-            .team-member-image-wrapper {
-                flex-basis: auto; /* Allow wrapper to take full width */
-                width: 100%;
-                /* You might want to adjust image height for mobile specifically */
-                /* height: 300px; */
-            }
-            .team-member-image-wrapper img {
-                 height: 250px;
-            }
-
-            .team-member-details {
-                padding: 1.5em;
-                text-align: center; /* Center text on mobile if desired */
-            }
-            .team-member-details ul {
-                text-align: left; /* Keep list items left-aligned */
-                max-width: 90%;
-                margin-left: auto;
-                margin-right: auto; /* Center the ul block if text above is centered */
-            }
-        }
-    </style>
-{% endblock %}
+{% from "_components.html" import provider_card, staff_card %}
 
 {% block content %}
-<section class="page-header" style="background-color: #f8f8f8; padding: 2em 0; text-align:center;">
+<section class="page-hero page-hero--compact" aria-labelledby="about-title">
     <div class="container">
-        <h1>Our Commitment to Your Health</h1>
+        <div class="page-hero__content">
+            <p class="eyebrow">Our practice</p>
+            <h1 id="about-title">Personal care starts with knowing you.</h1>
+            <p class="page-hero__lede">Jenks Family Medicine is a nurse practitioner-led clinic serving Chattanooga families, U.S. Veterans, and Servicemembers with attentive, relationship-centered care.</p>
+        </div>
     </div>
 </section>
 
-<section class="about-content reveal">
+<section class="section section--soft" aria-labelledby="philosophy-title">
     <div class="container">
-        <h2>Our Philosophy</h2>
-        <p>At Jenks Family Medicine, we believe in quality healthcare delivered with passion and compassion. We are dedicated to serving the St. Elmo and Alton Park neighborhoods and supporting U.S. Veterans and Servicemembers through accessible, efficient, and personalized care.</p>
-        <p>Our Nurse Practitioner-led team focuses on building lasting relationships with our patients, empowering you on your journey to wellness.</p>
-        <p>We welcome patients of all ages, providing comprehensive primary care for adults and children aged 5 and up.</p>
-
-        <h2 style="margin-top: 1.5em;">Meet Our Team</h2>
-
-        <div class="team-listing-container">
-            <!-- Ehrin Irvin -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Ehrin.jpg') }}" alt="Ehrin Irvin, NP">
-                </div>
-                <div class="team-member-details">
-                    <h3>Ehrin Irvin, NP</h3>
-                    <p class="title">AANP Board Certified Family Nurse Practitioner</p>
-                    <ul>
-                        <li>Certified Compensation & Pension Examiner</li>
-                        <li>Certified FMCSA DOT Examiner</li>
-                        <li>MSN, University of Tennessee at Chattanooga, 2018</li>
-                        <li>BSN, University of North Carolina at Chapel Hill, 2007</li>
-                    </ul>
-                </div>
+        <div class="section-heading section-heading--split">
+            <div>
+                <p class="eyebrow">Our philosophy</p>
+                <h2 id="philosophy-title">Care with passion and compassion.</h2>
             </div>
-
-            <!-- Anne Jenks -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Anne.jpg') }}" alt="Anne Jenks, NP">
-                </div>
-                <div class="team-member-details">
-                    <h3>Anne Jenks, NP</h3>
-                    <p class="title">ANCC Board Certified Family Nurse Practitioner</p>
-                    <ul>
-                        <li>Certified Compensation & Pension Examiner</li>
-                        <li>Certified FMCSA DOT Examiner</li>
-                        <li>MSN, University of Maryland, Baltimore, 2014</li>
-                        <li>BSN, University of Tennessee, Chattanooga, 2011</li>
-                    </ul>
-                </div>
+            <div class="section-heading__copy">
+                <p>We believe quality healthcare should feel personal. Our team takes time to listen, build lasting relationships, and help each patient make confident decisions about their health.</p>
+                <p>We are proud to care for the St. Elmo and Alton Park communities while providing dedicated support for Veterans and Servicemembers.</p>
             </div>
+        </div>
 
-            <!-- Heather Mayo -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Heather.jpg') }}" alt="Heather Mayo, NP">
-                </div>
-                <div class="team-member-details">
-                    <h3>Heather Mayo, NP</h3>
-                    <p class="title">AANP Board Certified Family Nurse Practitioner</p>
-                    <ul>
-                        <li>Certified Compensation & Pension Examiner</li>
-                        <li>MSN, University of Cincinnati, 2015</li>
-                        <li>BSN, University of Arkansas for Medical Sciences, 2008</li>
-                    </ul>
-                </div>
+        <div class="journey-strip" aria-label="Our approach to care">
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">01</span>
+                <h3>Listen first</h3>
+                <p>Your questions, history, and goals shape the conversation.</p>
+            </article>
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">02</span>
+                <h3>Build trust</h3>
+                <p>Lasting relationships help us deliver more personal care.</p>
+            </article>
+            <article class="journey-strip__item">
+                <span class="journey-strip__number" aria-hidden="true">03</span>
+                <h3>Support wellness</h3>
+                <p>We partner with you through routine care, illness, and ongoing health needs.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="section" aria-labelledby="clinical-team-title">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Clinical team</p>
+            <h2 id="clinical-team-title">Meet the people caring for you.</h2>
+            <p>Experienced clinicians, a shared commitment to thoughtful care, and a warm welcome for Amanda Rice, NP, beginning in September 2026.</p>
+        </div>
+
+        <div class="provider-grid">
+            {% for member in clinical_team %}
+                {{ provider_card(member) }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section section--soft" aria-labelledby="support-team-title">
+    <div class="container">
+        <div class="section-heading">
+            <p class="eyebrow">Support team</p>
+            <h2 id="support-team-title">Here to make every visit easier.</h2>
+            <p>From your first call through the details of your visit, our support team helps keep your experience welcoming and organized.</p>
+        </div>
+
+        <div class="staff-grid">
+            {% for member in support_team %}
+                {{ staff_card(member) }}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container">
+        <div class="cta-band">
+            <div class="cta-band__copy">
+                <p class="eyebrow">Ready when you are</p>
+                <h2>Find a provider who fits your care.</h2>
+                <p>Schedule online or call our Chattanooga office for help choosing the right appointment.</p>
             </div>
-
-            <!-- Dr. David Redd -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Redd.png') }}" alt="Dr. David Redd, MD">
-                </div>
-                <div class="team-member-details">
-                    <h3>Dr. David Redd, MD</h3>
-                    <p class="title">Supervising Physician</p>
-                    <ul>
-                        <li>Over 30 years of experience</li>
-                        <li>MD, University of Tennessee, Center for the Health Sciences</li>
-                        <li>Residency, Carraway Methodist Medical Center</li>
-                        <li>BS, BioChemistry, California Polytechnic State University</li>
-                        <li><a href="http://www.quiksurg.com" target="_blank" rel="noopener">Visit Dr. Redd at QuikSurg</a></li>
-                    </ul>
-                </div>
+            <div class="cta-band__actions">
+                <a class="button button--dark" href="{{ url_for('new_patient') }}">Schedule an appointment</a>
+                <a class="button button--outline" href="tel:4233735457">Call (423) 373-5457</a>
             </div>
-
-            <!-- Tyler Jenks -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Tyler.jpg') }}" alt="Tyler Jenks">
-                </div>
-                <div class="team-member-details">
-                    <h3>Tyler Jenks</h3>
-                    <p class="title">Business Manager</p>
-                </div>
-            </div>
-
-            <!-- Brittany Griffith -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Brittany.jpg') }}" alt="Brittany Griffith">
-                </div>
-                <div class="team-member-details">
-                    <h3>Brittany Griffith</h3>
-                    <p class="title">Clinic Manager</p>
-                </div>
-            </div>
-
-            <!-- Betsy -->
-            <div class="team-member-profile">
-                <div class="team-member-image-wrapper">
-                    <img src="{{ url_for('static', filename='images/Betsy.jpg') }}" alt="Betsy">
-                </div>
-                <div class="team-member-details">
-                    <h3>Betsy</h3>
-                    <p class="title">Receptionist</p>
-                </div>
-            </div>
-
-        </div><!-- /.team-listing-container -->
-    </div><!-- /.container -->
+        </div>
+    </div>
 </section>
 {% endblock %}
