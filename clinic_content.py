@@ -73,13 +73,14 @@ CLINICAL_TEAM = (
         "name": "Amanda Rice, NP",
         "short_name": "Amanda",
         "role": "Nurse Practitioner",
-        "credential": "Joining Jenks Family Medicine",
+        "credential": "AANP Board Certified",
         "image": None,
         "image_alt": None,
         "initials": "AR",
         "highlights": (
-            "Joining our primary care team",
-            "Appointments beginning September 2026",
+            "Doctor of Nursing Practice, University of Tennessee at Chattanooga, 2026",
+            "Bachelor of Science in Nursing, University of West Georgia, 2011",
+            "Associate of Science in Nursing, Dalton State College, 2010",
         ),
         "booking_url": None,
         "booking_label": "Call about Amanda",
@@ -126,14 +127,13 @@ SUPPORT_TEAM = (
         "image_alt": "Brittany Griffith, clinic manager",
         "initials": "BG",
     },
-    {
-        "slug": "betsy",
-        "name": "Betsy",
-        "role": "Receptionist",
-        "image": "images/Betsy.jpg",
-        "image_alt": "Betsy, receptionist at Jenks Family Medicine",
-        "initials": "B",
-    },
+)
+
+
+TEAM_PORTRAITS = tuple(
+    member
+    for member in (*CLINICAL_TEAM, *SUPPORT_TEAM)
+    if member["slug"] in {"ehrin-irvin", "anne-jenks", "heather-mayo", "brittany-griffith"}
 )
 
 

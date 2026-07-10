@@ -34,6 +34,30 @@ def test_amanda_profile_does_not_invent_a_practitioner_id(client):
     assert b"practitionerId=amanda" not in body
 
 
+def test_amanda_profile_includes_certification_and_education(client):
+    body = client.get("/about").data
+    amanda_card = body.split(b'id="amanda-rice"', 1)[1].split(b"</article>", 1)[0]
+
+    assert b"AANP Board Certified" in amanda_card
+    assert b"Doctor of Nursing Practice, University of Tennessee at Chattanooga, 2026" in amanda_card
+    assert b"Bachelor of Science in Nursing, University of West Georgia, 2011" in amanda_card
+    assert b"Associate of Science in Nursing, Dalton State College, 2010" in amanda_card
+
+
+def test_betsy_is_removed_from_the_public_team(client):
+    body = client.get("/about").data
+
+    assert b'id="betsy"' not in body
+    assert b"Betsy.jpg" not in body
+    assert b"Betsy, receptionist" not in body
+    assert client.get("/static/images/Betsy.jpg").status_code == 404
+
+    for path in ("/", "/contact"):
+        assert b"Team.jpg" not in client.get(path).data
+
+    assert client.get("/static/images/Team.jpg").status_code == 404
+
+
 def test_public_layout_has_accessible_navigation_landmarks(client):
     body = client.get("/").data
     assert b'href="#main-content"' in body

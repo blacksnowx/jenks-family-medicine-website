@@ -7,7 +7,7 @@
   "@context": "https://schema.org",
   "@type": "MedicalClinic",
   "name": "Jenks Family Medicine",
-  "image": "{{ url_for('static', filename='images/Team.jpg', _external=True) }}",
+  "image": "{{ url_for('static', filename='images/Primary Care Img.png', _external=True) }}",
   "url": "{{ url_for('index', _external=True) }}",
   "telephone": "+1-423-373-5457",
   "address": {
@@ -49,9 +49,7 @@
 
         <div class="home-hero__visual reveal">
             <div class="hero-photo-frame">
-                <img src="{{ url_for('static', filename='images/Team.jpg') }}"
-                    alt="The Jenks Family Medicine team in the Chattanooga clinic" width="1051" height="701">
-                <span class="hero-photo-frame__mark" aria-hidden="true"></span>
+                {{ ui.team_collage(team_portraits, 'hero') }}
             </div>
             <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
                 <span class="new-provider-note__initials" aria-hidden="true">AR</span>

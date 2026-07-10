@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_components.html" as ui %}
 
 {% block content %}
 <section class="page-hero">
@@ -13,7 +14,7 @@
     <div class="container">
         <div class="split-layout contact-layout">
             <div class="content-panel">
-                <img src="{{ url_for('static', filename='images/Team.jpg') }}" alt="The Jenks Family Medicine team">
+                {{ ui.team_collage(team_portraits, 'contact') }}
 
                 <div class="contact-card">
                     <p class="eyebrow">Contact information</p>

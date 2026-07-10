@@ -25,6 +25,7 @@ from clinic_content import (
     CLINICAL_TEAM,
     PAGE_META,
     SUPPORT_TEAM,
+    TEAM_PORTRAITS,
 )
 
 def create_app():
@@ -133,6 +134,7 @@ def create_app():
             "active_endpoint": request.endpoint,
             "clinical_team": CLINICAL_TEAM,
             "support_team": SUPPORT_TEAM,
+            "team_portraits": TEAM_PORTRAITS,
             "booking_providers": BOOKING_PROVIDERS,
             "amanda_rice": AMANDA_RICE,
             "athena_location_url": ATHENA_LOCATION_URL,

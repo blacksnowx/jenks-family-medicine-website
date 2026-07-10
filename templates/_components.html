@@ -56,3 +56,12 @@
     </div>
 </article>
 {%- endmacro %}
+
+{% macro team_collage(members, modifier='') -%}
+<div class="team-collage{% if modifier %} team-collage--{{ modifier }}{% endif %}" role="group" aria-label="Jenks Family Medicine care team">
+    {% for member in members %}
+    <img src="{{ url_for('static', filename=member.image) }}" alt="{{ member.image_alt }}"
+        width="480" height="600"{% if modifier != 'hero' %} loading="lazy"{% endif %}>
+    {% endfor %}
+</div>
+{%- endmacro %}

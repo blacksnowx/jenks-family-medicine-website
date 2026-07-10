@@ -701,12 +701,33 @@ address {
     pointer-events: none;
 }
 
-.hero-photo-frame img {
+.hero-photo-frame > img {
     width: 100%;
     height: 100%;
     min-height: 540px;
     object-fit: cover;
     object-position: center;
+}
+
+.team-collage {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+    background: var(--blue-pale);
+}
+
+.team-collage img {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    object-fit: cover;
+    object-position: center 24%;
+}
+
+.team-collage--hero {
+    height: 540px;
+    min-height: 540px;
 }
 
 .hero-photo-frame__mark,
@@ -1323,6 +1344,12 @@ address {
     width: calc(100% + var(--panel-pad) + var(--panel-pad));
     max-width: none;
     margin: calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad)) 2rem;
+}
+
+.contact-layout .team-collage--contact {
+    width: calc(100% + var(--panel-pad) + var(--panel-pad));
+    aspect-ratio: 4 / 3;
+    margin: calc(-1 * var(--panel-pad)) calc(-1 * var(--panel-pad)) 0;
 }
 
 .contact-layout {
@@ -3004,7 +3031,8 @@ textarea:focus {
     }
 
     .hero-photo-frame,
-    .hero-photo-frame img {
+    .hero-photo-frame > img,
+    .team-collage--hero {
         min-height: 360px;
     }
 
@@ -3012,8 +3040,12 @@ textarea:focus {
         border-width: 6px;
     }
 
-    .hero-photo-frame img {
+    .hero-photo-frame > img {
         object-position: 58% center;
+    }
+
+    .team-collage--hero {
+        height: 360px;
     }
 
     .new-provider-note {
