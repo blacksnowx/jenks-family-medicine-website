@@ -21,6 +21,13 @@ def test_core_public_routes_render(client):
         assert response.status_code == 200, f"{path} returned {response.status_code}"
 
 
+def test_public_contact_email_uses_brittany_inbox(client):
+    for path in ("/", "/contact", "/welcome/primary-care"):
+        body = client.get(path).data.lower()
+        assert b"brittany@jenksfamilymedicine.com" in body, f"Brittany's email is missing from {path}"
+        assert b"office@jenksfamilymedicine.com" not in body, f"Old office email remains on {path}"
+
+
 def test_amanda_rice_is_featured_on_key_patient_journeys(client):
     for path in ("/", "/about", "/new-patient"):
         body = client.get(path).data
