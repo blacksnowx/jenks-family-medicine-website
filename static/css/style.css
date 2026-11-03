@@ -726,8 +726,19 @@ address {
 }
 
 .team-collage--hero {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     height: 540px;
     min-height: 540px;
+}
+
+.team-collage--hero img {
+    grid-column: span 2;
+    min-height: 0;
+    object-position: center top;
+}
+
+.team-collage--hero img:nth-child(-n + 2) {
+    grid-column: span 3;
 }
 
 .hero-photo-frame__mark,

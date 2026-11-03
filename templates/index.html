@@ -49,7 +49,7 @@
 
         <div class="home-hero__visual reveal">
             <div class="hero-photo-frame">
-                {{ ui.team_collage(team_portraits, 'hero') }}
+                {{ ui.team_collage(team_portraits + (amanda_rice,), 'hero') }}
             </div>
             <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
                 <span class="new-provider-note__initials" aria-hidden="true">AR</span>
