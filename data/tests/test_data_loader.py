@@ -10,6 +10,24 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import data_loader
 
 class TestDataLoader(unittest.TestCase):
+    def test_postgres_url_selects_installed_driver(self):
+        from sqlalchemy import create_engine
+
+        for scheme in ('postgres', 'postgresql'):
+            with self.subTest(scheme=scheme), patch.dict(
+                os.environ, {'DATABASE_URL': f'{scheme}://user:password@localhost/unused'}
+            ):
+                url = data_loader.get_database_url()
+                self.assertTrue(url.startswith('postgresql+psycopg2://'))
+                engine = create_engine(url)
+                self.assertEqual(engine.dialect.driver, 'psycopg2')
+                engine.dispose()
+
+    def test_explicit_database_driver_is_preserved(self):
+        for url in ('sqlite:///:memory:', 'postgresql+psycopg2://user:password@localhost/unused'):
+            with self.subTest(url=url), patch.dict(os.environ, {'DATABASE_URL': url}):
+                self.assertEqual(data_loader.get_database_url(), url)
+
     def test_clean_currency(self):
         self.assertEqual(data_loader.clean_currency("$1,234.56"), 1234.56)
         self.assertEqual(data_loader.clean_currency(100), 100.0)

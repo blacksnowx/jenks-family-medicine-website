@@ -63,8 +63,11 @@ def get_database_url():
         db_path = os.path.join(project_root, 'instance', 'site.db')
         return f"sqlite:///{db_path}"
     url = os.environ["DATABASE_URL"]
-    if url.startswith("postgres://"):
-        url = url.replace("postgres://", "postgresql://", 1)
+    # Match requirements.txt instead of relying on SQLAlchemy's default driver,
+    # which changed from psycopg2 to psycopg in SQLAlchemy 2.1.
+    for scheme in ("postgres://", "postgresql://"):
+        if url.startswith(scheme):
+            return "postgresql+psycopg2://" + url[len(scheme):]
     return url
 
 
