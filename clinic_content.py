@@ -105,7 +105,6 @@ CLINICAL_TEAM = (
         "booking_label": None,
         "availability": None,
         "is_new": False,
-        "profile_url": "http://www.quiksurg.com",
     },
 )
 
