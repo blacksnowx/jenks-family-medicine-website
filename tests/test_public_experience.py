@@ -32,7 +32,10 @@ def test_amanda_rice_is_featured_on_key_patient_journeys(client):
     for path in ("/", "/about", "/new-patient"):
         body = client.get(path).data
         assert b"Amanda Rice, NP" in body, f"Amanda is missing from {path}"
-        assert b"September 2026" in body, f"Amanda's start timing is missing from {path}"
+        assert b"Accepting new patients" in body, f"Amanda's availability is missing from {path}"
+        assert b"September 2026" not in body
+        assert b"images/Amanda.png" in body
+        assert b"Photo coming soon" not in body
 
 
 def test_amanda_profile_does_not_invent_a_practitioner_id(client):

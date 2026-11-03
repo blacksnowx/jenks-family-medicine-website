@@ -11,7 +11,7 @@
         <img src="{{ url_for('static', filename=member.image) }}"
             alt="{{ member.image_alt }}" width="640" height="800" loading="lazy">
         {% else %}
-        <div class="provider-placeholder" aria-label="Photo of Amanda Rice coming soon">
+        <div class="provider-placeholder" aria-label="Photo of {{ member.name }} coming soon">
             <span class="provider-placeholder__cross" aria-hidden="true"></span>
             <span class="provider-placeholder__initials" aria-hidden="true">{{ member.initials }}</span>
             <span class="provider-placeholder__caption">Photo coming soon</span>
@@ -36,7 +36,7 @@
             </a>
             {% else %}
             <a class="button button--outline button--full" href="tel:4233735457">{{ member.booking_label }}</a>
-            <p class="provider-card__note">Call our office for Amanda's September appointment availability.</p>
+            <p class="provider-card__note">Call our office to schedule an appointment with Amanda.</p>
             {% endif %}
         </div>
         {% endif %}

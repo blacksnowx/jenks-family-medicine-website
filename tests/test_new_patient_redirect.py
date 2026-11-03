@@ -27,7 +27,7 @@ def test_verified_provider_links_use_athena(client):
 def test_amanda_is_listed_without_an_invented_online_id(client):
     body = client.get("/new-patient").data
     assert b"Amanda Rice, NP" in body
-    assert b"Appointments beginning September 2026" in body
+    assert b"Accepting new patients" in body
     assert b"practitionerId=amanda" not in body
     assert b'href="tel:4233735457"' in body
 

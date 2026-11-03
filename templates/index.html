@@ -53,7 +53,7 @@
             </div>
             <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
                 <span class="new-provider-note__initials" aria-hidden="true">AR</span>
-                <span><small>Joining the team</small><strong>Amanda Rice, NP</strong><em>Appointments begin September 2026</em></span>
+                <span><small>Now at Jenks</small><strong>Amanda Rice, NP</strong><em>Accepting new patients</em></span>
                 {{ ui.arrow_icon() }}
             </a>
         </div>
@@ -126,22 +126,21 @@
 <section class="section section--soft" aria-labelledby="amanda-heading">
     <div class="container">
         <div class="amanda-feature reveal">
-            <div class="amanda-feature__portrait" aria-label="Photo of Amanda Rice coming soon">
-                <span class="amanda-feature__cross" aria-hidden="true"></span>
-                <span class="amanda-feature__initials" aria-hidden="true">AR</span>
-                <small>Photo coming soon</small>
+            <div class="amanda-feature__portrait">
+                <img src="{{ url_for('static', filename=amanda_rice.image) }}"
+                    alt="{{ amanda_rice.image_alt }}" width="1122" height="1402" loading="lazy">
             </div>
             <div class="amanda-feature__copy">
                 <p class="eyebrow">Our team is growing</p>
                 <h2 id="amanda-heading">Meet Amanda Rice, NP</h2>
-                <p class="amanda-feature__lead">Amanda is joining the Jenks Family Medicine primary care team, bringing another caring set of hands to our Chattanooga community.</p>
+                <p class="amanda-feature__lead">Amanda has joined the Jenks Family Medicine primary care team and is accepting new patients. We are delighted to welcome her to our Chattanooga community.</p>
                 <div class="availability-line">
                     <span aria-hidden="true"></span>
-                    <strong>Appointments beginning September 2026</strong>
+                    <strong>Accepting new patients</strong>
                 </div>
                 <div class="button-group">
                     <a href="{{ url_for('about') }}#amanda-rice" class="button button--dark">Meet Amanda {{ ui.arrow_icon() }}</a>
-                    <a href="tel:4233735457" class="text-link">Call about September availability</a>
+                    <a href="tel:4233735457" class="text-link">Call to schedule with Amanda</a>
                 </div>
             </div>
         </div>

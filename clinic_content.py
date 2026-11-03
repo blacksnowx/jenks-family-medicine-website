@@ -74,8 +74,8 @@ CLINICAL_TEAM = (
         "short_name": "Amanda",
         "role": "Nurse Practitioner",
         "credential": "AANP Board Certified",
-        "image": None,
-        "image_alt": None,
+        "image": "images/Amanda.png",
+        "image_alt": "Amanda Rice, nurse practitioner at Jenks Family Medicine",
         "initials": "AR",
         "highlights": (
             "Doctor of Nursing Practice, University of Tennessee at Chattanooga, 2026",
@@ -83,8 +83,8 @@ CLINICAL_TEAM = (
             "Associate of Science in Nursing, Dalton State College, 2010",
         ),
         "booking_url": None,
-        "booking_label": "Call about Amanda",
-        "availability": "Appointments beginning September 2026",
+        "booking_label": "Schedule with Amanda",
+        "availability": "Accepting new patients",
         "is_new": True,
     },
     {
