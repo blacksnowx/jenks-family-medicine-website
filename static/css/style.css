@@ -687,7 +687,6 @@ address {
 .hero-photo-frame {
     position: relative;
     overflow: hidden;
-    min-height: 540px;
     border: 10px solid var(--white);
     background: var(--blue);
     box-shadow: var(--shadow-xl);
@@ -701,10 +700,11 @@ address {
     pointer-events: none;
 }
 
+/* The office photo is shown whole, at its own 4:3 shape, at every width. */
 .hero-photo-frame > img {
     width: 100%;
-    height: 100%;
-    min-height: 540px;
+    height: auto;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
     object-position: center;
 }
@@ -723,16 +723,6 @@ address {
     min-width: 0;
     object-fit: cover;
     object-position: center 24%;
-}
-
-.team-collage--hero {
-    height: 540px;
-    min-height: 540px;
-}
-
-.team-collage--hero img {
-    min-height: 0;
-    object-position: center top;
 }
 
 .hero-photo-frame__mark,
@@ -1689,44 +1679,6 @@ address {
     text-transform: uppercase;
 }
 
-/* Supervising physician: a compact card shown apart from the care team */
-.physician-card {
-    display: grid;
-    grid-template-columns: minmax(180px, 260px) minmax(0, 1fr);
-    max-width: 920px;
-    border: 1px solid var(--line);
-    background: var(--white);
-}
-
-.physician-card__media {
-    overflow: hidden;
-    background: var(--blue-soft);
-}
-
-.physician-card__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-}
-
-.physician-card__body {
-    padding: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.physician-card__body h2 {
-    margin-bottom: 0.2rem;
-    font-size: clamp(1.45rem, 2vw, 1.9rem);
-}
-
-.physician-card__role {
-    color: var(--muted);
-}
-
-.physician-card__body .check-list {
-    font-size: 0.92rem;
-}
-
 .staff-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1758,6 +1710,24 @@ address {
 
 .staff-card__body p {
     color: var(--muted);
+}
+
+/* Supervising physician: a short text note beneath the support team photos */
+.team-note {
+    grid-column: span 2;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--blue);
+    background: var(--white);
+}
+
+.team-note h3 {
+    margin-bottom: 0.4rem;
+    font-size: 1.3rem;
+}
+
+.team-note p {
+    margin: 0;
 }
 
 /* Services and resources */
@@ -2778,6 +2748,7 @@ textarea:focus {
     }
 
     .home-hero__visual {
+        width: 100%;
         max-width: 860px;
         margin-inline: auto;
     }
@@ -3013,22 +2984,8 @@ textarea:focus {
         border-bottom: 0;
     }
 
-    .hero-photo-frame,
-    .hero-photo-frame > img,
-    .team-collage--hero {
-        min-height: 360px;
-    }
-
     .hero-photo-frame {
         border-width: 6px;
-    }
-
-    .hero-photo-frame > img {
-        object-position: 58% center;
-    }
-
-    .team-collage--hero {
-        height: 360px;
     }
 
     .new-provider-note {
@@ -3061,12 +3018,8 @@ textarea:focus {
         min-height: 390px;
     }
 
-    .physician-card {
-        grid-template-columns: 1fr;
-    }
-
-    .physician-card__media {
-        aspect-ratio: 4 / 3.4;
+    .team-note {
+        grid-column: auto;
     }
 
     .amanda-feature,

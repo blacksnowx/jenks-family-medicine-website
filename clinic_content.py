@@ -43,7 +43,7 @@ CLINICAL_TEAM = (
         ),
         "booking_url": f"{ATHENA_LOCATION_URL}&practitionerId=34992-4",
         "booking_label": "Schedule with Ehrin",
-        "availability": None,
+        "availability": "Accepting new patients",
         "is_new": False,
     },
     {
@@ -107,25 +107,9 @@ CLINICAL_TEAM = (
 )
 
 
-# Kept out of CLINICAL_TEAM on purpose: the supervising physician is shown in
-# his own section of the Our Team page, apart from the clinic's care team.
-SUPERVISING_PHYSICIAN = {
-    "slug": "david-redd",
-    "name": "David Redd, MD",
-    "short_name": "Dr. Redd",
-    "role": "Supervising Physician",
-    "credential": "More than 30 years of experience",
-    "image": "images/Redd.png",
-    "image_alt": "David Redd, supervising physician",
-    "initials": "DR",
-    "highlights": (
-        "MD, University of Tennessee Center for the Health Sciences",
-        "Residency, Carraway Methodist Medical Center",
-        "BS, Biochemistry, California Polytechnic State University",
-    ),
-}
-
-
+# The supervising physician is not listed here or in CLINICAL_TEAM on purpose:
+# he does not see patients at this location, so the Our Team page carries a
+# short text note about him (templates/about.html) instead of a profile.
 SUPPORT_TEAM = (
     {
         "slug": "tyler-jenks",
@@ -146,7 +130,8 @@ SUPPORT_TEAM = (
 )
 
 
-# Photo collage on the home hero and the contact page: the four clinicians.
+# Photo collage on the contact page: the four clinicians. (The home page hero
+# shows the office photo, static/images/Office.jpg, instead.)
 TEAM_PORTRAITS = tuple(
     member
     for member in CLINICAL_TEAM

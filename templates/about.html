@@ -73,27 +73,11 @@
             {% for member in support_team %}
                 {{ staff_card(member) }}
             {% endfor %}
+            <aside class="team-note" id="supervising-physician" aria-labelledby="supervising-physician-title">
+                <h3 id="supervising-physician-title">Supervising Physician</h3>
+                <p>Dr. David Redd serves as the supervising physician for Jenks Family Medicine's nurse practitioners. Patient care at our office is provided by our nurse practitioner team. Dr. Redd does not see patients at this location.</p>
+            </aside>
         </div>
-    </div>
-</section>
-
-<section class="section section--tight" aria-labelledby="supervising-physician-title">
-    <div class="container">
-        <article class="physician-card" id="{{ supervising_physician.slug }}">
-            <div class="physician-card__media">
-                <img src="{{ url_for('static', filename=supervising_physician.image) }}"
-                    alt="{{ supervising_physician.image_alt }}" width="672" height="896" loading="lazy">
-            </div>
-            <div class="physician-card__body">
-                <p class="eyebrow">{{ supervising_physician.role }}</p>
-                <h2 id="supervising-physician-title">{{ supervising_physician.name }}</h2>
-                <p class="physician-card__role">{{ supervising_physician.credential }}</p>
-                <p>Dr. Redd serves as the supervising physician for our nurse practitioner-led practice.</p>
-                <ul class="check-list">
-                    {% for highlight in supervising_physician.highlights %}<li>{{ highlight }}</li>{% endfor %}
-                </ul>
-            </div>
-        </article>
     </div>
 </section>
 
