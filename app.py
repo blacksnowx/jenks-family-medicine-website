@@ -23,7 +23,10 @@ from clinic_content import (
     ATHENA_LOCATION_URL,
     BOOKING_PROVIDERS,
     CLINICAL_TEAM,
+    GOOGLE_MAPS_EMBED_URL,
+    GOOGLE_MAPS_URL,
     PAGE_META,
+    SUPERVISING_PHYSICIAN,
     SUPPORT_TEAM,
     TEAM_PORTRAITS,
 )
@@ -133,11 +136,14 @@ def create_app():
             "page_meta": page_meta,
             "active_endpoint": request.endpoint,
             "clinical_team": CLINICAL_TEAM,
+            "supervising_physician": SUPERVISING_PHYSICIAN,
             "support_team": SUPPORT_TEAM,
             "team_portraits": TEAM_PORTRAITS,
             "booking_providers": BOOKING_PROVIDERS,
             "amanda_rice": AMANDA_RICE,
             "athena_location_url": ATHENA_LOCATION_URL,
+            "google_maps_url": GOOGLE_MAPS_URL,
+            "google_maps_embed_url": GOOGLE_MAPS_EMBED_URL,
         }
 
     @app.before_request

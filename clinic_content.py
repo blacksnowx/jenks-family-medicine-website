@@ -7,6 +7,23 @@ systems so a website copy change cannot alter operational data.
 
 ATHENA_LOCATION_URL = "https://consumer.scheduling.athena.io/?locationId=34992-1"
 
+# The clinic's Google Maps business listing. Map links and embeds point at the
+# listing itself (not the bare street address) so visitors see the Jenks Family
+# Medicine pin with its hours, reviews, and directions.
+GOOGLE_MAPS_PLACE_ID = "ChIJI4puYMVdYIgR9opqcCbon5c"
+GOOGLE_MAPS_URL = (
+    "https://www.google.com/maps/search/?api=1"
+    "&query=Jenks+Family+Medicine+Chattanooga+TN"
+    f"&query_place_id={GOOGLE_MAPS_PLACE_ID}"
+)
+# From Google Maps: listing > Share > Embed a map.
+GOOGLE_MAPS_EMBED_URL = (
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3267.849585875899"
+    "!2d-85.32772709999999!3d35.0104702!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1"
+    "!3m3!1m2!1s0x88605dc5606e8a23%3A0x979fe826706a8af6!2sJenks%20Family%20Medicine"
+    "!5e0!3m2!1sen!2sus!4v1794400044885!5m2!1sen!2sus"
+)
+
 
 CLINICAL_TEAM = (
     {
@@ -19,10 +36,10 @@ CLINICAL_TEAM = (
         "image_alt": "Ehrin Irvin, nurse practitioner at Jenks Family Medicine",
         "initials": "EI",
         "highlights": (
-            "Certified Compensation & Pension Examiner",
             "Certified FMCSA DOT Examiner",
             "MSN, University of Tennessee at Chattanooga, 2018",
             "BSN, University of North Carolina at Chapel Hill, 2007",
+            "Certified Compensation & Pension Examiner",
         ),
         "booking_url": f"{ATHENA_LOCATION_URL}&practitionerId=34992-4",
         "booking_label": "Schedule with Ehrin",
@@ -78,7 +95,7 @@ CLINICAL_TEAM = (
         "image_alt": "Amanda Rice, nurse practitioner at Jenks Family Medicine",
         "initials": "AR",
         "highlights": (
-            "Doctor of Nursing Practice, University of Tennessee at Chattanooga, 2026",
+            "Doctor of Nursing Practice, University of Tennessee at Chattanooga",
             "Bachelor of Science in Nursing, University of West Georgia, 2011",
             "Associate of Science in Nursing, Dalton State College, 2010",
         ),
@@ -87,26 +104,26 @@ CLINICAL_TEAM = (
         "availability": "Accepting new patients",
         "is_new": True,
     },
-    {
-        "slug": "david-redd",
-        "name": "David Redd, MD",
-        "short_name": "Dr. Redd",
-        "role": "Supervising Physician",
-        "credential": "More than 30 years of experience",
-        "image": "images/Redd.png",
-        "image_alt": "David Redd, supervising physician",
-        "initials": "DR",
-        "highlights": (
-            "MD, University of Tennessee Center for the Health Sciences",
-            "Residency, Carraway Methodist Medical Center",
-            "BS, Biochemistry, California Polytechnic State University",
-        ),
-        "booking_url": None,
-        "booking_label": None,
-        "availability": None,
-        "is_new": False,
-    },
 )
+
+
+# Kept out of CLINICAL_TEAM on purpose: the supervising physician is shown in
+# his own section of the Our Team page, apart from the clinic's care team.
+SUPERVISING_PHYSICIAN = {
+    "slug": "david-redd",
+    "name": "David Redd, MD",
+    "short_name": "Dr. Redd",
+    "role": "Supervising Physician",
+    "credential": "More than 30 years of experience",
+    "image": "images/Redd.png",
+    "image_alt": "David Redd, supervising physician",
+    "initials": "DR",
+    "highlights": (
+        "MD, University of Tennessee Center for the Health Sciences",
+        "Residency, Carraway Methodist Medical Center",
+        "BS, Biochemistry, California Polytechnic State University",
+    ),
+}
 
 
 SUPPORT_TEAM = (
@@ -129,10 +146,11 @@ SUPPORT_TEAM = (
 )
 
 
+# Photo collage on the home hero and the contact page: the four clinicians.
 TEAM_PORTRAITS = tuple(
     member
-    for member in (*CLINICAL_TEAM, *SUPPORT_TEAM)
-    if member["slug"] in {"ehrin-irvin", "anne-jenks", "heather-mayo", "brittany-griffith"}
+    for member in CLINICAL_TEAM
+    if member["slug"] in {"ehrin-irvin", "anne-jenks", "heather-mayo", "amanda-rice"}
 )
 
 

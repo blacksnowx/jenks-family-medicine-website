@@ -55,6 +55,14 @@
 </article>
 {%- endmacro %}
 
+{% macro clinic_map(embed_url) -%}
+<div class="map-frame">
+    <iframe src="{{ embed_url }}" width="600" height="450"
+        title="Google map showing Jenks Family Medicine at 3908 Tennessee Avenue, Suite 102, in Chattanooga"
+        allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+{%- endmacro %}
+
 {% macro team_collage(members, modifier='') -%}
 <div class="team-collage{% if modifier %} team-collage--{{ modifier }}{% endif %}" role="group" aria-label="Jenks Family Medicine care team">
     {% for member in members %}
