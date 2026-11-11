@@ -49,7 +49,9 @@
 
         <div class="home-hero__visual reveal">
             <div class="hero-photo-frame">
-                {{ ui.team_collage(team_portraits, 'hero') }}
+                <img src="{{ url_for('static', filename='images/Office.jpg') }}"
+                    alt="The front of the Jenks Family Medicine office in Chattanooga, with the clinic's sign above the entrance"
+                    width="1448" height="1086" fetchpriority="high">
             </div>
             <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
                 <span class="new-provider-note__initials" aria-hidden="true">AR</span>

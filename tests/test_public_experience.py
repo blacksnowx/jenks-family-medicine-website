@@ -63,27 +63,72 @@ def test_ehrin_lists_compensation_and_pension_examiner_last(client):
     assert highlights.rstrip().endswith(b"<li>Certified Compensation &amp; Pension Examiner</li>")
 
 
-def test_team_photo_grid_shows_the_four_clinicians(client):
-    for path in ("/", "/contact"):
+def test_ehrin_and_amanda_show_the_accepting_new_patients_badge(client):
+    badge = b'<p class="availability-badge">Accepting new patients</p>'
+
+    for path in ("/about", "/new-patient"):
         body = client.get(path).data
-        collage = body.split(b'class="team-collage', 1)[1].split(b"</div>", 1)[0]
+        for slug in (b"ehrin-irvin", b"amanda-rice"):
+            card = body.split(b'id="' + slug + b'"', 1)[1].split(b"</article>", 1)[0]
+            assert badge in card, f"Badge missing from {slug!r} on {path}"
+        anne_card = body.split(b'id="anne-jenks"', 1)[1].split(b"</article>", 1)[0]
+        assert b"availability-badge" not in anne_card, f"Unexpected badge on Anne's card on {path}"
 
-        assert collage.count(b"<img") == 4, f"Unexpected collage size on {path}"
-        for portrait in (b"Ehrin.jpg", b"Anne.jpg", b"Heather.jpg", b"Amanda.png"):
-            assert portrait in collage, f"{portrait!r} missing from the collage on {path}"
-        assert b"Brittany.jpg" not in body, f"Brittany's photo remains on {path}"
+
+def test_contact_photo_grid_shows_the_four_clinicians(client):
+    body = client.get("/contact").data
+    collage = body.split(b'class="team-collage', 1)[1].split(b"</div>", 1)[0]
+
+    assert collage.count(b"<img") == 4
+    for portrait in (b"Ehrin.jpg", b"Anne.jpg", b"Heather.jpg", b"Amanda.png"):
+        assert portrait in collage, f"{portrait!r} missing from the contact collage"
+    assert b"Brittany.jpg" not in body
 
 
-def test_supervising_physician_is_shown_apart_from_the_care_team(client):
+def test_home_hero_shows_the_office_photo_instead_of_the_team_collage(client):
+    body = client.get("/").data
+    hero = body.split(b'class="hero-photo-frame"', 1)[1].split(b"</div>", 1)[0]
+
+    assert hero.count(b"<img") == 1
+    assert b"images/Office.jpg" in hero
+    assert b"team-collage" not in body
+    for portrait in (b"Ehrin.jpg", b"Anne.jpg", b"Heather.jpg", b"Brittany.jpg"):
+        assert portrait not in body, f"{portrait!r} remains on the home page"
+    assert client.get("/static/images/Office.jpg").status_code == 200
+
+
+def test_supervising_physician_is_a_text_note_beneath_the_support_team(client):
     body = client.get("/about").data
     provider_grid = body.split(b'class="provider-grid"', 1)[1].split(b'id="support-team-title"', 1)[0]
 
-    assert b"David Redd" not in provider_grid
+    assert b"Redd" not in provider_grid
     assert provider_grid.count(b'<article class="provider-card') == 4
-    assert body.count(b'id="david-redd"') == 1
-    physician_card = body.split(b'id="david-redd"', 1)[1].split(b"</article>", 1)[0]
-    assert b"David Redd, MD" in physician_card
-    assert b"Supervising Physician" in physician_card
+
+    # The note follows the support team photos (Tyler and Brittany).
+    after_support_photos = body.split(b'id="brittany-griffith"', 1)[1]
+    note = after_support_photos.split(b'id="supervising-physician"', 1)[1].split(b"</aside>", 1)[0]
+    assert b">Supervising Physician</h3>" in note
+    assert (
+        b"Dr. David Redd serves as the supervising physician for Jenks Family Medicine's "
+        b"nurse practitioners. Patient care at our office is provided by our nurse "
+        b"practitioner team. Dr. Redd does not see patients at this location."
+    ) in note
+    assert b"<img" not in note
+
+
+def test_supervising_physician_photo_and_bio_are_removed(client):
+    body = client.get("/about").data
+
+    for retired in (
+        b"Redd.png",
+        b'id="david-redd"',
+        b"David Redd, MD",
+        b"More than 30 years of experience",
+        b"Carraway Methodist",
+        b"California Polytechnic",
+    ):
+        assert retired not in body
+    assert client.get("/static/images/Redd.png").status_code == 404
 
 
 def test_fax_number_is_replaced_with_call_for_number(client):
