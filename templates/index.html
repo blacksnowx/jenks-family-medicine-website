@@ -49,7 +49,7 @@
 
         <div class="home-hero__visual reveal">
             <div class="hero-photo-frame">
-                {{ ui.team_collage(team_portraits + (amanda_rice,), 'hero') }}
+                {{ ui.team_collage(team_portraits, 'hero') }}
             </div>
             <a class="new-provider-note" href="{{ url_for('about') }}#amanda-rice">
                 <span class="new-provider-note__initials" aria-hidden="true">AR</span>
@@ -233,15 +233,12 @@
                 <div><dt>Parking</dt><dd>Free with validation</dd></div>
             </dl>
             <div class="button-group">
-                <a href="https://maps.google.com/?q=3908+Tennessee+Avenue+Suite+102+Chattanooga+TN+37409" class="button button--dark" target="_blank" rel="noopener noreferrer">Get Directions {{ ui.arrow_icon() }}</a>
+                <a href="{{ google_maps_url }}" class="button button--dark" target="_blank" rel="noopener noreferrer">Get Directions {{ ui.arrow_icon() }}</a>
                 <a href="{{ url_for('contact') }}" class="text-link">Contact details</a>
             </div>
         </div>
-        <div class="location-preview__art" aria-hidden="true">
-            <span class="location-preview__route"></span>
-            <span class="location-preview__pin">JFM</span>
-            <span class="location-preview__street">Tennessee Avenue</span>
-            <span class="location-preview__cross"></span>
+        <div class="location-preview__map reveal">
+            {{ ui.clinic_map(google_maps_embed_url) }}
         </div>
     </div>
 </section>

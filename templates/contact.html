@@ -31,7 +31,7 @@
                         </p>
                         <p>
                             <strong>Fax</strong><br>
-                            (423) 380-7154
+                            Call for number
                         </p>
                         <p>
                             <strong>Email</strong><br>
@@ -69,9 +69,7 @@
         <div class="content-panel">
             <p class="eyebrow">Find us</p>
             <h2>Location map</h2>
-            <div class="map-frame">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2747.9332455899803!2d-85.32976680020562!3d35.01016529725879!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x88605c46975dc4d3%3A0x83651eee25e9187b!2s3908%20Tennessee%20Ave%2C%20Chattanooga%2C%20TN%2037409!5e0!3m2!1sen!2sus!4v1747843961849!5m2!1sen!2sus" width="600" height="450" title="Map showing Jenks Family Medicine at 3908 Tennessee Avenue in Chattanooga" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-            </div>
+            {{ ui.clinic_map(google_maps_embed_url) }}
         </div>
 
         <div class="notice">
