@@ -115,6 +115,37 @@ def test_maps_point_at_the_clinic_business_listing(client):
     assert b"location-preview__art" not in home
 
 
+def test_parking_instructions_no_longer_mention_validation(client):
+    contact = client.get("/contact").data
+
+    assert (
+        b"Free parking is available during office hours of 8:00 AM - 4:00 PM "
+        b"for patients and their families."
+    ) in contact
+    for retired in (b"QR code", b"validation code", b"license plate"):
+        assert retired not in contact
+    assert b"Free with validation" not in client.get("/").data
+
+
+def test_secure_communication_points_to_phone_and_portal(client):
+    body = client.get("/contact").data
+    section = body.split(b"<h2>Secure communication</h2>", 1)[1].split(b"</div>", 1)[0]
+
+    assert b"contact us via phone using the information provided on this page" in section
+    assert b"phone or email" not in section
+    assert b"please call our office or use our secure" in section
+    assert b"Patient Portal</a>" in section
+
+
+def test_dot_follow_up_pricing(client):
+    body = client.get("/services-insurance").data
+
+    assert b"Certified FMCSA exams ($120*)." in body
+    assert b'DOT Follow-Up After "Determination Pending" Status:</strong> ($40*).' in body
+    assert b"complete re-exam per FMCSA regulations, which is a $120* fee." in body
+    assert b"$35" not in body
+
+
 def test_betsy_is_removed_from_the_public_team(client):
     body = client.get("/about").data
 
