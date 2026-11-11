@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "flask-dev",
-      "runtimeExecutable": "python3",
+      "runtimeExecutable": "python3.11",
       "runtimeArgs": ["app.py"],
       "port": 5000,
       "autoPort": true
